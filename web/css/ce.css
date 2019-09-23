@@ -1,0 +1,125 @@
+body {
+    line-height: 2em;
+    margin: 0px;
+    background-color: #282828;
+    font-family: arial, helvetica, sans-serif;
+    color: #fffdef;
+    /*font-size: 18px*/
+}
+
+.header {
+    width: 100%;
+    height: 70px;
+    background-color: #141313;
+}
+
+.header .header_home_btn {
+    z-index:1001;
+    text-align:center;
+    position: absolute;
+    margin: 25px 0px 0px 60px;
+    /*width: 100px;*/
+    line-height: 35px;
+    background-repeat: no-repeat;
+    background-position: right center;
+    _background-image: none;
+    font-size: 24px;
+    /*background-color: #666666;*/
+    float: left;
+}
+
+.header .header_home_btn img{
+    text-align: center;
+    width: 40px;
+    height: 40px;
+}
+
+.header .header_home_btn a {
+    color: #fffdef;
+    text-decoration: none;
+    -webkit-transition-property: color;
+    -moz-transition-property: color;
+    -o-transition-property: color;
+    transition-property: color;
+    -webkit-transition-duration: .2s;
+    -webkit-transition-timing-function: ease-in;
+    -moz-transition-duration: .2s;
+    -moz-transition-timing-function: ease-in;
+    -o-transition-duration: .2s;
+    -o-transition-timing-function: ease-in;
+    transition-duration: .2s;
+    transition-timing-function: ease-in
+}
+
+.header .header_home_btn a:hover {
+    color: #505555;
+    transition-duration: .1s;
+}
+
+
+.header .header_product_btn {
+    z-index:100;
+    text-align:center;
+    position: absolute;
+    margin: 25px 0px 0px 100px;
+    line-height: 35px;
+    background-repeat: no-repeat;
+    background-position: right center;
+    _background-image: none;
+}
+
+.header .header_product_btn ul {
+    margin: 0px;
+    float: left;
+    list-style: none;
+}
+
+.header .header_product_btn ul li {
+    /*margin-top: 26px;*/
+    margin-left: 40px;
+    float: left;
+}
+
+.header  .header_product_btn ul li:hover {
+    color: #505555;
+    /*background-color: #505555;*/
+    transition-duration: .1s;
+    /*border-radius: 5px 5px 5px 5px;*/
+}
+
+@-webkit-keyframes roll /*roll旋转名称与上面一致*/
+{
+    0% {-webkit-transform:rotate(0deg);}
+    100% {-webkit-transform:rotate(360deg);}
+}
+
+.header .header_product_btn ul li ul {
+    width: 120px;
+    text-align: left;
+    position: absolute;
+    list-style: none;
+    background: #0b090f;
+    color: #ffffff;
+    display: none;
+}
+
+.header .header_product_btn ul li:hover ul {
+    display: block;
+    /*-webkit-animation:roll 1s ease;!*roll 旋转名称，1s旋转效果 *!*/
+}
+.header .header_product_btn ul li ul li{
+    margin: 10px ;
+    float: left;
+}
+
+.header .header_product_btn ul li ul li.a1{
+    margin: 10px ;
+    float: left;
+}
+
+.header .header_product_btn ul li ul li .homebtn {
+    background-color: #abc5c2;
+    width: 100px;
+    height: 50px;
+}
+
