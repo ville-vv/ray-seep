@@ -4,6 +4,8 @@
 // main
 package main
 
-func main() {
+import "ray-seep/ray-seep/server"
 
+func main() {
+	server.Start()
 }
