@@ -37,14 +37,19 @@ func (cs *CustomerMng) Connect(conn conn.Conn) error {
 	msgMng := mng.NewMsgTransfer(conn)
 	authMsg := msg.Message{}
 	if err := msgMng.RecvMsg(&authMsg); err != nil {
-		vlog.ERROR("接收客户端消息错误：%v", err)
+		vlog.ERROR("receive client auth message error：%v", err)
 		return err
 	}
 	if authMsg.Cmd != "auth" {
-		return errors.New("authentication fail")
+		return errors.New("client authentication fail")
 	}
-	cs.connMng.Put(conn.Id(), conn)
-	cs.msgMng.Put(conn.Id(), msgMng)
+
+	// 权限认证成功即可放入连接池中
+	if err := cs.connMng.Put(conn.Id(), conn); err != nil {
+		return err
+	}
+	// 建立消息管理器
+	//cs.msgMng.Put(conn.Id(), msgMng)
 	vlog.INFO("客户端链接成功：%v", conn.RemoteAddr())
 	return nil
 }
@@ -56,18 +61,20 @@ func (cs *CustomerMng) DisConnect(id int64) {
 }
 
 func (cs *CustomerMng) Handler(c conn.Conn) {
-	msgMng, ok := cs.msgMng.Get(c.Id())
+	connMsg, ok := cs.connMng.Get(c.Id())
 	if !ok {
 		t := time.NewTicker(time.Second * 2)
 		select {
 		case <-t.C:
-			msgMng, ok = cs.msgMng.Get(c.Id())
+			connMsg, ok = cs.connMng.Get(c.Id())
 			if !ok {
-				vlog.ERROR("无法获取到消息管理器 cid：%d , addr %s", c.Id(), c.RemoteAddr())
+				vlog.ERROR("无法获取到链接管理 cid：%d , addr %s", c.Id(), c.RemoteAddr())
 				return
 			}
 		}
 	}
+
+	msgMng := mng.NewMsgTransfer(connMsg)
 	wait := sync.WaitGroup{}
 	recvMsg := make(chan msg.Message)
 	cancel := make(chan msg.Message)

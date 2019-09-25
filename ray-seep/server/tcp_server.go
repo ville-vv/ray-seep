@@ -17,14 +17,14 @@ type ControlServer struct {
 	addr             string
 	timeout          time.Duration
 	startConnTimeout time.Duration
-	connMng          cust.Manager
+	csMng            cust.Manager
 }
 
 func NewControlServer() *ControlServer {
 	return &ControlServer{
 		startConnTimeout: time.Second * 15,
 		timeout:          time.Second * 15,
-		connMng:          cust.NewCustomerMng(),
+		csMng:            cust.NewCustomerMng(),
 		addr:             ":30080",
 	}
 }
@@ -34,12 +34,13 @@ func (f *ControlServer) Start() {
 	if err != nil {
 		panic(err)
 	}
-	vlog.INFO("服务启动：")
+	vlog.INFO("ControlServer start [%s]", f.addr)
 	for c := range lis.Conn {
 		f.dealConn(c)
 	}
 }
 
+// dealConn 处理连接
 func (f *ControlServer) dealConn(conn conn.Conn) {
 	go func() {
 		defer func() {
@@ -49,13 +50,13 @@ func (f *ControlServer) dealConn(conn conn.Conn) {
 		}()
 		_ = conn.SetReadDeadline(time.Now().Add(f.startConnTimeout))
 		vlog.INFO("客户端正在链接：%v", conn.RemoteAddr())
-		if err := f.connMng.Connect(conn); err != nil {
+		if err := f.csMng.Connect(conn); err != nil {
 			vlog.LogE("client %v connect fail %v", conn.RemoteAddr(), err)
 			conn.Close()
 			return
 		}
 		conn.SetReadDeadline(time.Time{})
-		f.connMng.Handler(conn)
-		f.connMng.DisConnect(conn.Id())
+		f.csMng.Handler(conn)
+		f.csMng.DisConnect(conn.Id())
 	}()
 }

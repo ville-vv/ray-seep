@@ -10,14 +10,8 @@ import (
 	"hash/crc32"
 )
 
-const MaxFrameBytes = 1024 * 1024
+// 协议版本
 const version = uint8(1)
-
-// Crc32CheckSum 数据正确性校验
-func Crc32CheckSum(str string) uint32 {
-	key := crc32.ChecksumIEEE([]byte(str))
-	return key
-}
 
 type Frame struct {
 	Cmd  uint32
