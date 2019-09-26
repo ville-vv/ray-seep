@@ -5,6 +5,7 @@
 package server
 
 import (
+	"ray-seep/ray-seep/node"
 	"ray-seep/ray-seep/server/http"
 	"vilgo/vlog"
 )
@@ -15,7 +16,7 @@ type Server struct {
 func Start() {
 	vlog.DefaultLogger()
 	go func() {
-		control := NewControlServer()
+		control := node.NewConnServer()
 		control.Start()
 	}()
 	hserver := http.NewServer()

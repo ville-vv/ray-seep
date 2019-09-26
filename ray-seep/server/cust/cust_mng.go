@@ -6,18 +6,18 @@ package cust
 
 import (
 	"errors"
+	"ray-seep/ray-seep/common/pkg"
 	"ray-seep/ray-seep/conn"
 	"ray-seep/ray-seep/mng"
-	"ray-seep/ray-seep/msg"
+	"ray-seep/ray-seep/session"
 	"sync"
-	"time"
 	"vilgo/vlog"
 )
 
-type Manager interface {
+type Handler interface {
 	Connect(conn.Conn) error
 	Handler(conn.Conn)
-	DisConnect(int64)
+	DisConnect(id int64)
 }
 
 // 客户连接管理
@@ -35,13 +35,19 @@ func NewCustomerMng() *CustomerMng {
 
 func (cs *CustomerMng) Connect(conn conn.Conn) error {
 	msgMng := mng.NewMsgTransfer(conn)
-	authMsg := msg.Message{}
+	authMsg := pkg.Package{}
 	if err := msgMng.RecvMsg(&authMsg); err != nil {
 		vlog.ERROR("receive client auth message error：%v", err)
 		return err
 	}
+
 	if authMsg.Cmd != "auth" {
 		return errors.New("client authentication fail")
+	}
+	// 发送验证通过消息
+
+	if err := msgMng.SendMsg(pkg.NewPackage("", &session.LoginRsp{Id: conn.Id(), Token: "abc"})); err != nil {
+		return errors.New("client authentication result send fail")
 	}
 
 	// 权限认证成功即可放入连接池中
@@ -50,43 +56,34 @@ func (cs *CustomerMng) Connect(conn conn.Conn) error {
 	}
 	// 建立消息管理器
 	//cs.msgMng.Put(conn.Id(), msgMng)
-	vlog.INFO("客户端链接成功：%v", conn.RemoteAddr())
+	vlog.INFO("client [%d] connect success", conn.Id())
 	return nil
 }
 
 func (cs *CustomerMng) DisConnect(id int64) {
-	vlog.INFO("客户端断开 cid：%d", id)
-	cs.msgMng.Delete(id)
+	vlog.INFO("client exit [%d]", id)
 	cs.connMng.Delete(id)
 }
 
 func (cs *CustomerMng) Handler(c conn.Conn) {
-	connMsg, ok := cs.connMng.Get(c.Id())
-	if !ok {
-		t := time.NewTicker(time.Second * 2)
-		select {
-		case <-t.C:
-			connMsg, ok = cs.connMng.Get(c.Id())
-			if !ok {
-				vlog.ERROR("无法获取到链接管理 cid：%d , addr %s", c.Id(), c.RemoteAddr())
-				return
-			}
-		}
+	if _, ok := cs.connMng.Get(c.Id()); !ok {
+		cs.connMng.Put(c.Id(), c)
 	}
-
-	msgMng := mng.NewMsgTransfer(connMsg)
+	msgMng := mng.NewMsgTransfer(c)
 	wait := sync.WaitGroup{}
-	recvMsg := make(chan msg.Message)
-	cancel := make(chan msg.Message)
+	recvMsg := make(chan pkg.Package)
+	cancel := make(chan pkg.Package)
 	msgMng.RecvMsgWithChan(&wait, recvMsg, cancel)
 	wait.Wait()
 	for {
 		select {
 		case m := <-recvMsg:
-			vlog.INFO("收到客户端[%d]消息：%v", msgMng.Id(), m)
-		case m := <-cancel:
-			vlog.INFO("客户端[%d]退出：%d", msgMng.Id(), m)
+			vlog.DEBUG("[%d] [action] [%v]", c.Id(), m.Cmd)
+		case <-cancel:
 			return
 		}
 	}
+}
+
+func (cs *CustomerMng) CmdHandler(pkg pkg.Package) {
 }

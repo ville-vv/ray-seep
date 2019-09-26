@@ -2,12 +2,14 @@
 // @Author   : Ville
 // @Time     : 19-9-24 上午11:25
 // msg
-package msg
+package pkg
 
 import (
 	"encoding/binary"
 	"errors"
+	jsoniter "github.com/json-iterator/go"
 	"hash/crc32"
+	"reflect"
 )
 
 // 协议版本
@@ -46,4 +48,38 @@ func (f *Frame) UnPack(data []byte) error {
 		return errors.New("frame check sum error")
 	}
 	return nil
+}
+
+type Package struct {
+	Cmd  string      `json:"cmd"`
+	Body interface{} `json:"body"`
+}
+
+func NewPackage(cmd string, body interface{}) *Package {
+	if cmd == "" {
+		cmd = reflect.TypeOf(body).Elem().Name()
+	}
+	return &Package{Cmd: cmd, Body: body}
+}
+
+func UnPack(data []byte, pkg *Package) (err error) {
+	frame := Frame{}
+	if err = frame.UnPack(data); err != nil {
+		return
+	}
+	if len(frame.Body) > 0 {
+		if err = jsoniter.Unmarshal(frame.Body, pkg); err != nil {
+			return
+		}
+	}
+	return
+}
+
+func Pack(pkg *Package) (data []byte, err error) {
+	frame := Frame{}
+	frame.Body, err = jsoniter.Marshal(pkg)
+	if err != nil {
+		return nil, err
+	}
+	return frame.Pack(), nil
 }

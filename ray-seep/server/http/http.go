@@ -5,6 +5,7 @@
 package http
 
 import (
+	"ray-seep/ray-seep/common/rayhttp"
 	"ray-seep/ray-seep/conn"
 	"vilgo/vlog"
 )
@@ -30,11 +31,16 @@ func (s *Server) Start() {
 }
 
 func (s *Server) dealConn(c conn.Conn) {
-	vlog.INFO("收到请求：%s", c.RemoteAddr())
-	headConn, err := NewCopyHttp(c)
+	vlog.DEBUG("client request： %s", c.RemoteAddr())
+	// 请求连接转为http协议
+	copyHttp, err := rayhttp.NewCopyHttp(c)
 	if err != nil {
-		headConn.SayBack(400, []byte("error "))
+		vlog.ERROR("%v", err)
+		copyHttp.SayBackText(400, []byte("Bad Request"))
 		return
 	}
-	headConn.SayBack(200, []byte("success"))
+	vlog.DEBUG("request host is [%s]", copyHttp.Host())
+	copyHttp.SayBackText(200, []byte("收到请求，请求转发尚未完成开发......"))
+	c = conn.TurnConn(copyHttp)
+	// 根据host 获取  proxy 转发
 }

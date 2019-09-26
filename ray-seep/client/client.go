@@ -7,9 +7,9 @@ package main
 import (
 	"io"
 	"net"
+	pkg2 "ray-seep/ray-seep/common/pkg"
 	"ray-seep/ray-seep/conn"
 	"ray-seep/ray-seep/mng"
-	"ray-seep/ray-seep/msg"
 	"time"
 	"vilgo/vlog"
 )
@@ -27,7 +27,7 @@ func main() {
 
 	go func() {
 		for {
-			var pkg msg.Message
+			var pkg pkg2.Package
 			vlog.INFO("等待接受消息：")
 			if err := msgMng.RecvMsg(&pkg); err != nil {
 				if err == io.EOF {
@@ -41,7 +41,7 @@ func main() {
 		}
 
 	}()
-	auth := &msg.Message{
+	auth := &pkg2.Package{
 		Cmd: "auth",
 	}
 	if err := msgMng.SendMsg(auth); err != nil {
@@ -49,7 +49,7 @@ func main() {
 		return
 	}
 
-	ping := &msg.Message{
+	ping := &pkg2.Package{
 		Cmd: "ping",
 	}
 

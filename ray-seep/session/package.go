@@ -2,7 +2,7 @@
 // @Author   : Ville
 // @Time     : 19-9-24 下午3:01
 // msg
-package msg
+package session
 
 type LoginReq struct {
 	Customer string `json:"customer"`
@@ -10,7 +10,8 @@ type LoginReq struct {
 }
 
 type LoginRsp struct {
-	Id int64
+	Id    int64
+	Token string
 }
 
 type Ping struct{}

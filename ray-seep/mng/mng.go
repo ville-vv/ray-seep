@@ -8,8 +8,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
+	"ray-seep/ray-seep/common/pkg"
 	"ray-seep/ray-seep/conn"
-	"ray-seep/ray-seep/msg"
 	"sync"
 	"time"
 	"vilgo/vlog"
@@ -66,6 +66,11 @@ func (cm *ConnManager) Delete(key int64) {
 	}
 }
 
+type Receiver interface {
+	RecvMsg(p *pkg.Package) (err error)
+	RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- pkg.Package, cancel chan<- pkg.Package)
+}
+
 type receiver struct {
 	r io.Reader
 }
@@ -99,13 +104,39 @@ func (c *receiver) recvForPkg() (buf []byte, err error) {
 	return
 }
 
-func (c *receiver) RecvMsg(pkg *msg.Message) (err error) {
+func (c *receiver) RecvMsg(p *pkg.Package) (err error) {
 	buf, err := c.recvForPkg()
 	if err != nil {
 		return
 	}
 	// 解包
-	return msg.UnPack(buf, pkg)
+	return pkg.UnPack(buf, p)
+
+}
+
+// RecvMsgWithChan 开启一个协程 使用 chan 来接收定义好格式的消息
+func (c *receiver) RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- pkg.Package, cancel chan<- pkg.Package) {
+	wait.Add(1)
+	go func() {
+		wait.Done()
+		for {
+			var m pkg.Package
+			if err := c.RecvMsg(&m); err != nil {
+				if err == io.EOF {
+					cancel <- pkg.Package{Cmd: "quit"}
+					return
+				}
+				continue
+			}
+			mCh <- m
+		}
+	}()
+	return
+}
+
+type Sender interface {
+	SendMsg(p *pkg.Package) (err error)
+	SendMsgWithChan(wait *sync.WaitGroup, mch <-chan pkg.Package, t time.Duration)
 }
 
 type sender struct {
@@ -129,8 +160,8 @@ func (c *sender) sendForPkg(data []byte) (err error) {
 }
 
 // SendMsg 发送消息
-func (c *sender) SendMsg(pkg *msg.Message) (err error) {
-	data, err := msg.Pack(pkg)
+func (c *sender) SendMsg(p *pkg.Package) (err error) {
+	data, err := pkg.Pack(p)
 	if err != nil {
 		vlog.ERROR("Pack message error %v", err)
 		return
@@ -138,88 +169,15 @@ func (c *sender) SendMsg(pkg *msg.Message) (err error) {
 	return c.sendForPkg(data)
 }
 
-// 消息管理
-type MsgTransfer struct {
-	cn conn.Conn
-	receiver
-	sender
-	cid          int64
-	sequence     uint32
-	stopCh       chan int32
-	readTimeout  time.Duration
-	writeTimeout time.Duration
-	bytePool     sync.Pool
-	isRecvStart  bool
-	isSendStart  bool
-}
-
-func NewMsgTransfer(c conn.Conn) *MsgTransfer {
-	return &MsgTransfer{
-		cn:           c,
-		receiver:     receiver{r: c},
-		sender:       sender{w: c},
-		stopCh:       make(chan int32),
-		readTimeout:  time.Second * 10,
-		writeTimeout: time.Second * 10,
-		bytePool: sync.Pool{
-			New: func() interface{} {
-				b := make([]byte, maxBytesCachePool)
-				return &b
-			},
-		},
-	}
-}
-
-func (c *MsgTransfer) SetReader(reader io.Reader) {
-	c.r = reader
-}
-
-func (c *MsgTransfer) SetWriter(writer io.Writer) {
-	c.w = writer
-}
-
-func (c *MsgTransfer) Id() int64 {
-	return c.cn.Id()
-}
-
-// RecvMsgWithChan 开启一个协程 使用 chan 来接收定义好格式的消息
-func (c *MsgTransfer) RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- msg.Message, cancel chan<- msg.Message) {
-	wait.Add(1)
-	go func() {
-		wait.Done()
-		for {
-			select {
-			case <-c.stopCh:
-				return
-			default:
-				var m msg.Message
-				if err := c.RecvMsg(&m); err != nil {
-					if err == io.EOF {
-						cancel <- msg.Message{Cmd: "", Body: c.cid}
-						return
-					}
-					continue
-				}
-				select {
-				case <-c.stopCh:
-					return
-				default:
-					mCh <- m
-				}
-			}
-		}
-	}()
-	return
-}
-
 // SendMsgWithChan 开启一个协程 使用 chan 发送定义好格式的消息
-func (c *MsgTransfer) SendMsgWithChan(wait *sync.WaitGroup, mch <-chan msg.Message) {
+func (c *sender) SendMsgWithChan(wait *sync.WaitGroup, mch <-chan pkg.Package, t time.Duration) {
 	wait.Add(1)
 	go func() {
+		tk := time.NewTicker(t)
 		wait.Done()
 		for {
 			select {
-			case <-c.stopCh:
+			case <-tk.C:
 				return
 			case mch, ok := <-mch:
 				if !ok {
@@ -233,25 +191,56 @@ func (c *MsgTransfer) SendMsgWithChan(wait *sync.WaitGroup, mch <-chan msg.Messa
 	}()
 }
 
+type MsgTransfer interface {
+	Receiver
+	Sender
+}
+
+// 消息管理
+type msgTransfer struct {
+	Receiver
+	Sender
+	readTimeout  time.Duration
+	writeTimeout time.Duration
+	bytePool     sync.Pool
+	isRecvStart  bool
+	isSendStart  bool
+}
+
+func NewMsgTransfer(c conn.Conn) *msgTransfer {
+	return &msgTransfer{
+		Receiver:     &receiver{r: c},
+		Sender:       &sender{w: c},
+		readTimeout:  time.Second * 10,
+		writeTimeout: time.Second * 10,
+		bytePool: sync.Pool{
+			New: func() interface{} {
+				b := make([]byte, maxBytesCachePool)
+				return &b
+			},
+		},
+	}
+}
+
 type MsgManager struct {
-	cuMap map[int64]*MsgTransfer
+	cuMap map[int64]MsgTransfer
 	sync.RWMutex
 }
 
 func NewMsgManager() *MsgManager {
 	return &MsgManager{
-		cuMap: make(map[int64]*MsgTransfer),
+		cuMap: make(map[int64]MsgTransfer),
 	}
 }
 
-func (cm *MsgManager) Put(key int64, cu *MsgTransfer) error {
+func (cm *MsgManager) Put(key int64, cu MsgTransfer) error {
 	cm.Lock()
 	defer cm.Unlock()
 	cm.cuMap[key] = cu
 	return nil
 }
 
-func (cm *MsgManager) Get(key int64) (*MsgTransfer, bool) {
+func (cm *MsgManager) Get(key int64) (MsgTransfer, bool) {
 	cm.RLock()
 	defer cm.RUnlock()
 	cu, ok := cm.cuMap[key]
