@@ -2,21 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ec129147-6627-4ccf-a857-8605e0561007" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/ray-seep/common/pkg/command.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ray-seep/common/pkg/proto.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ray-seep/common/util/util.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ray-seep/node/adopter.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ray-seep/server/proxy/proxy.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/client/client.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/client/client.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/common/pkg/pkg.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/common/pkg/pkg.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/common/pkg/pkg_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/common/pkg/pkg_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/common/util.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/mng/mng.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/mng/mng.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ray-seep/node/connServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/node/connServer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/node/node.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/node/node.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/node/pod.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/node/pod.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/server/cust/cust_mng.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/server/cust/cust_mng.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ray-seep/server/proxy/proxy.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/server/proxy/proxy.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -29,23 +16,29 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ray-seep/node/connServer.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="380">
+            <state relative-caret-position="510">
               <caret line="84" column="55" selection-start-line="84" selection-start-column="55" selection-end-line="84" selection-end-column="55" />
               <folding>
                 <element signature="e#265#407#0" />
                 <element signature="e#425#502#0" />
                 <element signature="n#!!block;n#NewConnServer#0" />
-                <element signature="n#!!block;n#Start#0" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ray-seep/common/pkg/command.go">
+        <entry file="file://$PROJECT_DIR$/ray-seep/conn/conn.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="384">
-              <caret line="16" column="40" selection-start-line="16" selection-start-column="40" selection-end-line="16" selection-end-column="40" />
+            <state relative-caret-position="487">
+              <caret line="43" column="5" selection-start-line="43" selection-start-column="5" selection-end-line="43" selection-end-column="5" />
+              <folding>
+                <element signature="e#96#127#0" expanded="true" />
+                <element signature="e#190#221#0" />
+                <element signature="n#!!block;n#newConnUnit#0" />
+                <element signature="n#!!block;n#Id#0" />
+                <element signature="e#479#520#0" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -53,7 +46,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ray-seep/node/node.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="462">
+            <state relative-caret-position="600">
               <caret line="41" column="10" selection-start-line="41" selection-start-column="10" selection-end-line="41" selection-end-column="10" />
               <folding>
                 <element signature="e#93#232#0" expanded="true" />
@@ -118,12 +111,23 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/ray-seep/server/proxy/proxy.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="288">
-              <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
+            <state relative-caret-position="510">
+              <caret line="68" column="16" lean-forward="true" selection-start-line="68" selection-start-column="16" selection-end-line="68" selection-end-column="16" />
               <folding>
-                <element signature="e#108#125#0" />
+                <element signature="e#96#157#0" expanded="true" />
                 <element signature="n#!!block;n#NewServer#0" />
+                <element signature="n#!!block;n#Start#0" />
+                <element signature="e#504#576#0" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ray-seep/node/handler.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="120">
+              <caret line="5" selection-start-line="5" selection-end-line="5" />
             </state>
           </provider>
         </entry>
@@ -151,15 +155,6 @@
                 <element signature="e#99#120#0" expanded="true" />
                 <element signature="n#!!block;n#TestFrame_Pack#0" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ray-seep/run/server/main.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="216">
-              <caret line="9" column="14" selection-start-line="9" selection-start-column="14" selection-end-line="9" selection-end-column="14" />
             </state>
           </provider>
         </entry>
@@ -243,13 +238,13 @@
         <option value="$PROJECT_DIR$/ray-seep/common/pkg/pkg_test.go" />
         <option value="$PROJECT_DIR$/ray-seep/server/cust/cust_mng.go" />
         <option value="$PROJECT_DIR$/ray-seep/common/pkg/command.go" />
-        <option value="$PROJECT_DIR$/ray-seep/node/connServer.go" />
         <option value="$PROJECT_DIR$/ray-seep/client/client.go" />
         <option value="$PROJECT_DIR$/ray-seep/node/host_mng.go" />
         <option value="$PROJECT_DIR$/ray-seep/node/pod.go" />
         <option value="$PROJECT_DIR$/ray-seep/node/host-msg.go" />
         <option value="$PROJECT_DIR$/ray-seep/node/adopter.go" />
         <option value="$PROJECT_DIR$/ray-seep/node/node.go" />
+        <option value="$PROJECT_DIR$/ray-seep/node/connServer.go" />
         <option value="$PROJECT_DIR$/ray-seep/server/proxy/proxy.go" />
       </list>
     </option>
@@ -276,6 +271,18 @@
               <item name="ray-seep" type="b2602c69:ProjectViewProjectNode" />
               <item name="ray-seep" type="462c0819:PsiDirectoryNode" />
               <item name="ray-seep" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="ray-seep" type="b2602c69:ProjectViewProjectNode" />
+              <item name="ray-seep" type="462c0819:PsiDirectoryNode" />
+              <item name="ray-seep" type="462c0819:PsiDirectoryNode" />
+              <item name="conn" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="ray-seep" type="b2602c69:ProjectViewProjectNode" />
+              <item name="ray-seep" type="462c0819:PsiDirectoryNode" />
+              <item name="ray-seep" type="462c0819:PsiDirectoryNode" />
+              <item name="node" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="ray-seep" type="b2602c69:ProjectViewProjectNode" />
@@ -432,13 +439,14 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="67" y="25" width="1853" height="1055" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.13795014" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.13795014" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.24149287" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.2107574" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.38748628" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.36663008" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -649,13 +657,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ray-seep/node/handler.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="5" selection-start-line="5" selection-end-line="5" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ray-seep/server/cust/customer.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="264">
@@ -675,21 +676,6 @@
             <element signature="n#!!block;n#SayBackText#0" />
             <element signature="n#!!block;n#Host#0" />
             <element signature="n#!!block;n#RemoteHost#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ray-seep/conn/conn.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="222">
-          <caret line="11" column="5" selection-start-line="11" selection-start-column="5" selection-end-line="11" selection-end-column="5" />
-          <folding>
-            <element signature="e#96#127#0" expanded="true" />
-            <element signature="e#190#221#0" />
-            <element signature="n#!!block;n#newConnUnit#0" />
-            <element signature="n#!!block;n#Id#0" />
-            <element signature="e#479#520#0" />
-            <element signature="n#!!block;n#Listen#0" />
           </folding>
         </state>
       </provider>
@@ -800,19 +786,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ray-seep/node/connServer.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="380">
-          <caret line="84" column="55" selection-start-line="84" selection-start-column="55" selection-end-line="84" selection-end-column="55" />
-          <folding>
-            <element signature="e#265#407#0" />
-            <element signature="e#425#502#0" />
-            <element signature="n#!!block;n#NewConnServer#0" />
-            <element signature="n#!!block;n#Start#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ray-seep/server/cust/cust_mng.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="24">
@@ -873,21 +846,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ray-seep/node/node.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="462">
-          <caret line="41" column="10" selection-start-line="41" selection-start-column="10" selection-end-line="41" selection-end-column="10" />
-          <folding>
-            <element signature="e#93#232#0" expanded="true" />
-            <element signature="e#363#504#0" />
-            <element signature="n#!!block;n#NewNode#0" />
-            <element signature="n#!!block;n#Make#0" />
-            <element signature="n#!!block;n#GetPod#0" />
-            <element signature="n#!!block;n#AddPod#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ray-seep/node/pod.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="441">
@@ -913,13 +871,63 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/ray-seep/conn/conn.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="487">
+          <caret line="43" column="5" selection-start-line="43" selection-start-column="5" selection-end-line="43" selection-end-column="5" />
+          <folding>
+            <element signature="e#96#127#0" expanded="true" />
+            <element signature="e#190#221#0" />
+            <element signature="n#!!block;n#newConnUnit#0" />
+            <element signature="n#!!block;n#Id#0" />
+            <element signature="e#479#520#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ray-seep/node/connServer.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="510">
+          <caret line="84" column="55" selection-start-line="84" selection-start-column="55" selection-end-line="84" selection-end-column="55" />
+          <folding>
+            <element signature="e#265#407#0" />
+            <element signature="e#425#502#0" />
+            <element signature="n#!!block;n#NewConnServer#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ray-seep/node/node.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="600">
+          <caret line="41" column="10" selection-start-line="41" selection-start-column="10" selection-end-line="41" selection-end-column="10" />
+          <folding>
+            <element signature="e#93#232#0" expanded="true" />
+            <element signature="e#363#504#0" />
+            <element signature="n#!!block;n#NewNode#0" />
+            <element signature="n#!!block;n#Make#0" />
+            <element signature="n#!!block;n#GetPod#0" />
+            <element signature="n#!!block;n#AddPod#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ray-seep/node/handler.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="5" selection-start-line="5" selection-end-line="5" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/ray-seep/server/proxy/proxy.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
+        <state relative-caret-position="510">
+          <caret line="68" column="16" lean-forward="true" selection-start-line="68" selection-start-column="16" selection-end-line="68" selection-end-column="16" />
           <folding>
-            <element signature="e#108#125#0" />
+            <element signature="e#96#157#0" expanded="true" />
             <element signature="n#!!block;n#NewServer#0" />
+            <element signature="n#!!block;n#Start#0" />
+            <element signature="e#504#576#0" />
           </folding>
         </state>
       </provider>
