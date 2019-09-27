@@ -41,12 +41,12 @@ func (cs *CustomerMng) Connect(conn conn.Conn) error {
 		return err
 	}
 
-	if authMsg.Cmd != "auth" {
+	if authMsg.Cmd != pkg.CmdIdentifyReq {
 		return errors.New("client authentication fail")
 	}
 	// 发送验证通过消息
 
-	if err := msgMng.SendMsg(pkg.NewPackage("", &session.LoginRsp{Id: conn.Id(), Token: "abc"})); err != nil {
+	if err := msgMng.SendMsg(pkg.NewPackage(pkg.CmdIdentifyRsp, &session.LoginRsp{Id: conn.Id(), Token: "abc"})); err != nil {
 		return errors.New("client authentication result send fail")
 	}
 

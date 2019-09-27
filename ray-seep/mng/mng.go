@@ -123,7 +123,7 @@ func (c *receiver) RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- pkg.Package,
 			var m pkg.Package
 			if err := c.RecvMsg(&m); err != nil {
 				if err == io.EOF {
-					cancel <- pkg.Package{Cmd: "quit"}
+					cancel <- pkg.Package{}
 					return
 				}
 				continue

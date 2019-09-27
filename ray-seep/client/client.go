@@ -37,21 +37,17 @@ func main() {
 				vlog.LogE("发生错误：%v", err)
 				continue
 			}
-			vlog.INFO("收到的消息：%v", pkg)
+			vlog.INFO("收到的消息 cmd[%d] body:%s", pkg.Cmd, string(pkg.Body))
 		}
 
 	}()
-	auth := &pkg2.Package{
-		Cmd: "auth",
-	}
+	auth := pkg2.New(pkg2.CmdIdentifyReq, []byte(""))
 	if err := msgMng.SendMsg(auth); err != nil {
 		vlog.ERROR("Write auth message error %v", err)
 		return
 	}
 
-	ping := &pkg2.Package{
-		Cmd: "ping",
-	}
+	ping := pkg2.New(pkg2.CmdPing, []byte("星跳"))
 
 	for {
 		sendT := time.NewTicker(time.Second * 3)

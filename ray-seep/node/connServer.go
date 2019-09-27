@@ -15,9 +15,9 @@ import (
 )
 
 type IConnServerHandler interface {
-	OnConnect(id int64, sender mng.Sender)
+	OnConnect(id int64, tr mng.MsgTransfer) error
 	OnDisConnect(id int64)
-	OnHandler(id int64, p pkg.Package, sender mng.Sender)
+	OnMessage(id int64, p *pkg.Package) (pkg.Package, error)
 }
 
 type ConnServer struct {
@@ -30,7 +30,7 @@ func NewConnServer() *ConnServer {
 	return &ConnServer{
 		timeout: time.Second * 15,
 		addr:    ":30080",
-		ish:     NewAdopterNode(),
+		ish:     NewAdopterPod(),
 	}
 }
 
@@ -48,35 +48,43 @@ func (sel *ConnServer) Start() error {
 
 // dealConn 处理连接
 func (sel *ConnServer) dealConn(c conn.Conn) {
+	vlog.DEBUG("customer [%d] connecting ", c.Id())
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
 				vlog.LogE("customer listener failed with error %v: %s", r, debug.Stack())
 			}
 		}()
-
+		defer c.Close()
 		// 刚刚建立连接需要设置超时时间
 		_ = c.SetReadDeadline(time.Now().Add(sel.timeout))
-
-		cid := c.Id()
-
-		vlog.INFO("customer [%d] connecting ", cid)
 		msgMng := mng.NewMsgTransfer(c)
-		// 通知有连接进来
-		sel.ish.OnConnect(cid, msgMng)
-		_ = c.SetReadDeadline(time.Time{})
+
+		// 通知有用户连接
+		if err := sel.ish.OnConnect(c.Id(), msgMng); err != nil {
+			vlog.ERROR("customer [%d] connect fail %s", c.Id(), err.Error())
+			return
+		}
+		vlog.DEBUG("customer [%d] connect success", c.Id())
 		// 通知有连接断开
-		defer sel.ish.OnDisConnect(cid)
+		defer sel.ish.OnDisConnect(c.Id())
+		_ = c.SetReadDeadline(time.Time{})
 
 		wg := sync.WaitGroup{}
 		recvMsg := make(chan pkg.Package)
 		cancel := make(chan pkg.Package)
+		// 开启一个协程 接收消息
 		msgMng.RecvMsgWithChan(&wg, recvMsg, cancel)
 		wg.Wait()
 		for {
 			select {
-			case m := <-recvMsg:
-				sel.ish.OnHandler(cid, m, msgMng)
+			case req := <-recvMsg:
+				rsp, err := sel.ish.OnMessage(c.Id(), &req)
+				if err != nil {
+					// 执行消息出现错误
+					rsp = pkg.Package{Cmd: pkg.CmdError, Body: []byte(err.Error())}
+				}
+				msgMng.SendMsg(&rsp)
 			case <-cancel:
 				return
 			}

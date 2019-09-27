@@ -5,10 +5,7 @@
 package node
 
 import (
-	"ray-seep/ray-seep/common/pkg"
-	"ray-seep/ray-seep/mng"
 	"sync"
-	"vilgo/vlog"
 )
 
 type PodPolicyMaker interface {
@@ -44,25 +41,5 @@ func (sel *Node) GetPod() Pod {
 
 // 添加一个pod
 func (sel *Node) AddPod(p Pod) {
-	sel.pods = append(sel.pods, &p)
-}
-
-type AdopterNode struct {
-}
-
-func NewAdopterNode() *AdopterNode {
-	return &AdopterNode{}
-}
-
-func (sel *AdopterNode) OnConnect(id int64, sender mng.Sender) {
-	vlog.DEBUG("Pod connect :%d", id)
-}
-
-func (sel *AdopterNode) OnDisConnect(id int64) {
-	vlog.DEBUG("Pod disconnect :%d", id)
-}
-
-func (sel *AdopterNode) OnHandler(id int64, p pkg.Package, sender mng.Sender) {
-	vlog.DEBUG("Pod %d msg %s", id, p.Cmd)
-	sender.SendMsg(&pkg.Package{Cmd: "pong"})
+	sel.pods = append(sel.pods, p)
 }

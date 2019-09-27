@@ -29,7 +29,7 @@ func TestFrame_Pack(t *testing.T) {
 }
 
 func TestPack(t *testing.T) {
-	orgPkg := &Package{Cmd: "Login", Body: "hello"}
+	orgPkg := &Package{Cmd: 1, Body: []byte("hello")}
 	data, err := Pack(orgPkg)
 	if err != nil {
 		t.Error(err)
@@ -40,7 +40,7 @@ func TestPack(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	if orgPkg.Body != dtPkg.Body {
+	if string(orgPkg.Body) != string(dtPkg.Body) {
 		t.Error("unpack err Body not right")
 		return
 	}
