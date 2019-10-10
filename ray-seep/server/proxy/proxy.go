@@ -5,72 +5,61 @@
 package proxy
 
 import (
-	"errors"
-	"ray-seep/ray-seep/common/pkg"
 	"ray-seep/ray-seep/conn"
-	"ray-seep/ray-seep/mng"
+	"sync"
 	"time"
-	"vilgo/vlog"
 )
 
-type Server struct {
-	addr      string
-	proxyConn chan conn.Conn
+type Pool interface {
+	Push(key int64,c conn.Conn)
+	Get(key int64)(conn.Conn, bool)
 }
 
-func NewServer() *Server {
-	return &Server{
-		addr: ":39990",
-	}
+type element struct {
+	ct time.Time
+	c conn.Conn
 }
 
-func (s *Server) Start() {
-	ls, err := conn.Listen(s.addr)
-	if err != nil {
-		return
-	}
-	for c := range ls.Conn {
-		go s.dealConn(c)
-	}
+// 代理链接的缓存池
+type pool struct {
+	maxCache int64 // 最大缓存数量
+	cntCache int64 // 当前缓存数量
+	expire time.Duration // 链接到期时间
+	sync.Mutex
+	pxyConn map[int64]*element
 }
-
-func (s *Server) dealConn(cn conn.Conn) {
-	defer func() {
-		if err := recover(); err != nil {
-			vlog.DEBUG("")
-			return
+// 循环查询到期时间，到期后自动销毁
+func (p *pool)loopExpire(){
+	go func() {
+		for   {
+			for k, v := range p.pxyConn{
+				// 如果判断是否过期了
+				if v.ct.Before(time.Now().Add(-1*p.expire)){
+					p.Lock()
+					delete(p.pxyConn,k)
+					p.Unlock()
+				}
+			}
 		}
 	}()
-	tr := mng.NewMsgTransfer(cn)
-	var regProxy pkg.Package
+}
 
-	if err := tr.RecvMsg(&regProxy); err != nil {
-		cn.Close()
+func (p *pool) Push(key int64, c conn.Conn) {
+	p.Lock()
+	if p.maxCache < p.cntCache{
 		return
 	}
-
-	if regProxy.Cmd != pkg.CmdRegisterProxyReq {
-		cn.Close()
-		return
-	}
-}
-func (s *Server) SetProxy(cn conn.Conn) {
-	cn.SetDeadline(time.Now().Add(time.Second * 15))
-	select {
-	case s.proxyConn <- cn:
-	default:
-		vlog.WARN("Proxies buffer is full, discarding.")
-	}
+	p.pxyConn[key] = &element{ct: time.Now(), c:c}
+	p.Unlock()
 }
 
-func (s *Server) GetProxy() (cn conn.Conn, err error) {
-	var ok bool
-	select {
-	case cn, ok = <-s.proxyConn:
-		if !ok {
-			err = errors.New("No proxy connections available, control is closing")
-			return
-		}
+func (p *pool) Get(key int64) (conn.Conn, bool) {
+	p.Lock()
+	if c, ok :=p.pxyConn[key]; ok {
+		c.ct = time.Now()
+		return c.c, ok
 	}
-	return
+	p.Unlock()
+	return nil, false
 }
+

@@ -20,6 +20,7 @@ type IConnServerHandler interface {
 	OnMessage(id int64, p *pkg.Package) (pkg.Package, error)
 }
 
+// 处理用户的通信，接收和发送用户的操作信息
 type ConnServer struct {
 	addr    string
 	timeout time.Duration
@@ -80,7 +81,7 @@ func (sel *ConnServer) dealConn(c conn.Conn) {
 		select {
 		case req := <-recvMsg:
 			rsp, err := sel.ish.OnMessage(c.Id(), &req)
-			if err != nil {
+				if err != nil {
 				// 执行消息出现错误
 				rsp = pkg.Package{Cmd: pkg.CmdError, Body: []byte(err.Error())}
 			}

@@ -5,8 +5,8 @@
 package server
 
 import (
-	"ray-seep/ray-seep/node"
 	"ray-seep/ray-seep/server/http"
+	"ray-seep/ray-seep/server/node"
 )
 
 type RaySeepServer struct {
