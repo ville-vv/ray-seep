@@ -1,25 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b1eeb460-8284-4752-8827-dd15805747fb" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/ray-seep/server/proxy/server.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/watcherTasks.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/node/adopter.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/server/node/adopter.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/node/connServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/server/node/connServer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/node/handler.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/server/node/handler.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/node/node.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/server/node/node.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/node/pod.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/server/node/pod.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/node/proxy.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/server/node/proxy.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/server/cust/cust_mng.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/server/cust/customer.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/server/main.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/server/main_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/server/proxy/proxy.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/server/proxy/proxy.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/server/rayseep.go" beforeDir="false" afterPath="$PROJECT_DIR$/ray-seep/server/rayseep.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ray-seep/server/tcp_server.go" beforeDir="false" />
-    </list>
+    <list default="true" id="b1eeb460-8284-4752-8827-dd15805747fb" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,10 +48,12 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/ray-seep/server/proxy/proxy.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="564">
-              <caret line="34" column="12" selection-start-line="34" selection-start-column="12" selection-end-line="34" selection-end-column="12" />
+            <state relative-caret-position="361">
+              <caret line="36" column="60" selection-start-line="36" selection-start-column="60" selection-end-line="36" selection-end-column="60" />
               <folding>
                 <element signature="e#160#235#0" />
+                <element signature="e#247#284#0" />
+                <element signature="e#296#397#0" />
                 <element signature="n#!!block;n#Push#0" />
                 <element signature="n#!!block;n#Get#0" />
               </folding>
@@ -178,19 +162,6 @@
             </path>
             <path>
               <item name="ray-seep" type="b2602c69:ProjectViewProjectNode" />
-              <item name="ray-seep" type="462c0819:PsiDirectoryNode" />
-              <item name="ray-seep" type="462c0819:PsiDirectoryNode" />
-              <item name="server" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="ray-seep" type="b2602c69:ProjectViewProjectNode" />
-              <item name="ray-seep" type="462c0819:PsiDirectoryNode" />
-              <item name="ray-seep" type="462c0819:PsiDirectoryNode" />
-              <item name="server" type="462c0819:PsiDirectoryNode" />
-              <item name="proxy" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="ray-seep" type="b2602c69:ProjectViewProjectNode" />
               <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
             </path>
             <path>
@@ -266,7 +237,7 @@
     <frame x="0" y="23" width="1920" height="977" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.16773163" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.16773163" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -279,7 +250,7 @@
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Database Changes" order="8" />
       <window_info anchor="bottom" id="Version Control" order="9" />
-      <window_info anchor="bottom" id="Terminal" order="10" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="10" visible="true" weight="0.32911393" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -385,10 +356,12 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/ray-seep/server/proxy/proxy.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="564">
-          <caret line="34" column="12" selection-start-line="34" selection-start-column="12" selection-end-line="34" selection-end-column="12" />
+        <state relative-caret-position="361">
+          <caret line="36" column="60" selection-start-line="36" selection-start-column="60" selection-end-line="36" selection-end-column="60" />
           <folding>
             <element signature="e#160#235#0" />
+            <element signature="e#247#284#0" />
+            <element signature="e#296#397#0" />
             <element signature="n#!!block;n#Push#0" />
             <element signature="n#!!block;n#Get#0" />
           </folding>

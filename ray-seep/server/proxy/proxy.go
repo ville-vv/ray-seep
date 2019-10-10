@@ -57,9 +57,11 @@ func (p *pool) Get(key int64) (conn.Conn, bool) {
 	p.Lock()
 	if c, ok :=p.pxyConn[key]; ok {
 		c.ct = time.Now()
+		p.Unlock()
 		return c.c, ok
 	}
 	p.Unlock()
+	// 如果没找到
 	return nil, false
 }
 
