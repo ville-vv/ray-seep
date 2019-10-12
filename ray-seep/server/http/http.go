@@ -5,13 +5,14 @@
 package http
 
 import (
+	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/rayhttp"
-	"ray-seep/ray-seep/conn"
 	"vilgo/vlog"
 )
 
 type Server struct {
-	addr string
+	addr   string
+	repeat Repeater
 }
 
 func NewServer() *Server {
@@ -39,8 +40,13 @@ func (s *Server) dealConn(c conn.Conn) {
 		copyHttp.SayBackText(400, []byte("Bad Request"))
 		return
 	}
-	vlog.DEBUG("request host is [%s]", copyHttp.Host())
+
+	// 获取请求的地址（主要是子域名有用）
+	host := copyHttp.Host()
+	vlog.DEBUG("request host is [%s]", host)
 	copyHttp.SayBackText(200, []byte("收到请求，请求转发尚未完成开发......"))
-	c = conn.TurnConn(copyHttp)
+	// 这里转会成 Conn
+	//c = conn.TurnConn(copyHttp)
 	// 根据host 获取  proxy 转发
+	s.repeat.Transmit(host, copyHttp)
 }

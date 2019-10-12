@@ -5,8 +5,8 @@
 package node
 
 import (
+	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/pkg"
-	"ray-seep/ray-seep/conn"
 	"ray-seep/ray-seep/mng"
 	"runtime/debug"
 	"sync"
@@ -81,7 +81,7 @@ func (sel *ConnServer) dealConn(c conn.Conn) {
 		select {
 		case req := <-recvMsg:
 			rsp, err := sel.ish.OnMessage(c.Id(), &req)
-				if err != nil {
+			if err != nil {
 				// 执行消息出现错误
 				rsp = pkg.Package{Cmd: pkg.CmdError, Body: []byte(err.Error())}
 			}

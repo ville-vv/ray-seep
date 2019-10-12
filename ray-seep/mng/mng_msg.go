@@ -6,66 +6,19 @@ package mng
 
 import (
 	"encoding/binary"
-	"errors"
 	"io"
+	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/pkg"
-	"ray-seep/ray-seep/conn"
 	"sync"
 	"time"
 	"vilgo/vlog"
 )
 
 const (
-	MaxLinkNumber     = 100         // 客户端的最大连接数
 	maxBytesCachePool = 1024 * 1024 // 接收消息的最大缓存 1M
 )
 
-// 连接管理
-type ConnManager struct {
-	cuMap      map[int64]conn.Conn
-	cntLinkNum uint32
-	maxLinkNum uint32
-	sync.RWMutex
-}
-
-// client 连接管理
-func NewConnManager() (cm *ConnManager) {
-	cm = new(ConnManager)
-	cm.cuMap = make(map[int64]conn.Conn)
-	cm.cntLinkNum = 0
-	cm.maxLinkNum = MaxLinkNumber
-	return
-}
-
-func (cm *ConnManager) Put(key int64, cu conn.Conn) error {
-	if cm.cntLinkNum >= cm.maxLinkNum {
-		return errors.New("connect number is full")
-	}
-	cm.Lock()
-	defer cm.Unlock()
-	cm.cuMap[key] = cu
-	cm.cntLinkNum++
-	return nil
-}
-
-func (cm *ConnManager) Get(key int64) (conn.Conn, bool) {
-	cm.RLock()
-	defer cm.RUnlock()
-	cu, ok := cm.cuMap[key]
-	return cu, ok
-}
-
-func (cm *ConnManager) Delete(key int64) {
-	cm.Lock()
-	defer cm.Unlock()
-	if cu, ok := cm.cuMap[key]; ok {
-		cu.Close()
-		delete(cm.cuMap, key)
-		cm.cntLinkNum--
-		vlog.LogD("当前连接数：%v", cm.cntLinkNum)
-	}
-}
-
+// 消息发送器
 type Receiver interface {
 	RecvMsg(p *pkg.Package) (err error)
 	RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- pkg.Package, cancel chan<- pkg.Package)
@@ -134,6 +87,7 @@ func (c *receiver) RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- pkg.Package,
 	return
 }
 
+// 消息接收器
 type Sender interface {
 	SendMsg(p *pkg.Package) (err error)
 	SendMsgWithChan(wait *sync.WaitGroup, mch <-chan pkg.Package, t time.Duration)
@@ -191,6 +145,7 @@ func (c *sender) SendMsgWithChan(wait *sync.WaitGroup, mch <-chan pkg.Package, t
 	}()
 }
 
+// 消息运输器，包含一个接收器和一个发送器
 type MsgTransfer interface {
 	Receiver
 	Sender

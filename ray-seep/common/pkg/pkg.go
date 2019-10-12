@@ -55,10 +55,12 @@ type Package struct {
 	Body []byte  `json:"body"`
 }
 
+// 新建一个包 body 是 []byte 类型
 func New(cmd Command, body []byte) *Package {
 	return &Package{Cmd: cmd, Body: body}
 }
 
+// NewPackage 新建一个 pack, body 支持 int, string, []byte 类型，其他类型转换成json数据
 func NewPackage(cmd Command, body interface{}) *Package {
 	switch body.(type) {
 	case int:
@@ -73,11 +75,13 @@ func NewPackage(cmd Command, body interface{}) *Package {
 	}
 }
 
+// NewWithObj 新建一个pack body 支持 map, struct 类型，并且直接转换成 json 格式
 func NewWithObj(cmd Command, body interface{}) *Package {
 	dt, _ := jsoniter.Marshal(body)
 	return &Package{Cmd: cmd, Body: dt}
 }
 
+// UnPack 解包
 func UnPack(data []byte, pkg *Package) (err error) {
 	frame := Frame{}
 	if err = frame.UnPack(data); err != nil {
@@ -91,6 +95,7 @@ func UnPack(data []byte, pkg *Package) (err error) {
 	return
 }
 
+// Pack 打包
 func Pack(pkg *Package) (data []byte, err error) {
 	frame := Frame{}
 	frame.Body, err = jsoniter.Marshal(pkg)
