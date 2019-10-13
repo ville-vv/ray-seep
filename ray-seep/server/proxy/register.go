@@ -5,9 +5,14 @@
 package proxy
 
 import (
+	"net"
 	"ray-seep/ray-seep/common/errs"
 	"sync"
 )
+
+type IdRuler interface {
+	Opt([]int64) int64
+}
 
 type domainMap struct {
 	Domain string
@@ -17,10 +22,11 @@ type domainMap struct {
 // RegisterCenter 注册中心，记录用户启动的本地服务id与用户使用的域名映射
 // 记录用户启动的服务的代理池
 type RegisterCenter struct {
-	lock      sync.Mutex
+	lock      sync.RWMutex
 	dmpIdsNum int
 	dmp       map[string]*domainMap // 域名映射 一个域名对多个
 	pxyPool   Pool                  // 记录用户本地服务的代理 tcp 链接，使用 cid 获取链接
+	rule      IdRuler               // 选择器
 }
 
 // 注册用户链接
@@ -28,6 +34,7 @@ func (sel *RegisterCenter) Register(domain string, cid int64) error {
 	return sel.addDmp(domain, cid)
 }
 
+// addDmp 根据域名添加一个 客户端的链接ID
 func (sel *RegisterCenter) addDmp(domain string, cid int64) error {
 	sel.lock.Lock()
 	if d, ok := sel.dmp[domain]; ok {
@@ -42,4 +49,16 @@ func (sel *RegisterCenter) addDmp(domain string, cid int64) error {
 	sel.dmp[domain] = &domainMap{Domain: domain, IdList: idList}
 	sel.lock.Unlock()
 	return nil
+}
+
+// 获取代理tcp连接
+func (sel *RegisterCenter) GetProxy(domain string) (net.Conn, error) {
+	sel.lock.RLock()
+	dmp, ok := sel.dmp[domain]
+	if !ok {
+		return nil, errs.ErrServerNotExist
+	}
+	sel.lock.RUnlock()
+	cid := sel.rule.Opt(dmp.IdList)
+	return sel.pxyPool.Get(cid)
 }

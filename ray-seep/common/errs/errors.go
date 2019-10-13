@@ -11,6 +11,8 @@ func (s ErrCode) String() string {
 }
 
 const (
-	StatusOK         ErrCode = "200"
-	ErrServerNumFull ErrCode = "you server number is full "
+	StatusOK          ErrCode = "200"
+	ErrServerNumFull  ErrCode = "you server number is full "
+	ErrServerNotExist ErrCode = "server not exist"
+	ErrProxyNotExist  ErrCode = "proxy server not exist"
 )

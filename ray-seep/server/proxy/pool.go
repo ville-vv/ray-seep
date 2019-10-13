@@ -6,13 +6,14 @@ package proxy
 
 import (
 	"ray-seep/ray-seep/common/conn"
+	"ray-seep/ray-seep/common/errs"
 	"sync"
 	"time"
 )
 
 type Pool interface {
 	Push(key int64, c conn.Conn)
-	Get(key int64) (conn.Conn, bool)
+	Get(key int64) (conn.Conn, error)
 }
 
 type element struct {
@@ -51,17 +52,18 @@ func (p *pool) Push(key int64, c conn.Conn) {
 		return
 	}
 	p.pxyConn[key] = &element{ct: time.Now(), c: c}
+	p.cntCache++
 	p.Unlock()
 }
 
-func (p *pool) Get(key int64) (conn.Conn, bool) {
+func (p *pool) Get(key int64) (conn.Conn, error) {
 	p.Lock()
 	if c, ok := p.pxyConn[key]; ok {
 		c.ct = time.Now()
 		p.Unlock()
-		return c.c, ok
+		return c.c, nil
 	}
 	p.Unlock()
 	// 如果没找到
-	return nil, false
+	return nil, errs.ErrProxyNotExist
 }
