@@ -14,8 +14,8 @@ type IdRuler interface {
 	Opt([]int64) int64
 }
 
-type domainMap struct {
-	Domain string
+type nodeIdList struct {
+	Name   string
 	IdList []int64 // 一个域名下可能存在多个服务，用于实现用户服务负载均衡功能使用特定算法获取一条 cid对应的conn
 }
 
@@ -24,9 +24,9 @@ type domainMap struct {
 type RegisterCenter struct {
 	lock      sync.RWMutex
 	dmpIdsNum int
-	dmp       map[string]*domainMap // 域名映射 一个域名对多个
-	pxyPool   Pool                  // 记录用户本地服务的代理 tcp 链接，使用 cid 获取链接
-	rule      IdRuler               // 选择器
+	dmp       map[string]*nodeIdList // 域名映射 一个域名对多个
+	pxyPool   Pool                   // 记录用户本地服务的代理 tcp 链接，使用 cid 获取链接
+	rule      IdRuler                // 选择器
 }
 
 // 注册用户链接
@@ -46,12 +46,12 @@ func (sel *RegisterCenter) addDmp(domain string, cid int64) error {
 	}
 	idList := make([]int64, 0, sel.dmpIdsNum)
 	idList = append(idList, cid)
-	sel.dmp[domain] = &domainMap{Domain: domain, IdList: idList}
+	sel.dmp[domain] = &nodeIdList{Name: domain, IdList: idList}
 	sel.lock.Unlock()
 	return nil
 }
 
-// 获取代理tcp连接
+// GetProxy 获取代理tcp连接
 func (sel *RegisterCenter) GetProxy(domain string) (net.Conn, error) {
 	sel.lock.RLock()
 	dmp, ok := sel.dmp[domain]
