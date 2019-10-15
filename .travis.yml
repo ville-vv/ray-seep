@@ -6,9 +6,10 @@ go:
 go_import_path: github.com/vilsongwei/ray-seep
 
 before_install:
-  - mv ../$(basename $(pwd)) $GOPATH/src
+#  - mv ../$(basename $(pwd)) $GOPATH/src
   - go get -v github.com/json-iterator/go
   - go get -v google.golang.org/grpc
+  - go get -v github.com/vilsongwei/vilgo
 
 install: true
 
