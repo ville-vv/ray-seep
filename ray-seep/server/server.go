@@ -5,20 +5,35 @@
 package server
 
 import (
+	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/server/http"
 	"ray-seep/ray-seep/server/node"
+	"ray-seep/ray-seep/server/proxy"
+	"sync"
 	"vilgo/vlog"
 )
 
 type Server struct {
+	srvCnf *conf.Server
 }
 
 func Start() {
 	vlog.DefaultLogger()
+	cfg := conf.InitServer()
+	wait := sync.WaitGroup{}
+	wait.Add(1)
 	go func() {
-		control := node.NewConnServer()
+		wait.Done()
+		control := node.NewConnServer(cfg.Ctl)
 		control.Start()
 	}()
-	hserver := http.NewServer()
+	wait.Add(1)
+	go func() {
+		wait.Done()
+		pxy := proxy.NewServer(cfg.Pxy)
+		pxy.Start()
+	}()
+	wait.Wait()
+	hserver := http.NewServer(cfg.Http)
 	hserver.Start()
 }

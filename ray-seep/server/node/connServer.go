@@ -5,8 +5,10 @@
 package node
 
 import (
+	"fmt"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/pkg"
+	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/mng"
 	"runtime/debug"
 	"sync"
@@ -27,10 +29,15 @@ type ConnServer struct {
 	ish     IConnServerHandler
 }
 
-func NewConnServer() *ConnServer {
+func NewConnServer(ctlCnf *conf.ControlSrv) *ConnServer {
+	timeout := time.Millisecond * time.Duration(ctlCnf.Timeout)
+	addr := fmt.Sprintf("%s:%d", ctlCnf.Host, ctlCnf.Port)
+	if timeout == 0 {
+		timeout = 5000
+	}
 	return &ConnServer{
-		timeout: time.Second * 15,
-		addr:    ":30080",
+		timeout: timeout,
+		addr:    addr,
 		ish:     NewAdopterPod(),
 	}
 }

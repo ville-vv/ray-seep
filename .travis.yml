@@ -1,0 +1,39 @@
+language: go
+
+go:
+  - 1.12.x
+
+before_install:
+  - mv ../$(basename $(pwd)) $GOPATH/src
+  - go get -v github.com/json-iterator/go
+  - go get -v google.golang.org/grpc
+
+install: true
+
+script:
+  - make test
+  - make build
+  - make docker-read
+  
+before_deploy:
+  - tar -zcf docker_build.tar.gz docker_build
+
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  file_glob: true
+  file:
+    - bin/*
+    - docker_build.tar.gz
+  skip_cleanup: true
+  on:
+    tags: true
+
+notifications:
+  email:
+    recipients:
+      - $NOTIFACTION_EMAIL
+    on_success: always # default: change
+    on_failure: always # default: always
+  webhooks:
+    - https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=fc117dc5-c808-4839-bd1a-275eda282bca

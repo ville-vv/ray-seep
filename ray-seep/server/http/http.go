@@ -5,8 +5,10 @@
 package http
 
 import (
+	"fmt"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/rayhttp"
+	"ray-seep/ray-seep/conf"
 	"vilgo/vlog"
 )
 
@@ -15,8 +17,9 @@ type Server struct {
 	repeat Repeater
 }
 
-func NewServer() *Server {
-	return &Server{addr: ":40090"}
+func NewServer(c *conf.HttpSrv) *Server {
+	addr := fmt.Sprintf("%s:%d", c.Host, c.Port)
+	return &Server{addr: addr}
 }
 
 func (s *Server) Start() {
