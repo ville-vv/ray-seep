@@ -3,6 +3,8 @@ language: go
 go:
   - 1.12.x
 
+go_import_path: github.com/vilsongwei/ray-seep
+
 before_install:
   - mv ../$(basename $(pwd)) $GOPATH/src
   - go get -v github.com/json-iterator/go
@@ -12,22 +14,20 @@ install: true
 
 script:
   - make test
-  - make build
-  - make docker-read
   
-before_deploy:
-  - tar -zcf docker_build.tar.gz docker_build
+#before_deploy:
+#  - tar -zcf docker_build.tar.gz docker_build
 
-deploy:
-  provider: releases
-  api_key: $GITHUB_TOKEN
-  file_glob: true
-  file:
-    - bin/*
-    - docker_build.tar.gz
-  skip_cleanup: true
-  on:
-    tags: true
+#deploy:
+#  provider: releases
+#  api_key: $GITHUB_TOKEN
+#  file_glob: true
+#  file:
+#    - bin/*
+#    - docker_build.tar.gz
+#  skip_cleanup: true
+#  on:
+#    tags: true
 
 notifications:
   email:
