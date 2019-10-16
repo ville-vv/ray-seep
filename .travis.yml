@@ -3,7 +3,7 @@ language: go
 go:
   - 1.12.x
 
-go_import_path: github.com/vilsongwei/ray-seep
+go_import_path: ray-seep
 
 before_install:
 #  - mv ../$(basename $(pwd)) $GOPATH/src
