@@ -35,4 +35,4 @@ notifications:
     on_success: always # default: change
     on_failure: always # default: always
   webhooks:
-    - $WEBHOOKURL
+    - http://www.villeboss.com:10081/api/webhook/travis
