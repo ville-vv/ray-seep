@@ -9,19 +9,23 @@ import (
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/rayhttp"
 	"ray-seep/ray-seep/conf"
+	"ray-seep/ray-seep/server/proxy"
 	"vilgo/vlog"
 )
 
 type Server struct {
 	addr   string
-	repeat Repeater
-}
+	repeat Repeater // 请求中续器
 
-func NewServer(c *conf.HttpSrv) *Server {
+}
+// NewServer http 请求服务
+// repeat 用于 http 请求转发
+func NewServer(c *conf.HttpSrv, reg *proxy.RegisterCenter) *Server {
 	addr := fmt.Sprintf("%s:%d", c.Host, c.Port)
-	return &Server{addr: addr}
+	return &Server{addr: addr, repeat:NewRepeaterHttp(reg)}
 }
 
+// Start 启动http服务
 func (s *Server) Start() {
 	lis, err := conn.Listen(s.addr)
 	if err != nil {
@@ -33,7 +37,7 @@ func (s *Server) Start() {
 		go s.dealConn(c)
 	}
 }
-
+// dealConn 处理 http 请求链接
 func (s *Server) dealConn(c conn.Conn) {
 	vlog.DEBUG("client request： %s", c.RemoteAddr())
 	// 请求连接转为http协议

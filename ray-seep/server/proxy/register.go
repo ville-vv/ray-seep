@@ -29,6 +29,10 @@ type RegisterCenter struct {
 	rule      IdRuler                // 选择器
 }
 
+func NewRegisterCenter() *RegisterCenter {
+	return &RegisterCenter{}
+}
+
 // 注册用户链接
 func (sel *RegisterCenter) Register(domain string, cid int64) error {
 	return sel.addDmp(domain, cid)

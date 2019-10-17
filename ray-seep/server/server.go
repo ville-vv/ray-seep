@@ -20,20 +20,23 @@ type Server struct {
 func Start() {
 	vlog.DefaultLogger()
 	cfg := conf.InitServer()
+
+	regCenter := proxy.NewRegisterCenter()
+
 	wait := sync.WaitGroup{}
 	wait.Add(1)
 	go func() {
 		wait.Done()
-		control := node.NewConnServer(cfg.Ctl)
+		control := node.NewControlServer(cfg.Ctl)
 		control.Start()
 	}()
 	wait.Add(1)
 	go func() {
 		wait.Done()
-		pxy := proxy.NewServer(cfg.Pxy)
+		pxy := proxy.NewServer(cfg.Pxy, regCenter)
 		pxy.Start()
 	}()
 	wait.Wait()
-	hserver := http.NewServer(cfg.Http)
+	hserver := http.NewServer(cfg.Http, regCenter)
 	hserver.Start()
 }

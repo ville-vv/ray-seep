@@ -6,7 +6,6 @@ package http
 
 import (
 	"net"
-	"ray-seep/ray-seep/server/proxy"
 	"vilgo/vlog"
 )
 
@@ -16,20 +15,29 @@ type Repeater interface {
 	Transmit(host string, c net.Conn)
 }
 
-// repeaterHttp HTTP 请求的使用的中续器
-type repeaterHttp struct {
-	regCenter *proxy.RegisterCenter // 注册中心
+// ProxyGainer 代理连接获取器
+type ProxyGainer interface {
+	GetProxy(identify string) (net.Conn, error)
 }
 
-func (sel *repeaterHttp) Transmit(host string, c net.Conn) {
+// repeaterHttp HTTP 请求的使用的中续器
+type RepeaterHttp struct {
+	regCenter ProxyGainer // 注册中心
+}
+
+func NewRepeaterHttp(regCenter ProxyGainer) *RepeaterHttp {
+	return &RepeaterHttp{regCenter: regCenter}
+}
+
+func (sel *RepeaterHttp) Transmit(host string, c net.Conn) {
 	pxyConn, err := sel.regCenter.GetProxy(host)
 	if err != nil {
 		vlog.ERROR("%v", err)
 		return
 	}
-	sel.Copy(c, pxyConn)
+	sel.copy(c, pxyConn)
 }
 
-func (sel *repeaterHttp) Copy(dst net.Conn, src net.Conn) {
+func (sel *RepeaterHttp) copy(dst net.Conn, src net.Conn) {
 
 }

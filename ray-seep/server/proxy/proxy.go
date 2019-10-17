@@ -11,15 +11,22 @@ import (
 	"vilgo/vlog"
 )
 
+type IRegister interface {
+	Register(domain string, cid int64) error
+}
+
 type Server struct {
 	addr      string
 	proxyConn chan conn.Conn
+	register IRegister //
 }
 
-func NewServer(c *conf.ProxySrv) *Server {
+func NewServer(c *conf.ProxySrv, reg IRegister) *Server {
 	addr := fmt.Sprintf("%s:%d", c.Host, c.Port)
 	return &Server{
 		addr: addr,
+		proxyConn:make(chan conn.Conn),
+		register:reg,
 	}
 }
 
@@ -45,17 +52,17 @@ func (s *Server) dealConn(cn conn.Conn) {
 	var regProxy pkg.Package
 
 	if err := tr.RecvMsg(&regProxy); err != nil {
-		cn.Close()
+		_ = cn.Close()
 		return
 	}
 
 	if regProxy.Cmd != pkg.CmdRegisterProxyReq {
-		cn.Close()
+		_ = cn.Close()
 		return
 	}
 }
 func (s *Server) SetProxy(cn conn.Conn) {
-	cn.SetDeadline(time.Now().Add(time.Second * 15))
+	_= cn.SetDeadline(time.Now().Add(time.Second * 15))
 	select {
 	case s.proxyConn <- cn:
 	default:
