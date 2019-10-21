@@ -60,7 +60,10 @@ func (sel *AdopterPod) OnConnect(id int64, tr mng.MsgTransfer) (err error) {
 	if err != nil {
 		return
 	}
-	tr.SendMsg(&authMsg)
+	if err = tr.SendMsg(&authMsg); err != nil {
+		vlog.ERROR("response auth message error %s", err.Error())
+		return
+	}
 
 	// 认证成功加入到管理服务中
 	sel.mu.Lock()

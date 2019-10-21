@@ -24,7 +24,7 @@ type nodeIdList struct {
 type RegisterCenter struct {
 	lock      sync.RWMutex
 	dmpIdsNum int
-	dmp       map[string]*nodeIdList // 域名映射 一个域名对多个
+	dmp       map[string]*nodeIdList // 域名映射 一个域名对多个服务节点
 	pxyPool   Pool                   // 记录用户本地服务的代理 tcp 链接，使用 cid 获取链接
 	rule      IdRuler                // 选择器
 }

@@ -5,6 +5,7 @@
 package http
 
 import (
+	"io"
 	"net"
 	"vilgo/vlog"
 )
@@ -12,7 +13,7 @@ import (
 // Repeater 是一个中继器，用于转发 conn 的数据
 type Repeater interface {
 	// 转发
-	Transmit(host string, c net.Conn)
+	Transfer(host string, c net.Conn)
 }
 
 // ProxyGainer 代理连接获取器
@@ -20,24 +21,45 @@ type ProxyGainer interface {
 	GetProxy(identify string) (net.Conn, error)
 }
 
-// repeaterHttp HTTP 请求的使用的中续器
-type RepeaterHttp struct {
+// NetRepeater 网络请求的使用的中续器
+type NetRepeater struct {
 	regCenter ProxyGainer // 注册中心
 }
 
-func NewRepeaterHttp(regCenter ProxyGainer) *RepeaterHttp {
-	return &RepeaterHttp{regCenter: regCenter}
+func NewNetRepeater(regCenter ProxyGainer) *NetRepeater {
+	return &NetRepeater{regCenter: regCenter}
 }
 
-func (sel *RepeaterHttp) Transmit(host string, c net.Conn) {
+func (sel *NetRepeater) Transfer(host string, c net.Conn) {
 	pxyConn, err := sel.regCenter.GetProxy(host)
 	if err != nil {
 		vlog.ERROR("%v", err)
 		return
 	}
-	sel.copy(c, pxyConn)
+	sel.relay(c, pxyConn)
 }
 
-func (sel *RepeaterHttp) copy(dst net.Conn, src net.Conn) {
-
+// exchange 请求数据转播
+// @dst 是目标请求网络连接
+// @src 是发起请求的连接
+// @return 1 : 请求者发送的数据长度
+// @return 2 : 被请求者返回的数据长度
+// @return err : 错误
+func (sel *NetRepeater) relay(dst net.Conn, src net.Conn) (int64, int64, error) {
+	type res struct {
+		N   int64
+		Err error
+	}
+	ch := make(chan res)
+	go func() {
+		// 先启动
+		n, err := io.Copy(src, dst)
+		ch <- res{N: n, Err: err}
+	}()
+	n, err := io.Copy(dst, src)
+	rs := <-ch
+	if err == nil {
+		err = rs.Err
+	}
+	return n, rs.N, err
 }

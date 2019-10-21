@@ -18,11 +18,12 @@ type Server struct {
 	repeat Repeater // 请求中续器
 
 }
+
 // NewServer http 请求服务
 // repeat 用于 http 请求转发
 func NewServer(c *conf.HttpSrv, reg *proxy.RegisterCenter) *Server {
 	addr := fmt.Sprintf("%s:%d", c.Host, c.Port)
-	return &Server{addr: addr, repeat:NewRepeaterHttp(reg)}
+	return &Server{addr: addr, repeat: NewNetRepeater(reg)}
 }
 
 // Start 启动http服务
@@ -37,8 +38,16 @@ func (s *Server) Start() {
 		go s.dealConn(c)
 	}
 }
+
 // dealConn 处理 http 请求链接
 func (s *Server) dealConn(c conn.Conn) {
+	defer func() {
+		if err := recover(); err != nil {
+			vlog.ERROR("http transfer error ", err)
+			return
+		}
+	}()
+	defer c.Close()
 	vlog.DEBUG("client request： %s", c.RemoteAddr())
 	// 请求连接转为http协议
 	copyHttp, err := rayhttp.NewCopyHttp(c)
@@ -51,9 +60,9 @@ func (s *Server) dealConn(c conn.Conn) {
 	// 获取请求的地址（主要是子域名有用）
 	host := copyHttp.Host()
 	vlog.DEBUG("request host is [%s]", host)
-	copyHttp.SayBackText(200, []byte("收到请求，请求转发尚未完成开发......"))
+	//copyHttp.SayBackText(200, []byte("收到请求，请求转发尚未完成开发......"))
 	// 这里转会成 Conn
 	//c = conn.TurnConn(copyHttp)
 	// 根据host 获取  proxy 转发
-	s.repeat.Transmit(host, copyHttp)
+	s.repeat.Transfer(host, copyHttp)
 }

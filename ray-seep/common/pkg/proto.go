@@ -25,6 +25,8 @@ type CreateHostRsp struct {
 }
 
 type RegisterProxyReq struct {
+	Cid       int64  `json:"cid"`
+	SubDomain string `json:"sub_domain"`
 }
 
 type RegisterProxyRsp struct {
