@@ -7,6 +7,7 @@ package http
 import (
 	"io"
 	"net"
+	"sync"
 	"vilgo/vlog"
 )
 
@@ -51,11 +52,16 @@ func (sel *NetRepeater) relay(dst net.Conn, src net.Conn) (int64, int64, error) 
 		Err error
 	}
 	ch := make(chan res)
+	wg := sync.WaitGroup{}
+	wg.Add(1)
 	go func() {
+		wg.Done()
 		// 先启动
 		n, err := io.Copy(src, dst)
 		ch <- res{N: n, Err: err}
+
 	}()
+	wg.Wait()
 	n, err := io.Copy(dst, src)
 	rs := <-ch
 	if err == nil {

@@ -50,7 +50,7 @@ func (s *Server) dealConn(c conn.Conn) {
 	defer c.Close()
 	vlog.DEBUG("client request： %s", c.RemoteAddr())
 	// 请求连接转为http协议
-	copyHttp, err := rayhttp.NewCopyHttp(c)
+	copyHttp, err := rayhttp.ToHttp(c)
 	if err != nil {
 		vlog.ERROR("%v", err)
 		copyHttp.SayBackText(400, []byte("Bad Request"))

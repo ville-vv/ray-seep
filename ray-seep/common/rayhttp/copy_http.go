@@ -60,8 +60,8 @@ func newBuildRequest(c net.Conn) (*buildRequest, io.Reader) {
 // 那么需要吧原来的 bytes 读入，然后再使用 conn 中的read
 func (c *buildRequest) Read(p []byte) (n int, err error) {
 	c.Lock()
+	defer c.Unlock()
 	if c.buf == nil {
-		c.Unlock()
 		return c.Conn.Read(p)
 	}
 	n, err = c.buf.Read(p)
@@ -71,17 +71,17 @@ func (c *buildRequest) Read(p []byte) (n int, err error) {
 		n2, err = c.Conn.Read(p[n:])
 		n += n2
 	}
-	c.Unlock()
 	return
 }
 
 type CopyHttp struct {
 	*buildRequest
 	request *http.Request
+	body    []byte
 }
 
 // ToHttp 转为HTTP格式，获取http消息
-func NewCopyHttp(c net.Conn) (hp *CopyHttp, err error) {
+func ToHttp(c net.Conn) (hp *CopyHttp, err error) {
 	rq, rd := newBuildRequest(c)
 
 	hp = &CopyHttp{
@@ -92,10 +92,18 @@ func NewCopyHttp(c net.Conn) (hp *CopyHttp, err error) {
 		return
 	}
 
-	hp.request.Body.Close()
+	defer hp.request.Body.Close()
+	hp.body, err = ioutil.ReadAll(hp.buf)
+	if err != nil {
+		return nil, err
+	}
+	hp.buf.Write(hp.body)
 	return
 }
 
+func (c *CopyHttp) GetBody() []byte {
+	return c.body
+}
 func (c *CopyHttp) SayBackText(status int, body []byte) {
 	resp := http.Response{
 		StatusCode:    status,
