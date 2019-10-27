@@ -21,7 +21,7 @@ func Start() {
 	vlog.DefaultLogger()
 	cfg := conf.InitServer()
 
-	regCenter := proxy.NewRegisterCenter()
+	regCenter := proxy.NewRegisterCenter(proxy.NewPool())
 
 	wait := sync.WaitGroup{}
 	wait.Add(1)
@@ -33,7 +33,7 @@ func Start() {
 	wait.Add(1)
 	go func() {
 		wait.Done()
-		pxy := proxy.NewServer(cfg.Pxy, regCenter)
+		pxy := proxy.NewProxyServer(cfg.Pxy, regCenter)
 		pxy.Start()
 	}()
 	wait.Wait()

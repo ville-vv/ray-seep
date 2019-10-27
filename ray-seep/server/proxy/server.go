@@ -2,35 +2,35 @@ package proxy
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/pkg"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/mng"
+	"time"
 	"vilgo/vlog"
 )
 
 type IRegister interface {
-	Register(domain string, cid int64) error
+	Register(domain string, cc conn.Conn) error
 }
 
-type Server struct {
+type ProxyServer struct {
 	addr      string
 	proxyConn chan conn.Conn
 	register  IRegister //
 }
 
-func NewServer(c *conf.ProxySrv, reg IRegister) *Server {
+func NewProxyServer(c *conf.ProxySrv, reg IRegister) *ProxyServer {
 	addr := fmt.Sprintf("%s:%d", c.Host, c.Port)
-	return &Server{
+	return &ProxyServer{
 		addr:      addr,
 		proxyConn: make(chan conn.Conn),
 		register:  reg,
 	}
 }
 
-func (s *Server) Start() {
+func (s *ProxyServer) Start() {
 	ls, err := conn.Listen(s.addr)
 	if err != nil {
 		return
@@ -41,50 +41,38 @@ func (s *Server) Start() {
 	}
 }
 
-func (s *Server) dealConn(cn conn.Conn) {
+func (s *ProxyServer) dealConn(cn conn.Conn) {
 	defer func() {
 		if err := recover(); err != nil {
 			vlog.DEBUG("")
 			return
 		}
 	}()
-	defer cn.Close()
+	_ = cn.SetDeadline(time.Now().Add(time.Second * 15))
 	tr := mng.NewMsgTransfer(cn)
 	var regProxy pkg.Package
-
 	if err := tr.RecvMsg(&regProxy); err != nil {
+		vlog.ERROR("receive message error %s", err.Error())
+		_ = cn.Close()
 		return
 	}
 
 	if regProxy.Cmd != pkg.CmdRegisterProxyReq {
+		vlog.ERROR("proxy cmd is error %d", regProxy.Cmd)
+		_ = cn.Close()
 		return
 	}
+
 	regData := pkg.RegisterProxyReq{}
 	if err := json.Unmarshal(regProxy.Body, &regData); err != nil {
+		vlog.ERROR("parse register proxy request data fail %s , data is %s ", err.Error(), string(regProxy.Body))
+		_ = cn.Close()
 		return
 	}
-	if err := s.register.Register(regData.SubDomain, regData.Cid); err != nil {
+	// 把代理连接都注册到注册器里面
+	if err := s.register.Register(regData.SubDomain, cn); err != nil {
+		vlog.ERROR("%s proxy is registered fail %s", cn.RemoteAddr().String(), err.Error())
+		_ = cn.Close()
 		return
 	}
-
-}
-func (s *Server) SetProxy(cn conn.Conn) {
-	//_= cn.SetDeadline(time.Now().Add(time.Second * 15))
-	select {
-	case s.proxyConn <- cn:
-	default:
-		vlog.WARN("Proxies buffer is full, discarding.")
-	}
-}
-
-func (s *Server) GetProxy() (cn conn.Conn, err error) {
-	var ok bool
-	select {
-	case cn, ok = <-s.proxyConn:
-		if !ok {
-			err = errors.New("No proxy connections available, control is closing")
-			return
-		}
-	}
-	return
 }

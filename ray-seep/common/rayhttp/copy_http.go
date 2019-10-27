@@ -93,16 +93,21 @@ func ToHttp(c net.Conn) (hp *CopyHttp, err error) {
 	}
 
 	defer hp.request.Body.Close()
-	hp.body, err = ioutil.ReadAll(hp.buf)
-	if err != nil {
-		return nil, err
-	}
-	hp.buf.Write(hp.body)
+	//hp.body = hp.buf.Bytes()
+	//bf := hp.buf.Bytes()
+	//hp.body = make([]byte, len(bf))
+	//for v := range bf {
+	//	hp.body[v] = bf[v]
+	//}
 	return
 }
 
 func (c *CopyHttp) GetBody() []byte {
-	return c.body
+	bf := make([]byte, len(c.body))
+	for v := range c.body {
+		bf[v] = c.body[v]
+	}
+	return bf
 }
 func (c *CopyHttp) SayBackText(status int, body []byte) {
 	resp := http.Response{

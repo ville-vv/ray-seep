@@ -69,3 +69,19 @@ func (sel *NetRepeater) relay(dst net.Conn, src net.Conn) (int64, int64, error) 
 	}
 	return n, rs.N, err
 }
+
+// pip
+func (sel *NetRepeater) join(dst net.Conn, src net.Conn) (int64, int64, error) {
+	var wait sync.WaitGroup
+	var err error
+	pipe := func(dst net.Conn, src net.Conn, bytesCopied *int64) {
+		defer wait.Done()
+		*bytesCopied, err = io.Copy(dst, src)
+	}
+	wait.Add(2)
+	var fromBytes, toBytes int64
+	go pipe(src, dst, &fromBytes)
+	go pipe(dst, src, &toBytes)
+	wait.Wait()
+	return fromBytes, toBytes, err
+}

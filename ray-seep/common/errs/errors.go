@@ -15,4 +15,5 @@ const (
 	ErrServerNumFull  ErrCode = "you server number is full "
 	ErrServerNotExist ErrCode = "server not exist"
 	ErrProxyNotExist  ErrCode = "proxy server not exist"
+	ErrConnPoolIsFull ErrCode = "proxy pool is full"
 )
