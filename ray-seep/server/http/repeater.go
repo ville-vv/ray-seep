@@ -47,6 +47,8 @@ func (sel *NetRepeater) Transfer(host string, c net.Conn) {
 // @return 2 : 被请求者返回的数据长度
 // @return err : 错误
 func (sel *NetRepeater) relay(dst net.Conn, src net.Conn) (int64, int64, error) {
+	defer dst.Close()
+	defer src.Close()
 	type res struct {
 		N   int64
 		Err error
@@ -57,12 +59,12 @@ func (sel *NetRepeater) relay(dst net.Conn, src net.Conn) (int64, int64, error) 
 	go func() {
 		wg.Done()
 		// 先启动
-		n, err := io.Copy(src, dst)
+		n, err := io.Copy(dst, src)
 		ch <- res{N: n, Err: err}
 
 	}()
 	wg.Wait()
-	n, err := io.Copy(dst, src)
+	n, err := io.Copy(src, dst)
 	rs := <-ch
 	if err == nil {
 		err = rs.Err

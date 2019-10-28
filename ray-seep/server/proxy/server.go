@@ -12,7 +12,7 @@ import (
 )
 
 type IRegister interface {
-	Register(domain string, cc conn.Conn) error
+	Register(domain string, id int64, cc conn.Conn) error
 }
 
 type ProxyServer struct {
@@ -70,7 +70,7 @@ func (s *ProxyServer) dealConn(cn conn.Conn) {
 		return
 	}
 	// 把代理连接都注册到注册器里面
-	if err := s.register.Register(regData.SubDomain, cn); err != nil {
+	if err := s.register.Register(regData.SubDomain, regData.Cid, cn); err != nil {
 		vlog.ERROR("%s proxy is registered fail %s", cn.RemoteAddr().String(), err.Error())
 		_ = cn.Close()
 		return

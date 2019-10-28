@@ -93,7 +93,7 @@ func ToHttp(c net.Conn) (hp *CopyHttp, err error) {
 	}
 
 	defer hp.request.Body.Close()
-	//hp.body = hp.buf.Bytes()
+	hp.body = hp.buf.Bytes()
 	//bf := hp.buf.Bytes()
 	//hp.body = make([]byte, len(bf))
 	//for v := range bf {
