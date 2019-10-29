@@ -50,19 +50,23 @@ func TestNetRepeater_relay(t *testing.T) {
 		}
 	}()
 	wg.Wait()
-	//resp, err := http.Get("http://127.0.0.1:34981/p/b4102e3e3e96")
-	resp, err := http.Post("http://127.0.0.1:34981/api/user/callback?", "application/json", strings.NewReader("4444444"))
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	bodyResp, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
+
+	go func() {
+		//resp, err := http.Get("http://127.0.0.1:34981/p/b4102e3e3e96")
+		resp, err := http.Post("http://127.0.0.1:34981/api/user/callback?", "application/json", strings.NewReader("4444444"))
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		bodyResp, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			resp.Body.Close()
+			t.Error(err)
+			return
+		}
 		resp.Body.Close()
-		t.Error(err)
-		return
-	}
-	resp.Body.Close()
-	fmt.Println("返回结果：", string(bodyResp))
+		fmt.Println("返回结果：", string(bodyResp))
+	}()
+
 	time.Sleep(time.Second * 3)
 }

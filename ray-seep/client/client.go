@@ -5,16 +5,20 @@
 package main
 
 import (
-	"io"
-	"net"
-	"ray-seep/ray-seep/common/conn"
-	pkg2 "ray-seep/ray-seep/common/pkg"
-	"ray-seep/ray-seep/mng"
-	"time"
+	"fmt"
+	"os"
+	"os/signal"
+	"ray-seep/ray-seep/client/proxy"
+	"syscall"
 	"vilgo/vlog"
 )
 
 func main() {
 	vlog.DefaultLogger()
+	sgn := make(chan os.Signal, 1)
 
+	proxy.Start()
+
+	signal.Notify(sgn, syscall.SIGABRT, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
+	fmt.Println(<-sgn)
 }

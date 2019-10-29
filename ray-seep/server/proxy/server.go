@@ -48,6 +48,7 @@ func (s *ProxyServer) dealConn(cn conn.Conn) {
 			return
 		}
 	}()
+	vlog.INFO("有代理进行连接")
 	_ = cn.SetDeadline(time.Now().Add(time.Second * 15))
 	tr := mng.NewMsgTransfer(cn)
 	var regProxy pkg.Package
@@ -57,18 +58,25 @@ func (s *ProxyServer) dealConn(cn conn.Conn) {
 		return
 	}
 
+	vlog.INFO("收到代理连接发送的消息%s", string(regProxy.Body))
 	if regProxy.Cmd != pkg.CmdRegisterProxyReq {
 		vlog.ERROR("proxy cmd is error %d", regProxy.Cmd)
 		_ = cn.Close()
 		return
 	}
 
+	err := tr.SendMsg(pkg.NewWithObj(pkg.CmdRegisterProxyRsp, &pkg.RegisterProxyRsp{}))
+	if err != nil {
+		vlog.ERROR("send register response message error %s", err.Error())
+		return
+	}
 	regData := pkg.RegisterProxyReq{}
 	if err := json.Unmarshal(regProxy.Body, &regData); err != nil {
 		vlog.ERROR("parse register proxy request data fail %s , data is %s ", err.Error(), string(regProxy.Body))
 		_ = cn.Close()
 		return
 	}
+
 	// 把代理连接都注册到注册器里面
 	if err := s.register.Register(regData.SubDomain, regData.Cid, cn); err != nil {
 		vlog.ERROR("%s proxy is registered fail %s", cn.RemoteAddr().String(), err.Error())

@@ -30,4 +30,5 @@ type RegisterProxyReq struct {
 }
 
 type RegisterProxyRsp struct {
+	Cid int64 `json:"cid"`
 }

@@ -5,6 +5,7 @@
 package server
 
 import (
+	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/server/http"
 	"ray-seep/ray-seep/server/node"
@@ -21,7 +22,7 @@ func Start() {
 	vlog.DefaultLogger()
 	cfg := conf.InitServer()
 
-	regCenter := proxy.NewRegisterCenter(proxy.NewPool())
+	regCenter := proxy.NewRegisterCenter(conn.NewPool())
 
 	wait := sync.WaitGroup{}
 	wait.Add(1)
