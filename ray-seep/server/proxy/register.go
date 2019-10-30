@@ -87,11 +87,11 @@ func NewRegisterCenter(pl conn.Pool) *RegisterCenter {
 
 // 注册用户链接
 func (sel *RegisterCenter) Register(domain string, id int64, cc conn.Conn) error {
-	if err := sel.addNodeId(domain, id); err != nil {
+	if err := sel.pxyPool.Push(id, cc); err != nil {
 		vlog.ERROR("register add node id[%d] error %s", cc.Id(), err.Error())
 		return err
 	}
-	return sel.pxyPool.Push(id, cc)
+	return sel.addNodeId(domain, id)
 }
 
 // addDmp 根据域名添加一个 客户端的链接ID
@@ -105,7 +105,6 @@ func (sel *RegisterCenter) addNodeId(domain string, cid int64) error {
 	idList := newNodeIdList(domain)
 	idList.Add(cid)
 	sel.nodes[domain] = idList
-
 	return nil
 }
 

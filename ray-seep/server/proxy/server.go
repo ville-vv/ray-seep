@@ -65,22 +65,22 @@ func (s *ProxyServer) dealConn(cn conn.Conn) {
 		return
 	}
 
-	err := tr.SendMsg(pkg.NewWithObj(pkg.CmdRegisterProxyRsp, &pkg.RegisterProxyRsp{}))
-	if err != nil {
-		vlog.ERROR("send register response message error %s", err.Error())
-		return
-	}
 	regData := pkg.RegisterProxyReq{}
 	if err := json.Unmarshal(regProxy.Body, &regData); err != nil {
 		vlog.ERROR("parse register proxy request data fail %s , data is %s ", err.Error(), string(regProxy.Body))
 		_ = cn.Close()
 		return
 	}
-
 	// 把代理连接都注册到注册器里面
 	if err := s.register.Register(regData.SubDomain, regData.Cid, cn); err != nil {
 		vlog.ERROR("%s proxy is registered fail %s", cn.RemoteAddr().String(), err.Error())
 		_ = cn.Close()
 		return
 	}
+
+	if err := tr.SendMsg(pkg.NewWithObj(pkg.CmdRegisterProxyRsp, &pkg.RegisterProxyRsp{})); err != nil {
+		vlog.ERROR("send register response message error %s", err.Error())
+		return
+	}
+
 }

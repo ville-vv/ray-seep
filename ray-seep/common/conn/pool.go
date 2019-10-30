@@ -33,21 +33,29 @@ type pool struct {
 }
 
 func NewPool() Pool {
-	return &pool{
+	p := &pool{
 		expire:  time.Second * 5,
 		pxyConn: make(map[int64]*element),
 		addCh:   make(chan element, 100),
 	}
+	p.loopExpire()
+	return p
 }
 
 // 循环查询到期时间，到期后自动销毁
 func (p *pool) loopExpire() {
 	go func() {
+		tk := time.NewTicker(time.Second * 1)
 		for {
-			for k, v := range p.pxyConn {
-				// 如果判断是否过期了
-				if v.ct.Before(time.Now().Add(-1 * p.expire)) {
-					p.Drop(k)
+			select {
+			case <-tk.C:
+				for k, v := range p.pxyConn {
+					// 如果判断是否过期了
+					if v.ct.Before(time.Now().Add(-1 * p.expire)) {
+						vlog.ERROR("超时 %d", v.id)
+						_ = v.c.Close()
+						p.Drop(k)
+					}
 				}
 			}
 		}
@@ -55,21 +63,21 @@ func (p *pool) loopExpire() {
 }
 
 func (p *pool) Push(key int64, c Conn) error {
-	select {
-	case p.addCh <- element{ct: time.Now(), c: c, id: key}:
-		vlog.WARN("pool push fail, proxies is full")
-	}
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.cntCache++
+	p.pxyConn[key] = &element{ct: time.Now(), id: key, c: c}
 	return nil
 }
 
 func (p *pool) Get(key int64) (Conn, error) {
 	p.lock.Lock()
+	defer p.lock.Unlock()
 	if c, ok := p.pxyConn[key]; ok {
+		// 有获取这个链接就重置时间
 		c.ct = time.Now()
-		p.lock.Unlock()
 		return c.c, nil
 	}
-	p.lock.Unlock()
 	// 如果没找到
 	return nil, errs.ErrProxyNotExist
 }
@@ -78,14 +86,4 @@ func (p *pool) Drop(key int64) {
 	p.lock.Lock()
 	delete(p.pxyConn, key)
 	p.lock.Unlock()
-}
-
-// 选好检测 add chan 添加链接，
-func (p *pool) loopCheckAdd() {
-	for ele := range p.addCh {
-		p.lock.Lock()
-		p.cntCache++
-		p.pxyConn[ele.id] = &ele
-		p.lock.Unlock()
-	}
 }
