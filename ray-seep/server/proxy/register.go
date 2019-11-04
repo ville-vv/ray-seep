@@ -8,9 +8,14 @@ import (
 	"net"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/errs"
+	"ray-seep/ray-seep/common/pkg"
 	"sync"
 	"vilgo/vlog"
 )
+
+type MessagePusher interface {
+	PushMsg(id int64, p *pkg.Package) error
+}
 
 type IDChooseRuler interface {
 	Choose([]int64) int64
@@ -76,12 +81,14 @@ type RegisterCenter struct {
 	nodeIdsNum int                    // 节点 Id 数量
 	nodes      map[string]*nodeIdList // 域名映射 一个域名对多个服务节点
 	pxyPool    conn.Pool              // 记录用户本地服务的代理 tcp 链接，使用 cid 获取链接
+	pushMsg    MessagePusher
 }
 
-func NewRegisterCenter(pl conn.Pool) *RegisterCenter {
+func NewRegisterCenter(pl conn.Pool, ph MessagePusher) *RegisterCenter {
 	return &RegisterCenter{
 		nodes:   make(map[string]*nodeIdList),
 		pxyPool: pl,
+		pushMsg: ph,
 	}
 }
 

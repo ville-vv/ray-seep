@@ -27,9 +27,10 @@ type ControlServer struct {
 	addr    string
 	timeout time.Duration
 	ish     IControlHandler
+	pushCh  chan pkg.Package
 }
 
-func NewControlServer(ctlCnf *conf.ControlSrv) *ControlServer {
+func NewControlServer(ctlCnf *conf.ControlSrv, handler IControlHandler) *ControlServer {
 	timeout := time.Millisecond * time.Duration(ctlCnf.Timeout)
 	addr := fmt.Sprintf("%s:%d", ctlCnf.Host, ctlCnf.Port)
 	if timeout == 0 {
@@ -38,7 +39,8 @@ func NewControlServer(ctlCnf *conf.ControlSrv) *ControlServer {
 	return &ControlServer{
 		timeout: timeout,
 		addr:    addr,
-		ish:     NewAdopterPod(),
+		ish:     handler,
+		pushCh:  make(chan pkg.Package, 1000),
 	}
 }
 
@@ -81,6 +83,7 @@ func (sel *ControlServer) dealConn(c conn.Conn) {
 	wg := sync.WaitGroup{}
 	recvMsg := make(chan pkg.Package)
 	cancel := make(chan pkg.Package)
+	wg.Add(1)
 	// 开启一个协程 接收消息
 	msgMng.RecvMsgWithChan(&wg, recvMsg, cancel)
 	wg.Wait()

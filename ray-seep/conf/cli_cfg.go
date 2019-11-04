@@ -7,8 +7,9 @@ package conf
 import "vilgo/vcnf"
 
 type Client struct {
-	Pxy  *ProxyCli `json:"pxy" toml:"Proxy"`
-	Node *NodeCli  `json:"node"`
+	Pxy     *ProxyCli   `json:"pxy" toml:"Proxy"`
+	Node    *NodeCli    `json:"node"`
+	Control *ControlCli `json:"control"`
 }
 
 // 节点信息配置， 一个用户一个节点，一个 node 可以有多个 Pod, Pod 想到

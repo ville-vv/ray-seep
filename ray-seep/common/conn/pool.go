@@ -64,9 +64,9 @@ func (p *pool) loopExpire() {
 
 func (p *pool) Push(key int64, c Conn) error {
 	p.lock.Lock()
-	defer p.lock.Unlock()
 	p.cntCache++
 	p.pxyConn[key] = &element{ct: time.Now(), id: key, c: c}
+	p.lock.Unlock()
 	return nil
 }
 

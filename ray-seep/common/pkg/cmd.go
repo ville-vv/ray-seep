@@ -12,8 +12,8 @@ const (
 	CmdPong             Command = 100001
 	CmdIdentifyReq      Command = 100002
 	CmdIdentifyRsp      Command = 100003
-	CmdCreateHostReq    Command = 100004
+	CmdCreateHostReq    Command = 100004 //
 	CmdCreateHostRsp    Command = 100005
-	CmdRegisterProxyReq Command = 100006
-	CmdRegisterProxyRsp Command = 100007
+	CmdRegisterProxyReq Command = 100006 // 注册代理请求
+	CmdRegisterProxyRsp Command = 100007 // 注册代理返回
 )

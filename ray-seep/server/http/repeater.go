@@ -34,10 +34,15 @@ func NewNetRepeater(regCenter ProxyGainer) *NetRepeater {
 func (sel *NetRepeater) Transfer(host string, c net.Conn) {
 	pxyConn, err := sel.regCenter.GetProxy(host)
 	if err != nil {
-		vlog.ERROR("%v", err)
+		vlog.ERROR("获取代理服务错误：%s", err.Error())
 		return
 	}
-	sel.relay(c, pxyConn)
+	reqLength, respLength, err := sel.relay(c, pxyConn)
+	if err != nil {
+		vlog.ERROR("请求数据错误：%s", err.Error())
+		return
+	}
+	vlog.INFO("请求数据长度：[%d]. 返回数据长度：[%d]", reqLength, respLength)
 }
 
 // exchange 请求数据转播
@@ -59,12 +64,12 @@ func (sel *NetRepeater) relay(dst net.Conn, src net.Conn) (int64, int64, error) 
 	go func() {
 		wg.Done()
 		// 先启动
-		n, err := io.Copy(dst, src)
+		n, err := io.Copy(src, dst)
 		ch <- res{N: n, Err: err}
 
 	}()
 	wg.Wait()
-	n, err := io.Copy(src, dst)
+	n, err := io.Copy(dst, src)
 	rs := <-ch
 	if err == nil {
 		err = rs.Err

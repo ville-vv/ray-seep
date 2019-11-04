@@ -4,12 +4,5 @@
 // server
 package server
 
-import (
-	"ray-seep/ray-seep/server/http"
-	"ray-seep/ray-seep/server/node"
-)
-
 type RaySeepServer struct {
-	nodes   map[string]*node.Node
-	domains *http.Server
 }

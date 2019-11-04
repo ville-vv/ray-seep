@@ -2,23 +2,29 @@
 // @Author   : Ville
 // @Time     : 19-9-24 下午4:13
 // client
-package main
+package client
 
 import (
 	"fmt"
 	"os"
 	"os/signal"
+	"ray-seep/ray-seep/client/control"
 	"ray-seep/ray-seep/client/proxy"
+	"ray-seep/ray-seep/conf"
 	"syscall"
 	"vilgo/vlog"
 )
 
-func main() {
+func Main() {
 	vlog.DefaultLogger()
-	sgn := make(chan os.Signal, 1)
-
+	cfg := conf.InitClient()
+	ctrCli := control.NewClientControl(cfg.Control, nil)
+	go func() {
+		ctrCli.Start()
+	}()
 	proxy.Start()
 
+	sgn := make(chan os.Signal, 1)
 	signal.Notify(sgn, syscall.SIGABRT, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 	fmt.Println(<-sgn)
 }

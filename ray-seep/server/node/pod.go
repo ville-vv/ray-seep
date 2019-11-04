@@ -16,24 +16,28 @@ import (
 type Pod struct {
 	domain string
 	mng.Sender
-	proxy Proxy
-	id    int64
+	id int64
 }
 
 func NewPod(id int64, sender mng.Sender) *Pod {
-	return &Pod{id: id, Sender: sender}
+	p := &Pod{id: id, Sender: sender}
+
+	return p
 }
 
 func (p *Pod) Id() int64 {
 	return p.id
 }
 
-func (p *Pod) RegisterProxy() {
-}
-
-func (p *Pod) Operate(cmd pkg.Command, body []byte) ([]byte, error) {
+func (p *Pod) OnMessage(cmd pkg.Command, body []byte) ([]byte, error) {
+	switch cmd {
+	case pkg.CmdRegisterProxyReq:
+	case pkg.CmdCreateHostReq:
+	case pkg.CmdError:
+	}
 	return nil, nil
 }
 
-func (p *Pod) CreateHost(req *pkg.CreateHostReq) {
+func (p *Pod) PushMsg(msgPkg *pkg.Package) (err error) {
+	return p.Sender.SendMsg(msgPkg)
 }

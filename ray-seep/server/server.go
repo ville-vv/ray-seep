@@ -22,13 +22,14 @@ func Start() {
 	vlog.DefaultLogger()
 	cfg := conf.InitServer()
 
-	regCenter := proxy.NewRegisterCenter(conn.NewPool())
+	controlHandler := node.NewMessageAdopter()
+	regCenter := proxy.NewRegisterCenter(conn.NewPool(), controlHandler)
 
 	wait := sync.WaitGroup{}
 	wait.Add(1)
 	go func() {
 		wait.Done()
-		control := node.NewControlServer(cfg.Ctl)
+		control := node.NewControlServer(cfg.Ctl, controlHandler)
 		control.Start()
 	}()
 	wait.Add(1)

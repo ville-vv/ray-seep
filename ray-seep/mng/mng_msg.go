@@ -127,12 +127,12 @@ func (c *sender) SendMsg(p *pkg.Package) (err error) {
 func (c *sender) SendMsgWithChan(wait *sync.WaitGroup, mch <-chan pkg.Package, t time.Duration) {
 	wait.Add(1)
 	go func() {
-		tk := time.NewTicker(t)
+		//tk := time.NewTicker(t)
 		wait.Done()
 		for {
 			select {
-			case <-tk.C:
-				return
+			//case <-tk.C:
+			//	return
 			case mch, ok := <-mch:
 				if !ok {
 					return

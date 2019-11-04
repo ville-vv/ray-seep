@@ -12,7 +12,6 @@ import (
 	"ray-seep/ray-seep/mng"
 	"sync"
 	"vilgo/vlog"
-	"vilgo/vuid"
 )
 
 // 身份认证
@@ -20,22 +19,19 @@ type Author interface {
 	Identity(name string, password string, token string) error
 }
 
-type AdopterPod struct {
+type MessageAdopter struct {
 	mu     sync.Mutex
 	pods   map[int64]*Pod
 	author Author
 }
 
-func NewAdopterPod() *AdopterPod {
-	return &AdopterPod{
+func NewMessageAdopter() *MessageAdopter {
+	return &MessageAdopter{
 		pods: make(map[int64]*Pod),
 	}
 }
 
-func (sel *AdopterPod) addNode(domain, sender mng.Sender) {
-}
-
-func (sel *AdopterPod) identify(p pkg.Package) error {
+func (sel *MessageAdopter) identify(p pkg.Package) error {
 	if p.Cmd != pkg.CmdIdentifyReq {
 		return errors.New("identify authentication fail")
 	}
@@ -45,7 +41,7 @@ func (sel *AdopterPod) identify(p pkg.Package) error {
 	return nil
 }
 
-func (sel *AdopterPod) OnConnect(id int64, tr mng.MsgTransfer) (err error) {
+func (sel *MessageAdopter) OnConnect(id int64, tr mng.MsgTransfer) (err error) {
 	// 建立连接的首要任务就是获取认证信息，如果认证失败就直接断开连接
 	var authMsg pkg.Package
 	if err = tr.RecvMsg(&authMsg); err != nil {
@@ -54,7 +50,6 @@ func (sel *AdopterPod) OnConnect(id int64, tr mng.MsgTransfer) (err error) {
 	if err = sel.identify(authMsg); err != nil {
 		return
 	}
-	vuid.GenUUid()
 	authMsg.Cmd = pkg.CmdIdentifyRsp
 	authMsg.Body, err = jsoniter.Marshal(pkg.IdentifyRsp{Id: id, Token: util.RandToken()})
 	if err != nil {
@@ -72,30 +67,42 @@ func (sel *AdopterPod) OnConnect(id int64, tr mng.MsgTransfer) (err error) {
 	return nil
 }
 
-func (sel *AdopterPod) OnDisConnect(id int64) {
+func (sel *MessageAdopter) OnDisConnect(id int64) {
 	vlog.DEBUG("Pod disconnect :%d", id)
 }
 
 // OnHandler 这里传入 sender 是因为不用每次都
-func (sel *AdopterPod) OnMessage(id int64, req *pkg.Package) (rsp pkg.Package, err error) {
+func (sel *MessageAdopter) OnMessage(id int64, req *pkg.Package) (rsp pkg.Package, err error) {
 
 	vlog.DEBUG("Pod %d msg [cmd:%v][body:%s]", id, req.Cmd, string(req.Body))
 	// 心跳直接返回
 	if req.Cmd == pkg.CmdPing {
 		rsp.Cmd = pkg.CmdPong
-		rsp.Body = req.Body
 		return
 	}
 
 	sel.mu.Lock()
-	pod := sel.pods[id]
+	pod, ok := sel.pods[id]
 	sel.mu.Unlock()
+	if !ok {
+		return
+	}
 
-	req.Cmd = req.Cmd + 1
-	if rsp.Body, err = pod.Operate(req.Cmd, req.Body); err != nil {
+	rsp.Cmd = req.Cmd + 1
+	if rsp.Body, err = pod.OnMessage(req.Cmd, req.Body); err != nil {
 		vlog.ERROR("pod operate error %s", err.Error())
 		return
 	}
 
 	return
+}
+
+func (sel *MessageAdopter) PushMsg(id int64, p *pkg.Package) error {
+	sel.mu.Lock()
+	pod, ok := sel.pods[id]
+	sel.mu.Unlock()
+	if !ok {
+		return nil
+	}
+	return pod.PushMsg(p)
 }
