@@ -16,4 +16,5 @@ const (
 	ErrServerNotExist ErrCode = "server not exist"
 	ErrProxyNotExist  ErrCode = "proxy server not exist"
 	ErrConnPoolIsFull ErrCode = "proxy pool is full"
+	ErrNoCmdRouterNot ErrCode = "router not found"
 )

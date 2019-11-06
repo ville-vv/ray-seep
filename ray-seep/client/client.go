@@ -17,8 +17,9 @@ import (
 
 func Main() {
 	vlog.DefaultLogger()
+	// 初始化配置
 	cfg := conf.InitClient()
-	ctrCli := control.NewClientControl(cfg.Control, nil)
+	ctrCli := control.NewClientControl(cfg.Control)
 	go func() {
 		ctrCli.Start()
 	}()

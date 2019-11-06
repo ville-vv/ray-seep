@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"ray-seep/ray-seep/common/conn"
+	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/common/pkg"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/mng"
@@ -13,21 +14,35 @@ import (
 	"vilgo/vlog"
 )
 
-type MessageHandler interface {
-	DealMessage(req *pkg.Package, sender mng.Sender) error
+type Router struct {
+	hds map[int32]HandlerFun
+}
+
+func (r *Router) route(req *pkg.Package) (rsp *pkg.Package, err error) {
+	hd, ok := r.hds[int32(req.Cmd)]
+	if !ok {
+		return nil, errs.ErrNoCmdRouterNot
+	}
+
+	return hd(req)
+}
+func (r *Router) Cmd(cmd int32, fun HandlerFun) {
+	r.hds[cmd] = fun
+	return
 }
 
 type ClientControl struct {
-	cfg     *conf.ControlCli
-	addr    string
-	dealMsg MessageHandler
+	cfg    *conf.ControlCli
+	addr   string
+	rt     *Router
+	msgMng mng.MsgTransfer
 }
 
-func NewClientControl(cfg *conf.ControlCli, msgHandler MessageHandler) *ClientControl {
+func NewClientControl(cfg *conf.ControlCli) *ClientControl {
 	cli := &ClientControl{
-		cfg:     cfg,
-		addr:    fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-		dealMsg: msgHandler,
+		cfg:  cfg,
+		addr: fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		rt:   &Router{make(map[int32]HandlerFun)},
 	}
 	return cli
 }
@@ -38,29 +53,47 @@ func (sel *ClientControl) Start() {
 		vlog.LogE("connect server fail %v", err)
 		return
 	}
-	defer c.Close()
-	msgMng := mng.NewMsgTransfer(conn.TurnConn(c))
+	sel.dealConn(c)
+}
 
+func (sel *ClientControl) dealConn(c net.Conn) {
+	defer c.Close()
+	sel.msgMng = mng.NewMsgTransfer(conn.TurnConn(c))
 	var wg sync.WaitGroup
 	recvCh := make(chan pkg.Package)
 	cancel := make(chan pkg.Package)
-	msgMng.RecvMsgWithChan(&wg, recvCh, cancel)
+	sel.msgMng.RecvMsgWithChan(&wg, recvCh, cancel)
 	for {
 		select {
 		case ms, ok := <-recvCh:
 			if !ok {
-				close(cancel)
 				return
 			}
-			if err := sel.dealMsg.DealMessage(&ms, msgMng); err != nil {
+			rsp, err := sel.rt.route(&ms)
+			if err != nil {
+				vlog.ERROR("处理消息失败：%s", err.Error())
+				return
+			}
+			if err = sel.pushEvent(rsp); err != nil {
 				vlog.ERROR("发送消息失败：%s", err.Error())
-				close(cancel)
 				return
 			}
 		case <-cancel:
 			return
 		}
 	}
+}
+
+func (sel *ClientControl) Router() *Router {
+	return sel.rt
+}
+
+func (sel *ClientControl) PushEvent(cmd int32, dt []byte) error {
+	return sel.pushEvent(&pkg.Package{Cmd: pkg.Command(cmd), Body: dt})
+}
+
+func (sel *ClientControl) pushEvent(p *pkg.Package) error {
+	return sel.msgMng.SendMsg(p)
 }
 
 func Start() {

@@ -11,6 +11,10 @@ Port=32201
 Domain="exampletest.cn"
 SubDomain="test"
 
+[Control]
+Host=""
+Port=32203
+
 [Proxy]
 Host=""
 Port=32202

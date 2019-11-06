@@ -162,7 +162,7 @@ type msgTransfer struct {
 	isSendStart  bool
 }
 
-func NewMsgTransfer(c conn.Conn) *msgTransfer {
+func NewMsgTransfer(c conn.Conn) MsgTransfer {
 	return &msgTransfer{
 		Receiver:     &receiver{r: c},
 		Sender:       &sender{w: c},
