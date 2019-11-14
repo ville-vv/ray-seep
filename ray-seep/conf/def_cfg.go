@@ -5,15 +5,11 @@
 package conf
 
 var clientDefaultConfig = `
-[Node]
+[Control]
 Host=""
 Port=32201
 Domain="exampletest.cn"
 SubDomain="test"
-
-[Control]
-Host=""
-Port=32203
 
 [Proxy]
 Host=""

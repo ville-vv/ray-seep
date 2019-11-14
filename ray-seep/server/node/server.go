@@ -7,31 +7,37 @@ package node
 import (
 	"fmt"
 	"ray-seep/ray-seep/common/conn"
-	"ray-seep/ray-seep/common/pkg"
 	"ray-seep/ray-seep/conf"
-	"ray-seep/ray-seep/mng"
+	"ray-seep/ray-seep/proto"
 	"runtime/debug"
 	"sync"
 	"time"
 	"vilgo/vlog"
 )
 
-type IControlHandler interface {
-	OnConnect(id int64, tr mng.MsgTransfer) error
+type ServerMsgHandler interface {
+	OnConnect(id int64, tr proto.MsgTransfer) error
 	OnDisConnect(id int64)
-	OnMessage(id int64, p *pkg.Package) (pkg.Package, error)
+	OnMessage(id int64, p *proto.Package) (proto.Package, error)
 }
 
 // 处理用户的通信，接收和发送用户的操作信息
 type ControlServer struct {
 	addr    string
-	timeout time.Duration
-	ish     IControlHandler
-	pushCh  chan pkg.Package
+	timeout int64
+	ish     ServerMsgHandler
+	pushCh  chan proto.Package
 }
 
-func NewControlServer(ctlCnf *conf.ControlSrv, handler IControlHandler) *ControlServer {
-	timeout := time.Millisecond * time.Duration(ctlCnf.Timeout)
+func (sel *ControlServer) Stop() {
+}
+
+func (sel *ControlServer) Scheme() string {
+	return "control server"
+}
+
+func NewControlServer(ctlCnf *conf.ControlSrv, handler ServerMsgHandler) *ControlServer {
+	timeout := ctlCnf.Timeout
 	addr := fmt.Sprintf("%s:%d", ctlCnf.Host, ctlCnf.Port)
 	if timeout == 0 {
 		timeout = 5000
@@ -40,7 +46,7 @@ func NewControlServer(ctlCnf *conf.ControlSrv, handler IControlHandler) *Control
 		timeout: timeout,
 		addr:    addr,
 		ish:     handler,
-		pushCh:  make(chan pkg.Package, 1000),
+		pushCh:  make(chan proto.Package, 1000),
 	}
 }
 
@@ -67,8 +73,8 @@ func (sel *ControlServer) dealConn(c conn.Conn) {
 	}()
 	defer c.Close()
 	// 刚刚建立连接需要设置超时时间
-	_ = c.SetReadDeadline(time.Now().Add(sel.timeout))
-	msgMng := mng.NewMsgTransfer(c)
+	_ = c.SetReadDeadline(time.Now().Add(time.Duration(sel.timeout) * time.Millisecond))
+	msgMng := proto.NewMsgTransfer(c)
 
 	// 通知有用户连接
 	if err := sel.ish.OnConnect(c.Id(), msgMng); err != nil {
@@ -81,8 +87,8 @@ func (sel *ControlServer) dealConn(c conn.Conn) {
 	_ = c.SetReadDeadline(time.Time{})
 
 	wg := sync.WaitGroup{}
-	recvMsg := make(chan pkg.Package)
-	cancel := make(chan pkg.Package)
+	recvMsg := make(chan proto.Package)
+	cancel := make(chan proto.Package)
 	wg.Add(1)
 	// 开启一个协程 接收消息
 	msgMng.RecvMsgWithChan(&wg, recvMsg, cancel)
@@ -93,7 +99,7 @@ func (sel *ControlServer) dealConn(c conn.Conn) {
 			rsp, err := sel.ish.OnMessage(c.Id(), &req)
 			if err != nil {
 				// 执行消息出现错误
-				rsp = pkg.Package{Cmd: pkg.CmdError, Body: []byte(err.Error())}
+				rsp = proto.Package{Cmd: proto.CmdError, Body: []byte(err.Error())}
 			}
 			_ = msgMng.SendMsg(&rsp)
 		case <-cancel:

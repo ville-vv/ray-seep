@@ -19,6 +19,12 @@ type Server struct {
 
 }
 
+func (s *Server) Stop() {}
+
+func (s *Server) Scheme() string {
+	return "http server"
+}
+
 // NewServer http 请求服务
 // repeat 用于 http 请求转发
 func NewServer(c *conf.HttpSrv, reg *proxy.RegisterCenter) *Server {
@@ -27,16 +33,17 @@ func NewServer(c *conf.HttpSrv, reg *proxy.RegisterCenter) *Server {
 }
 
 // Start 启动http服务
-func (s *Server) Start() {
+func (s *Server) Start() error {
 	lis, err := conn.Listen(s.addr)
 	if err != nil {
 		vlog.ERROR("%v", err)
-		return
+		return nil
 	}
 	vlog.INFO("HttpServer start [%s]", s.addr)
 	for c := range lis.Conn {
 		go s.dealConn(c)
 	}
+	return nil
 }
 
 // dealConn 处理 http 请求链接

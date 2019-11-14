@@ -5,23 +5,18 @@
 package node
 
 import (
-	"ray-seep/ray-seep/common/pkg"
-	"ray-seep/ray-seep/mng"
+	"ray-seep/ray-seep/proto"
 )
 
 // Pod 是一个 代理服务 的管理器连接，包括代理和控制连接
-//type Pod interface {
-//}
-
 type Pod struct {
 	domain string
-	mng.Sender
-	id int64
+	sender proto.Sender
+	id     int64
 }
 
-func NewPod(id int64, sender mng.Sender) *Pod {
-	p := &Pod{id: id, Sender: sender}
-
+func NewPod(id int64, sender proto.Sender) *Pod {
+	p := &Pod{id: id, sender: sender}
 	return p
 }
 
@@ -29,15 +24,15 @@ func (p *Pod) Id() int64 {
 	return p.id
 }
 
-func (p *Pod) OnMessage(cmd pkg.Command, body []byte) ([]byte, error) {
+func (p *Pod) OnMessage(cmd int32, body []byte) ([]byte, error) {
 	switch cmd {
-	case pkg.CmdRegisterProxyReq:
-	case pkg.CmdCreateHostReq:
-	case pkg.CmdError:
+	case proto.CmdRegisterProxyReq:
+	case proto.CmdCreateHostReq:
+	case proto.CmdError:
 	}
 	return nil, nil
 }
 
-func (p *Pod) PushMsg(msgPkg *pkg.Package) (err error) {
-	return p.Sender.SendMsg(msgPkg)
+func (p *Pod) PushMsg(msgPkg *proto.Package) (err error) {
+	return p.sender.SendMsg(msgPkg)
 }

@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"ray-seep/ray-seep/common/conn"
-	"ray-seep/ray-seep/common/pkg"
 	"ray-seep/ray-seep/conf"
-	"ray-seep/ray-seep/mng"
+	"ray-seep/ray-seep/proto"
 	"time"
 	"vilgo/vlog"
 )
@@ -21,6 +20,13 @@ type ProxyServer struct {
 	register  IRegister //
 }
 
+func (s *ProxyServer) Stop() {
+}
+
+func (s *ProxyServer) Scheme() string {
+	return "proxy server"
+}
+
 func NewProxyServer(c *conf.ProxySrv, reg IRegister) *ProxyServer {
 	addr := fmt.Sprintf("%s:%d", c.Host, c.Port)
 	return &ProxyServer{
@@ -30,15 +36,16 @@ func NewProxyServer(c *conf.ProxySrv, reg IRegister) *ProxyServer {
 	}
 }
 
-func (s *ProxyServer) Start() {
+func (s *ProxyServer) Start() error {
 	ls, err := conn.Listen(s.addr)
 	if err != nil {
-		return
+		return err
 	}
 	vlog.INFO("ProxyServer start [%s]", s.addr)
 	for c := range ls.Conn {
 		go s.dealConn(c)
 	}
+	return nil
 }
 
 func (s *ProxyServer) dealConn(cn conn.Conn) {
@@ -50,8 +57,8 @@ func (s *ProxyServer) dealConn(cn conn.Conn) {
 	}()
 	vlog.INFO("有代理进行连接")
 	_ = cn.SetDeadline(time.Now().Add(time.Second * 15))
-	tr := mng.NewMsgTransfer(cn)
-	var regProxy pkg.Package
+	tr := proto.NewMsgTransfer(cn)
+	var regProxy proto.Package
 	if err := tr.RecvMsg(&regProxy); err != nil {
 		vlog.ERROR("receive message error %s", err.Error())
 		_ = cn.Close()
@@ -59,13 +66,13 @@ func (s *ProxyServer) dealConn(cn conn.Conn) {
 	}
 
 	vlog.INFO("收到代理连接发送的消息%s", string(regProxy.Body))
-	if regProxy.Cmd != pkg.CmdRegisterProxyReq {
+	if regProxy.Cmd != proto.CmdRegisterProxyReq {
 		vlog.ERROR("proxy cmd is error %d", regProxy.Cmd)
 		_ = cn.Close()
 		return
 	}
 
-	regData := pkg.RegisterProxyReq{}
+	regData := proto.RegisterProxyReq{}
 	if err := json.Unmarshal(regProxy.Body, &regData); err != nil {
 		vlog.ERROR("parse register proxy request data fail %s , data is %s ", err.Error(), string(regProxy.Body))
 		_ = cn.Close()
@@ -78,7 +85,7 @@ func (s *ProxyServer) dealConn(cn conn.Conn) {
 		return
 	}
 
-	if err := tr.SendMsg(pkg.NewWithObj(pkg.CmdRegisterProxyRsp, &pkg.RegisterProxyRsp{})); err != nil {
+	if err := tr.SendMsg(proto.NewWithObj(proto.CmdRegisterProxyRsp, &proto.RegisterProxyRsp{})); err != nil {
 		vlog.ERROR("send register response message error %s", err.Error())
 		return
 	}

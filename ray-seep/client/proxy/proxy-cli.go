@@ -4,8 +4,7 @@ import (
 	"io"
 	"net"
 	"ray-seep/ray-seep/common/conn"
-	"ray-seep/ray-seep/common/pkg"
-	"ray-seep/ray-seep/mng"
+	"ray-seep/ray-seep/proto"
 	"vilgo/vlog"
 )
 
@@ -16,10 +15,10 @@ func Start() {
 		vlog.ERROR("connect to proxy server error %s", err.Error())
 		return
 	}
-	msgMng := mng.NewMsgTransfer(conn.TurnConn(cn))
+	msgMng := proto.NewMsgTransfer(conn.TurnConn(cn))
 	go func() {
 		for {
-			var msgPkg pkg.Package
+			var msgPkg proto.Package
 			vlog.INFO("等待接受消息：")
 			if err := msgMng.RecvMsg(&msgPkg); err != nil {
 				if err == io.EOF {
@@ -34,7 +33,7 @@ func Start() {
 
 	}()
 
-	err = msgMng.SendMsg(pkg.NewWithObj(pkg.CmdRegisterProxyReq, &pkg.RegisterProxyReq{Cid: 89797, SubDomain: "test"}))
+	err = msgMng.SendMsg(proto.NewWithObj(proto.CmdRegisterProxyReq, &proto.RegisterProxyReq{Cid: 89797, SubDomain: "test"}))
 	if err != nil {
 		vlog.ERROR("send register proxy error %s", err.Error())
 		return

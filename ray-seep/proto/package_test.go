@@ -2,7 +2,7 @@
 // @Author   : Ville
 // @Time     : 19-9-24 下午1:35
 // msg
-package pkg
+package proto
 
 import (
 	"testing"

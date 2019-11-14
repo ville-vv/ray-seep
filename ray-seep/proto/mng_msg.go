@@ -2,13 +2,12 @@
 // @Author   : Ville
 // @Time     : 19-9-24 上午9:41
 // manager
-package mng
+package proto
 
 import (
 	"encoding/binary"
 	"io"
 	"ray-seep/ray-seep/common/conn"
-	"ray-seep/ray-seep/common/pkg"
 	"sync"
 	"time"
 	"vilgo/vlog"
@@ -20,8 +19,8 @@ const (
 
 // 消息发送器
 type Receiver interface {
-	RecvMsg(p *pkg.Package) (err error)
-	RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- pkg.Package, cancel chan<- pkg.Package)
+	RecvMsg(p *Package) (err error)
+	RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- Package, cancel chan<- Package)
 }
 
 type receiver struct {
@@ -57,26 +56,25 @@ func (c *receiver) recvForPkg() (buf []byte, err error) {
 	return
 }
 
-func (c *receiver) RecvMsg(p *pkg.Package) (err error) {
+func (c *receiver) RecvMsg(p *Package) (err error) {
 	buf, err := c.recvForPkg()
 	if err != nil {
 		return
 	}
 	// 解包
-	return pkg.UnPack(buf, p)
+	return UnPack(buf, p)
 
 }
 
 // RecvMsgWithChan 开启一个协程 使用 chan 来接收定义好格式的消息
-func (c *receiver) RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- pkg.Package, cancel chan<- pkg.Package) {
-	wait.Add(1)
+func (c *receiver) RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- Package, cancel chan<- Package) {
 	go func() {
 		wait.Done()
 		for {
-			var m pkg.Package
+			var m Package
 			if err := c.RecvMsg(&m); err != nil {
 				if err == io.EOF {
-					cancel <- pkg.Package{}
+					cancel <- Package{}
 					return
 				}
 				continue
@@ -87,10 +85,10 @@ func (c *receiver) RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- pkg.Package,
 	return
 }
 
-// 消息接收器
+// 消息发送器
 type Sender interface {
-	SendMsg(p *pkg.Package) (err error)
-	SendMsgWithChan(wait *sync.WaitGroup, mch <-chan pkg.Package, t time.Duration)
+	SendMsg(p *Package) (err error)
+	SendMsgWithChan(wait *sync.WaitGroup, mch <-chan Package, t time.Duration)
 }
 
 type sender struct {
@@ -114,8 +112,8 @@ func (c *sender) sendForPkg(data []byte) (err error) {
 }
 
 // SendMsg 发送消息
-func (c *sender) SendMsg(p *pkg.Package) (err error) {
-	data, err := pkg.Pack(p)
+func (c *sender) SendMsg(p *Package) (err error) {
+	data, err := Pack(p)
 	if err != nil {
 		vlog.ERROR("Pack message error %v", err)
 		return
@@ -124,7 +122,7 @@ func (c *sender) SendMsg(p *pkg.Package) (err error) {
 }
 
 // SendMsgWithChan 开启一个协程 使用 chan 发送定义好格式的消息
-func (c *sender) SendMsgWithChan(wait *sync.WaitGroup, mch <-chan pkg.Package, t time.Duration) {
+func (c *sender) SendMsgWithChan(wait *sync.WaitGroup, mch <-chan Package, t time.Duration) {
 	wait.Add(1)
 	go func() {
 		//tk := time.NewTicker(t)
@@ -174,38 +172,5 @@ func NewMsgTransfer(c conn.Conn) MsgTransfer {
 				return &b
 			},
 		},
-	}
-}
-
-type MsgManager struct {
-	cuMap map[int64]MsgTransfer
-	sync.RWMutex
-}
-
-func NewMsgManager() *MsgManager {
-	return &MsgManager{
-		cuMap: make(map[int64]MsgTransfer),
-	}
-}
-
-func (cm *MsgManager) Put(key int64, cu MsgTransfer) error {
-	cm.Lock()
-	defer cm.Unlock()
-	cm.cuMap[key] = cu
-	return nil
-}
-
-func (cm *MsgManager) Get(key int64) (MsgTransfer, bool) {
-	cm.RLock()
-	defer cm.RUnlock()
-	cu, ok := cm.cuMap[key]
-	return cu, ok
-}
-
-func (cm *MsgManager) Delete(key int64) {
-	cm.Lock()
-	defer cm.Unlock()
-	if _, ok := cm.cuMap[key]; ok {
-		delete(cm.cuMap, key)
 	}
 }

@@ -8,13 +8,13 @@ import (
 	"net"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/errs"
-	"ray-seep/ray-seep/common/pkg"
+	"ray-seep/ray-seep/proto"
 	"sync"
 	"vilgo/vlog"
 )
 
 type MessagePusher interface {
-	PushMsg(id int64, p *pkg.Package) error
+	PushMsg(id int64, p *proto.Package) error
 }
 
 type IDChooseRuler interface {

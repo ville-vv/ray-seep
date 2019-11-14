@@ -5,40 +5,58 @@
 package server
 
 import (
-	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/conf"
-	"ray-seep/ray-seep/server/http"
-	"ray-seep/ray-seep/server/node"
-	"ray-seep/ray-seep/server/proxy"
-	"sync"
 	"vilgo/vlog"
 )
 
-type Server struct {
-	srvCnf *conf.Server
+type Server interface {
+	Start() error
+	Stop()
+	Scheme() string
 }
 
-func Start() {
-	vlog.DefaultLogger()
-	cfg := conf.InitServer()
+type RaySeepServer struct {
+	srvCnf *conf.Server
+	srvs   map[string]Server
+	start  []string
+	stopCh chan int
+}
 
-	controlHandler := node.NewMessageAdopter()
-	regCenter := proxy.NewRegisterCenter(conn.NewPool(), controlHandler)
+func NewRaySeepServer(srvCnf *conf.Server) *RaySeepServer {
+	return &RaySeepServer{srvCnf: srvCnf, srvs: make(map[string]Server), stopCh: make(chan int, 1)}
+}
 
-	wait := sync.WaitGroup{}
-	wait.Add(1)
-	go func() {
-		wait.Done()
-		control := node.NewControlServer(cfg.Ctl, controlHandler)
-		control.Start()
-	}()
-	wait.Add(1)
-	go func() {
-		wait.Done()
-		pxy := proxy.NewProxyServer(cfg.Pxy, regCenter)
-		pxy.Start()
-	}()
-	wait.Wait()
-	hserver := http.NewServer(cfg.Http, regCenter)
-	hserver.Start()
+func (r *RaySeepServer) Start() {
+	for k, v := range r.srvs {
+		go func(sv Server) {
+			defer func() {
+				if err := recover(); err != nil {
+					r.Stop()
+					panic(err)
+				}
+			}()
+			// 记录启动了的服务
+			r.start = append(r.start, k)
+			vlog.INFO("server [%s] starting", sv.Scheme())
+			if err := sv.Start(); err != nil {
+				panic(err)
+			}
+		}(v)
+	}
+	<-r.stopCh
+	vlog.INFO("server [all] have stop success")
+}
+
+func (r *RaySeepServer) Stop() {
+	// 停止已启动的服务
+	for i := range r.start {
+		r.srvs[r.start[i]].Stop()
+	}
+	close(r.stopCh)
+}
+
+func (r *RaySeepServer) Use(s ...Server) {
+	for i := range s {
+		r.srvs[s[i].Scheme()] = s[i]
+	}
 }

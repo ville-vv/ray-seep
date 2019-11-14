@@ -5,44 +5,31 @@ import (
 	"io"
 	"net"
 	"ray-seep/ray-seep/common/conn"
-	"ray-seep/ray-seep/common/errs"
-	"ray-seep/ray-seep/common/pkg"
 	"ray-seep/ray-seep/conf"
-	"ray-seep/ray-seep/mng"
+	"ray-seep/ray-seep/proto"
 	"sync"
 	"time"
 	"vilgo/vlog"
 )
 
-type Router struct {
-	hds map[int32]HandlerFun
-}
-
-func (r *Router) route(req *pkg.Package) (rsp *pkg.Package, err error) {
-	hd, ok := r.hds[int32(req.Cmd)]
-	if !ok {
-		return nil, errs.ErrNoCmdRouterNot
-	}
-
-	return hd(req)
-}
-func (r *Router) Cmd(cmd int32, fun HandlerFun) {
-	r.hds[cmd] = fun
-	return
+type ClientMsgHandler interface {
+	OnConnect(sender proto.Sender) error
+	OnMessage(req *proto.Package) (rsp *proto.Package, err error)
+	OnDisconnect(id int64)
 }
 
 type ClientControl struct {
 	cfg    *conf.ControlCli
 	addr   string
-	rt     *Router
-	msgMng mng.MsgTransfer
+	hd     ClientMsgHandler
+	msgMng proto.MsgTransfer
 }
 
-func NewClientControl(cfg *conf.ControlCli) *ClientControl {
+func NewClientControl(cfg *conf.ControlCli, hd ClientMsgHandler) *ClientControl {
 	cli := &ClientControl{
 		cfg:  cfg,
 		addr: fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-		rt:   &Router{make(map[int32]HandlerFun)},
+		hd:   hd,
 	}
 	return cli
 }
@@ -53,26 +40,34 @@ func (sel *ClientControl) Start() {
 		vlog.LogE("connect server fail %v", err)
 		return
 	}
-	sel.dealConn(c)
+	sel.dealConn(conn.TurnConn(c))
 }
 
-func (sel *ClientControl) dealConn(c net.Conn) {
+func (sel *ClientControl) dealConn(c conn.Conn) {
 	defer c.Close()
-	sel.msgMng = mng.NewMsgTransfer(conn.TurnConn(c))
+	sel.msgMng = proto.NewMsgTransfer(c)
+	if err := sel.hd.OnConnect(sel.msgMng); err != nil {
+		vlog.ERROR("server connect error:%s", err.Error())
+		return
+	}
+	defer sel.hd.OnDisconnect(c.Id())
 	var wg sync.WaitGroup
-	recvCh := make(chan pkg.Package)
-	cancel := make(chan pkg.Package)
+	recvCh := make(chan proto.Package)
+	cancel := make(chan proto.Package)
+	wg.Add(1)
 	sel.msgMng.RecvMsgWithChan(&wg, recvCh, cancel)
+	wg.Wait()
 	for {
 		select {
 		case ms, ok := <-recvCh:
 			if !ok {
+				vlog.ERROR("关闭连接：%d", c.Id())
 				return
 			}
-			rsp, err := sel.rt.route(&ms)
+			rsp, err := sel.hd.OnMessage(&ms)
 			if err != nil {
 				vlog.ERROR("处理消息失败：%s", err.Error())
-				return
+				continue
 			}
 			if err = sel.pushEvent(rsp); err != nil {
 				vlog.ERROR("发送消息失败：%s", err.Error())
@@ -84,15 +79,11 @@ func (sel *ClientControl) dealConn(c net.Conn) {
 	}
 }
 
-func (sel *ClientControl) Router() *Router {
-	return sel.rt
-}
-
 func (sel *ClientControl) PushEvent(cmd int32, dt []byte) error {
-	return sel.pushEvent(&pkg.Package{Cmd: pkg.Command(cmd), Body: dt})
+	return sel.pushEvent(&proto.Package{Cmd: cmd, Body: dt})
 }
 
-func (sel *ClientControl) pushEvent(p *pkg.Package) error {
+func (sel *ClientControl) pushEvent(p *proto.Package) error {
 	return sel.msgMng.SendMsg(p)
 }
 
@@ -104,11 +95,11 @@ func Start() {
 	}
 	defer c.Close()
 
-	msgMng := mng.NewMsgTransfer(conn.TurnConn(c))
+	msgMng := proto.NewMsgTransfer(conn.TurnConn(c))
 
 	go func() {
 		for {
-			var msgPkg pkg.Package
+			var msgPkg proto.Package
 			vlog.INFO("等待接受消息：")
 			if err := msgMng.RecvMsg(&msgPkg); err != nil {
 				if err == io.EOF {
@@ -122,13 +113,13 @@ func Start() {
 		}
 
 	}()
-	auth := pkg.New(pkg.CmdIdentifyReq, []byte(""))
+	auth := proto.New(proto.CmdIdentifyReq, []byte(""))
 	if err := msgMng.SendMsg(auth); err != nil {
 		vlog.ERROR("Write auth message error %v", err)
 		return
 	}
 
-	ping := pkg.New(pkg.CmdPing, []byte("星跳"))
+	ping := proto.New(proto.CmdPing, []byte("星跳"))
 
 	for {
 		sendT := time.NewTicker(time.Second * 3)

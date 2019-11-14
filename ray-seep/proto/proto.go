@@ -2,7 +2,7 @@
 // @Author   : Ville
 // @Time     : 19-9-27 下午2:08
 // pkg
-package pkg
+package proto
 
 type IdentifyReq struct {
 	Name     string `json:"name"`
