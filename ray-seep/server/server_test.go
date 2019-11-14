@@ -34,5 +34,6 @@ func TestRaySeepServer_Start(t *testing.T) {
 	vlog.DefaultLogger()
 	srv := NewRaySeepServer(&conf.Server{})
 	srv.Use(&MockServer{})
-	srv.Start()
+	go srv.Start()
+	srv.Stop()
 }
