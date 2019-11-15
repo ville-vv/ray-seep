@@ -4,12 +4,12 @@
 // pkg
 package proto
 
-type IdentifyReq struct {
+type LoginReq struct {
 	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 
-type IdentifyRsp struct {
+type LoginRsp struct {
 	Id    int64
 	Token string
 }

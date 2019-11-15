@@ -12,6 +12,7 @@ import (
 type Conn interface {
 	net.Conn
 	Id() int64
+	SetId(int64)
 }
 
 type ConnUnit struct {
@@ -32,6 +33,9 @@ func newConnUnit(c net.Conn, cid int64) *ConnUnit {
 
 func (c *ConnUnit) Id() int64 {
 	return c.Cid
+}
+func (c *ConnUnit) SetId(id int64) {
+	c.Cid = id
 }
 
 // Listener 监听连接

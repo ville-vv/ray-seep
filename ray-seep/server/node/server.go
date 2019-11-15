@@ -84,11 +84,10 @@ func (sel *ControlServer) dealConn(c conn.Conn) {
 	vlog.DEBUG("customer [%d] connect success", c.Id())
 	// 通知有连接断开
 	defer sel.ish.OnDisConnect(c.Id())
-	_ = c.SetReadDeadline(time.Time{})
 
 	wg := sync.WaitGroup{}
 	recvMsg := make(chan proto.Package)
-	cancel := make(chan proto.Package)
+	cancel := make(chan interface{})
 	wg.Add(1)
 	// 开启一个协程 接收消息
 	msgMng.RecvMsgWithChan(&wg, recvMsg, cancel)
@@ -96,13 +95,16 @@ func (sel *ControlServer) dealConn(c conn.Conn) {
 	for {
 		select {
 		case req := <-recvMsg:
+			_ = c.SetReadDeadline(time.Now().Add(time.Duration(sel.timeout) * time.Millisecond))
+			// 刚刚建立连接需要设置超时时间
 			rsp, err := sel.ish.OnMessage(c.Id(), &req)
 			if err != nil {
 				// 执行消息出现错误
 				rsp = proto.Package{Cmd: proto.CmdError, Body: []byte(err.Error())}
 			}
 			_ = msgMng.SendMsg(&rsp)
-		case <-cancel:
+		case err := <-cancel:
+			vlog.INFO("断开连接：%v", err)
 			return
 		}
 	}

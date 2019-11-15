@@ -12,24 +12,24 @@ import (
 	"vilgo/vlog"
 )
 
-type ClientMsgHandler interface {
+type Router interface {
 	OnConnect(sender proto.Sender) error
-	OnMessage(req *proto.Package) (rsp *proto.Package, err error)
+	OnMessage(req *proto.Package)
 	OnDisconnect(id int64)
 }
 
 type ClientControl struct {
 	cfg    *conf.ControlCli
 	addr   string
-	hd     ClientMsgHandler
+	hd     Router
 	msgMng proto.MsgTransfer
 }
 
-func NewClientControl(cfg *conf.ControlCli, hd ClientMsgHandler) *ClientControl {
+func NewClientControl(cfg *conf.ControlCli, hd Handler) *ClientControl {
 	cli := &ClientControl{
 		cfg:  cfg,
 		addr: fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-		hd:   hd,
+		hd:   NewRouteControl(hd),
 	}
 	return cli
 }
@@ -53,7 +53,7 @@ func (sel *ClientControl) dealConn(c conn.Conn) {
 	defer sel.hd.OnDisconnect(c.Id())
 	var wg sync.WaitGroup
 	recvCh := make(chan proto.Package)
-	cancel := make(chan proto.Package)
+	cancel := make(chan interface{})
 	wg.Add(1)
 	sel.msgMng.RecvMsgWithChan(&wg, recvCh, cancel)
 	wg.Wait()
@@ -64,16 +64,9 @@ func (sel *ClientControl) dealConn(c conn.Conn) {
 				vlog.ERROR("关闭连接：%d", c.Id())
 				return
 			}
-			rsp, err := sel.hd.OnMessage(&ms)
-			if err != nil {
-				vlog.ERROR("处理消息失败：%s", err.Error())
-				continue
-			}
-			if err = sel.pushEvent(rsp); err != nil {
-				vlog.ERROR("发送消息失败：%s", err.Error())
-				return
-			}
-		case <-cancel:
+			sel.hd.OnMessage(&ms)
+		case err := <-cancel:
+			vlog.ERROR("被服务器断开：%v", err)
 			return
 		}
 	}
@@ -113,7 +106,7 @@ func Start() {
 		}
 
 	}()
-	auth := proto.New(proto.CmdIdentifyReq, []byte(""))
+	auth := proto.New(proto.CmdLoginReq, []byte(""))
 	if err := msgMng.SendMsg(auth); err != nil {
 		vlog.ERROR("Write auth message error %v", err)
 		return

@@ -1,59 +1,63 @@
 package control
 
 import (
-	"ray-seep/ray-seep/common/errs"
+	jsoniter "github.com/json-iterator/go"
 	"ray-seep/ray-seep/proto"
+	"time"
 	"vilgo/vlog"
 )
 
-type HandlerFun func(req *proto.Package) (rsp *proto.Package, err error)
-
-type Router struct {
-	hds map[int32]HandlerFun
+type ClientControlHandler struct {
+	cId int64
 }
 
-func (r *Router) route(req *proto.Package) (rsp *proto.Package, err error) {
-	hd, ok := r.hds[int32(req.Cmd)]
-	if !ok {
-		return nil, errs.ErrNoCmdRouterNot
-	}
-	return hd(req)
-}
-func (r *Router) Add(cmd int32, fun HandlerFun) {
-	r.hds[cmd] = fun
+func (c *ClientControlHandler) Ping(push ResponsePush) {
+	go func() {
+		tm := time.NewTicker(time.Millisecond * 3)
+		for {
+			select {
+			case <-tm.C:
+				if err := push.PushEvent(proto.CmdPing, nil); err != nil {
+					return
+				}
+			}
+		}
+	}()
 	return
 }
 
-type RouteControl struct {
-	route *Router
+func (c *ClientControlHandler) Pong(req *proto.Package, push ResponsePush) (err error) {
+	vlog.INFO("server message  pong [%d]", req.Cmd)
+	return
 }
 
-func NewRouteControl() *RouteControl {
-	r := &RouteControl{route: &Router{hds: make(map[int32]HandlerFun)}}
-	r.initRouter()
-	return r
+// 登录服务器
+func (c *ClientControlHandler) Login(req *proto.Package, push ResponsePush) (err error) {
+	dt, err := jsoniter.Marshal(&proto.LoginReq{Name: "", Password: ""})
+	if err != nil {
+		vlog.ERROR("push event json marshal error %s", err.Error())
+		return err
+	}
+	return push.PushEvent(proto.CmdLoginReq, dt)
 }
 
-func (r *RouteControl) OnConnect(sender proto.Sender) error {
+func (c *ClientControlHandler) LoginRsp(req *proto.Package, push ResponsePush) (err error) {
+	vlog.INFO("login success")
+	rsp := &proto.LoginRsp{}
+	if err := jsoniter.Unmarshal(req.Body, rsp); err != nil {
+		return err
+	}
+	vlog.INFO("当前被分配的 ID：%d  Token:%s", rsp.Id, rsp.Token)
+	c.cId = rsp.Id
+	c.Ping(push)
+	return
+}
+
+func (c *ClientControlHandler) RegisterProxyRsp(req *proto.Package, push ResponsePush) (err error) {
 	return nil
 }
 
-func (r *RouteControl) OnMessage(req *proto.Package) (rsp *proto.Package, err error) {
-	return
-}
-
-func (r *RouteControl) OnDisconnect(id int64) {
-	vlog.INFO("disconnect %d", id)
-	return
-}
-
-func (r *RouteControl) initRouter() {
-	r.route.Add(proto.CmdRegisterProxyReq, r.RegisterProxy)
-	r.route.Add(proto.CmdPing, r.Ping)
-}
-func (r *RouteControl) RegisterProxy(p *proto.Package) (rsp *proto.Package, err error) {
-	return
-}
-func (r *RouteControl) Ping(p *proto.Package) (rsp *proto.Package, err error) {
-	return
+func (c *ClientControlHandler) LogoutRsp(req *proto.Package, push ResponsePush) (err error) {
+	vlog.INFO("disconnect cid:%d", c.cId)
+	return nil
 }

@@ -20,7 +20,7 @@ const (
 // 消息发送器
 type Receiver interface {
 	RecvMsg(p *Package) (err error)
-	RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- Package, cancel chan<- Package)
+	RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- Package, cancel chan<- interface{})
 }
 
 type receiver struct {
@@ -67,17 +67,14 @@ func (c *receiver) RecvMsg(p *Package) (err error) {
 }
 
 // RecvMsgWithChan 开启一个协程 使用 chan 来接收定义好格式的消息
-func (c *receiver) RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- Package, cancel chan<- Package) {
+func (c *receiver) RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- Package, cancel chan<- interface{}) {
 	go func() {
 		wait.Done()
 		for {
 			var m Package
 			if err := c.RecvMsg(&m); err != nil {
-				if err == io.EOF {
-					cancel <- Package{}
-					return
-				}
-				continue
+				cancel <- err
+				return
 			}
 			mCh <- m
 		}

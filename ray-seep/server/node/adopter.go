@@ -31,7 +31,7 @@ func NewMessageAdopter() *MessageAdopter {
 }
 
 func (sel *MessageAdopter) identify(p proto.Package) error {
-	if p.Cmd != proto.CmdIdentifyReq {
+	if p.Cmd != proto.CmdLoginReq {
 		return errors.New("identify authentication fail")
 	}
 	if sel.author != nil {
@@ -53,7 +53,7 @@ func (sel *MessageAdopter) OnConnect(id int64, tr proto.MsgTransfer) (err error)
 		return
 	}
 
-	authMsgRsp := proto.NewWithObj(proto.CmdIdentifyRsp, proto.IdentifyRsp{Id: id, Token: util.RandToken()})
+	authMsgRsp := proto.NewWithObj(proto.CmdLoginRsp, proto.LoginRsp{Id: id, Token: util.RandToken()})
 	if err = tr.SendMsg(authMsgRsp); err != nil {
 		vlog.ERROR("response auth message error %s", err.Error())
 		return
@@ -61,7 +61,8 @@ func (sel *MessageAdopter) OnConnect(id int64, tr proto.MsgTransfer) (err error)
 	// 认证成功加入到管理服务中
 	sel.mu.Lock()
 	sel.pods[id] = NewPod(id, tr)
-	sel.cNum++
+	sel.cNum += 1
+	vlog.DEBUG("Pod disconnect current number[%d]:%d", sel.cNum, id)
 	sel.mu.Unlock()
 	return nil
 }
@@ -70,8 +71,8 @@ func (sel *MessageAdopter) OnConnect(id int64, tr proto.MsgTransfer) (err error)
 func (sel *MessageAdopter) OnDisConnect(id int64) {
 	// 认证成功加入到管理服务中
 	sel.mu.Lock()
-	for k := range sel.pods {
-		delete(sel.pods, k)
+	if _, ok := sel.pods[id]; ok {
+		delete(sel.pods, id)
 		sel.cNum--
 	}
 	vlog.DEBUG("Pod disconnect current number[%d]:%d", sel.cNum, id)
@@ -84,6 +85,7 @@ func (sel *MessageAdopter) OnMessage(id int64, req *proto.Package) (rsp proto.Pa
 	vlog.DEBUG("Pod %d msg [cmd:%v][body:%s]", id, req.Cmd, string(req.Body))
 	// 心跳直接返回
 	if req.Cmd == proto.CmdPing {
+		rsp.Cmd = proto.CmdPong
 		return
 	}
 

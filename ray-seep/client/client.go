@@ -22,7 +22,7 @@ func Main() {
 	vlog.DefaultLogger()
 	// 初始化配置
 	cfg := conf.InitClient()
-	ctrCli := control.NewClientControl(cfg.Control, control.NewRouteControl())
+	ctrCli := control.NewClientControl(cfg.Control, &control.ClientControlHandler{})
 
 	go func() {
 		ctrCli.Start()
