@@ -59,6 +59,7 @@ func (sel *nodeIdList) Add(id int64) {
 		}
 	}
 	sel.idList = append(sel.idList, id)
+	vlog.DEBUG("Add当前代理数[%s][%d]", sel.name, len(sel.idList))
 }
 func (sel *nodeIdList) Del(id int64) {
 	for i := 0; i < len(sel.idList); i++ {
@@ -66,6 +67,7 @@ func (sel *nodeIdList) Del(id int64) {
 			sel.idList = append(sel.idList[:i], sel.idList[i+1:]...)
 		}
 	}
+	vlog.DEBUG("Del当前代理数[%s][%d]", sel.name, len(sel.idList))
 }
 func (sel *nodeIdList) Len() int {
 	return len(sel.idList)
@@ -94,11 +96,18 @@ func NewRegisterCenter(pl conn.Pool, ph MessagePusher) *RegisterCenter {
 
 // 注册用户链接
 func (sel *RegisterCenter) Register(domain string, id int64, cc conn.Conn) error {
+	// 把tcp连接放到代理池中
 	if err := sel.pxyPool.Push(id, cc); err != nil {
-		vlog.ERROR("register add node id[%d] error %s", cc.Id(), err.Error())
+		vlog.ERROR("[%d] register pool push error %s", id, err.Error())
 		return err
 	}
-	return sel.addNodeId(domain, id)
+	if err := sel.addNodeId(domain, id); err != nil {
+		vlog.ERROR("[%d] register add node error %s", id, err.Error())
+		sel.pxyPool.Drop(id)
+		return err
+	}
+
+	return sel.pushMsg.PushMsg(id, &proto.Package{Cmd: proto.CmdRunProxyRsp, Body: []byte("{}")})
 }
 
 // addDmp 根据域名添加一个 客户端的链接ID
@@ -115,6 +124,17 @@ func (sel *RegisterCenter) addNodeId(domain string, cid int64) error {
 	return nil
 }
 
+func (sel *RegisterCenter) delNodeId(domain string, cid int64) {
+	sel.lock.Lock()
+	defer sel.lock.Unlock()
+	if ids, ok := sel.nodes[domain]; ok {
+		if ids.Len() == 1 {
+			ids.Del(cid)
+			delete(sel.nodes, domain)
+		}
+	}
+}
+
 // GetProxy 获取代理tcp连接
 func (sel *RegisterCenter) GetProxy(domain string) (net.Conn, error) {
 	sel.lock.RLock()
@@ -125,4 +145,11 @@ func (sel *RegisterCenter) GetProxy(domain string) (net.Conn, error) {
 	}
 	sel.lock.RUnlock()
 	return sel.pxyPool.Get(ids.Get())
+}
+
+// LogOff 注销用户的代理
+func (sel *RegisterCenter) LogOff(domain string, id int64) {
+	sel.pxyPool.Drop(id)
+	sel.delNodeId(domain, id)
+	return
 }

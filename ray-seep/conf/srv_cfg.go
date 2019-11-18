@@ -31,6 +31,7 @@ type ControlSrv struct {
 	Timeout              int64  `json:"timeout"`                 // 连接的超时时间毫秒
 	MaxClientNumber      int64  `json:"max_client_number"`       // 最大客户端连接数
 	MaxClientProxyNumber int64  `json:"max_client_proxy_number"` // 一个客户的最大代理数
+	Domain               string `json:"domain"`                  //服务的域名
 }
 
 //--------------------------------------------------------------------

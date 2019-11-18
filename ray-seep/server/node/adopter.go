@@ -5,8 +5,8 @@
 package node
 
 import (
-	"errors"
-	"ray-seep/ray-seep/common/util"
+	"ray-seep/ray-seep/common/errs"
+	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
 	"sync"
 	"vilgo/vlog"
@@ -22,47 +22,45 @@ type MessageAdopter struct {
 	pods   map[int64]*Pod
 	cNum   int
 	author Author
+	cfg    *conf.ControlSrv
 }
 
-func NewMessageAdopter() *MessageAdopter {
+func NewMessageAdopter(cfg *conf.ControlSrv) *MessageAdopter {
 	return &MessageAdopter{
 		pods: make(map[int64]*Pod),
+		cfg:  cfg,
 	}
-}
-
-func (sel *MessageAdopter) identify(p proto.Package) error {
-	if p.Cmd != proto.CmdLoginReq {
-		return errors.New("identify authentication fail")
-	}
-	if sel.author != nil {
-		return sel.author.Identity("", "", "")
-	}
-	return nil
 }
 
 // OnConnect 有用户连接上来会出发这个事件
 func (sel *MessageAdopter) OnConnect(id int64, tr proto.MsgTransfer) (err error) {
+	pd := NewPod(id, tr, sel.cfg.Domain)
 	// 建立连接的首要任务就是获取认证信息，如果认证失败就直接断开连接
-	var authMsg proto.Package
-	if err = tr.RecvMsg(&authMsg); err != nil {
-		vlog.ERROR("get auth message error %s", err.Error())
+	var req proto.Package
+	if err = tr.RecvMsg(&req); err != nil {
+		vlog.ERROR("[%d] get auth message error %s", id, err.Error())
 		return err
 	}
-	if err = sel.identify(authMsg); err != nil {
-		vlog.ERROR("identify check error %s", err.Error())
+
+	rsp := &proto.Package{
+		Cmd: proto.CmdLoginRsp,
+	}
+	rsp.Body, err = pd.OnMessage(req.Cmd, req.Body)
+	if err != nil {
+		vlog.ERROR("[%d] on connect deal message error:%d", id, err.Error())
 		return
 	}
 
-	authMsgRsp := proto.NewWithObj(proto.CmdLoginRsp, proto.LoginRsp{Id: id, Token: util.RandToken()})
-	if err = tr.SendMsg(authMsgRsp); err != nil {
-		vlog.ERROR("response auth message error %s", err.Error())
+	//authMsgRsp := proto.NewWithObj(proto.CmdLoginRsp, proto.LoginRsp{Id: id, Token: util.RandToken()})
+	if err = tr.SendMsg(rsp); err != nil {
+		vlog.ERROR("[%d] response auth message error %s", id, err.Error())
 		return
 	}
 	// 认证成功加入到管理服务中
 	sel.mu.Lock()
-	sel.pods[id] = NewPod(id, tr)
+	sel.pods[id] = pd
 	sel.cNum += 1
-	vlog.DEBUG("Pod disconnect current number[%d]:%d", sel.cNum, id)
+	vlog.DEBUG("[%d] pod disconnect current number[%d]", id, sel.cNum)
 	sel.mu.Unlock()
 	return nil
 }
@@ -81,10 +79,9 @@ func (sel *MessageAdopter) OnDisConnect(id int64) {
 
 // OnMessage 客户端发送消息过来的时候会触发该事件
 func (sel *MessageAdopter) OnMessage(id int64, req *proto.Package) (rsp proto.Package, err error) {
-
-	vlog.DEBUG("Pod %d msg [cmd:%v][body:%s]", id, req.Cmd, string(req.Body))
 	// 心跳直接返回
 	if req.Cmd == proto.CmdPing {
+		//vlog.DEBUG("[%d] Ping", id)
 		rsp.Cmd = proto.CmdPong
 		return
 	}
@@ -115,7 +112,7 @@ func (sel *MessageAdopter) pushMsg(id int64, p *proto.Package) error {
 	pod, ok := sel.pods[id]
 	sel.mu.Unlock()
 	if !ok {
-		return nil
+		return errs.ErrClientControlNotExist
 	}
 	return pod.PushMsg(p)
 }

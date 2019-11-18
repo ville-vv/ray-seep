@@ -64,7 +64,7 @@ func (sel *ControlServer) Start() error {
 
 // dealConn 处理连接
 func (sel *ControlServer) dealConn(c conn.Conn) {
-	vlog.DEBUG("customer [%d] connecting ", c.Id())
+	vlog.DEBUG("[%d] connecting ", c.Id())
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -78,10 +78,10 @@ func (sel *ControlServer) dealConn(c conn.Conn) {
 
 	// 通知有用户连接
 	if err := sel.ish.OnConnect(c.Id(), msgMng); err != nil {
-		vlog.ERROR("customer [%d] connect fail %s", c.Id(), err.Error())
+		vlog.ERROR("[%d] connect fail %s", c.Id(), err.Error())
 		return
 	}
-	vlog.DEBUG("customer [%d] connect success", c.Id())
+	vlog.DEBUG("[%d] connect success", c.Id())
 	// 通知有连接断开
 	defer sel.ish.OnDisConnect(c.Id())
 

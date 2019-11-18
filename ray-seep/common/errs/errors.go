@@ -11,10 +11,11 @@ func (s ErrCode) String() string {
 }
 
 const (
-	StatusOK          ErrCode = "200"
-	ErrServerNumFull  ErrCode = "you server number is full "
-	ErrServerNotExist ErrCode = "server not exist"
-	ErrProxyNotExist  ErrCode = "proxy server not exist"
-	ErrConnPoolIsFull ErrCode = "proxy pool is full"
-	ErrNoCmdRouterNot ErrCode = "router not found"
+	StatusOK                 ErrCode = "200"
+	ErrServerNumFull         ErrCode = "you server number is full "
+	ErrServerNotExist        ErrCode = "server not exist"
+	ErrProxyNotExist         ErrCode = "proxy server not exist"
+	ErrConnPoolIsFull        ErrCode = "proxy pool is full"
+	ErrNoCmdRouterNot        ErrCode = "router not found"
+	ErrClientControlNotExist ErrCode = "client control is not exist"
 )

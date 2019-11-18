@@ -23,8 +23,8 @@ func main() {
 	vlog.DefaultLogger()
 	cfg := conf.InitServer()
 
-	controlHandler := node.NewMessageAdopter()
-	regCenter := proxy.NewRegisterCenter(conn.NewPool(), controlHandler)
+	controlHandler := node.NewMessageAdopter(cfg.Ctl)
+	regCenter := proxy.NewRegisterCenter(conn.NewPool(60), controlHandler)
 
 	srv := server.NewRaySeepServer(cfg)
 	srv.Use(

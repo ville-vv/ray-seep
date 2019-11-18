@@ -11,14 +11,15 @@ type ResponsePush interface {
 }
 
 type Handler interface {
-	Pong(req *proto.Package, push ResponsePush) error
-	Login(req *proto.Package, push ResponsePush) error
-	LoginRsp(req *proto.Package, push ResponsePush) error
-	RegisterProxyRsp(req *proto.Package, push ResponsePush) error
-	LogoutRsp(req *proto.Package, push ResponsePush) error
+	Pong(req *proto.Package) error
+	Login(push ResponsePush) error
+	LoginRsp(req *proto.Package) error
+	CreateHostRsp(req *proto.Package) (err error)
+	RunProxyRsp(req *proto.Package) error
+	LogoutRsp(req *proto.Package) error
 }
 
-type HandlerFun func(req *proto.Package, push ResponsePush) (err error)
+type HandlerFun func(req *proto.Package) (err error)
 
 type router struct {
 	hds map[int32]HandlerFun
@@ -29,7 +30,7 @@ func (r *router) route(req *proto.Package, push ResponsePush) error {
 	if !ok {
 		return errs.ErrNoCmdRouterNot
 	}
-	return hd(req, push)
+	return hd(req)
 }
 func (r *router) Add(cmd int32, fun HandlerFun) {
 	r.hds[cmd] = fun
@@ -55,7 +56,7 @@ func NewRouteControl(hd Handler) *RouteControl {
 
 func (r *RouteControl) OnConnect(sender proto.Sender) error {
 	r.sender = sender
-	return r.hd.Login(&proto.Package{Cmd: proto.CmdLoginReq, Body: []byte{}}, r)
+	return r.hd.Login(r)
 }
 
 func (r *RouteControl) OnMessage(req *proto.Package) {
@@ -66,15 +67,19 @@ func (r *RouteControl) OnMessage(req *proto.Package) {
 }
 
 func (r *RouteControl) OnDisconnect(localId int64) {
-	_ = r.hd.LogoutRsp(&proto.Package{Cmd: proto.CmdLogoutReq, Body: []byte{}}, r)
+	_ = r.hd.LogoutRsp(&proto.Package{Cmd: proto.CmdLogoutReq, Body: []byte{}})
 	return
 }
 
 func (r *RouteControl) initRouter() {
-	r.route.Add(proto.CmdLoginReq, r.hd.Login)
-	r.route.Add(proto.CmdLoginRsp, r.hd.LoginRsp)
-	r.route.Add(proto.CmdRegisterProxyRsp, r.hd.RegisterProxyRsp)
 	r.route.Add(proto.CmdPong, r.hd.Pong)
+	// 登录返回
+	r.route.Add(proto.CmdLoginRsp, r.hd.LoginRsp)
+	//
+	r.route.Add(proto.CmdCreateHostRsp, r.hd.CreateHostRsp)
+	//
+	r.route.Add(proto.CmdRunProxyRsp, r.hd.RunProxyRsp)
+
 }
 
 //

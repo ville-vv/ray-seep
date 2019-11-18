@@ -12,6 +12,7 @@ import (
 
 type IRegister interface {
 	Register(domain string, id int64, cc conn.Conn) error
+	LogOff(domain string, id int64)
 }
 
 type ProxyServer struct {
@@ -55,7 +56,6 @@ func (s *ProxyServer) dealConn(cn conn.Conn) {
 			return
 		}
 	}()
-	vlog.INFO("有代理进行连接")
 	_ = cn.SetDeadline(time.Now().Add(time.Second * 15))
 	tr := proto.NewMsgTransfer(cn)
 	var regProxy proto.Package
@@ -64,15 +64,14 @@ func (s *ProxyServer) dealConn(cn conn.Conn) {
 		_ = cn.Close()
 		return
 	}
-
-	vlog.INFO("收到代理连接发送的消息%s", string(regProxy.Body))
-	if regProxy.Cmd != proto.CmdRegisterProxyReq {
+	vlog.DEBUG("收到代理连接发送的消息%s", string(regProxy.Body))
+	if regProxy.Cmd != proto.CmdRunProxyReq {
 		vlog.ERROR("proxy cmd is error %d", regProxy.Cmd)
 		_ = cn.Close()
 		return
 	}
 
-	regData := proto.RegisterProxyReq{}
+	regData := proto.RunProxyReq{}
 	if err := json.Unmarshal(regProxy.Body, &regData); err != nil {
 		vlog.ERROR("parse register proxy request data fail %s , data is %s ", err.Error(), string(regProxy.Body))
 		_ = cn.Close()
@@ -84,10 +83,9 @@ func (s *ProxyServer) dealConn(cn conn.Conn) {
 		_ = cn.Close()
 		return
 	}
+	defer s.register.LogOff(regData.SubDomain, regData.Cid)
 
-	if err := tr.SendMsg(proto.NewWithObj(proto.CmdRegisterProxyRsp, &proto.RegisterProxyRsp{})); err != nil {
-		vlog.ERROR("send register response message error %s", err.Error())
-		return
+	for {
+		select {}
 	}
-
 }

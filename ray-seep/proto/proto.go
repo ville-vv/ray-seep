@@ -18,17 +18,24 @@ type Ping struct{}
 type Pong struct{}
 
 type CreateHostReq struct {
+	Token     string `json:"token"`
 	SubDomain string `json:"sub_domain"`
 }
 type CreateHostRsp struct {
 	Domain string `json:"domain"`
 }
 
-type RegisterProxyReq struct {
+type NoticeRunProxy struct {
 	Cid       int64  `json:"cid"`
 	SubDomain string `json:"sub_domain"`
 }
 
-type RegisterProxyRsp struct {
+type RunProxyReq struct {
+	Cid       int64  `json:"cid"`
+	Token     string `json:"token"`
+	SubDomain string `json:"sub_domain"`
+}
+
+type RunProxyRsp struct {
 	Cid int64 `json:"cid"`
 }

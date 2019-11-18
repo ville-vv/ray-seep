@@ -26,6 +26,7 @@ Port = 32201
 Timeout=10000
 MaxClientNumber = 5
 MaxClientProxyNumber = 5
+Domain = "example.com"
 
 [Http]
 Host = ""
