@@ -9,7 +9,10 @@ import (
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/proto"
+	"ray-seep/ray-seep/server/online"
+	"strings"
 	"sync"
+	"time"
 	"vilgo/vlog"
 )
 
@@ -17,139 +20,106 @@ type MessagePusher interface {
 	PushMsg(id int64, p *proto.Package) error
 }
 
-type IDChooseRuler interface {
-	Choose([]int64) int64
-}
-
-// Id 获取器
-type idChooser struct {
-	index int
-}
-
-// Choose 获取 Id
-func (sel *idChooser) Choose(ids []int64) int64 {
-	if len(ids) <= 0 {
-		return 0
-	}
-	id := ids[sel.index]
-	sel.index++
-	if sel.index >= len(ids) {
-		sel.index = 0
-	}
-	return id
-}
-
-// 节点ID存放列表
-type nodeIdList struct {
-	name   string
-	cho    IDChooseRuler
-	idList []int64 // 一个域名下可能存在多个服务，用于实现用户服务负载均衡功能使用特定算法获取一条 cid对应的conn
-}
-
-func newNodeIdList(name string) *nodeIdList {
-	return &nodeIdList{name: name, cho: &idChooser{}}
-}
-func (sel *nodeIdList) Name() string {
-	return sel.name
-}
-func (sel *nodeIdList) Add(id int64) {
-	for i := range sel.idList {
-		if sel.idList[i] == id {
-			return
-		}
-	}
-	sel.idList = append(sel.idList, id)
-	vlog.DEBUG("Add当前代理数[%s][%d]", sel.name, len(sel.idList))
-}
-func (sel *nodeIdList) Del(id int64) {
-	for i := 0; i < len(sel.idList); i++ {
-		if id == sel.idList[i] {
-			sel.idList = append(sel.idList[:i], sel.idList[i+1:]...)
-		}
-	}
-	vlog.DEBUG("Del当前代理数[%s][%d]", sel.name, len(sel.idList))
-}
-func (sel *nodeIdList) Len() int {
-	return len(sel.idList)
-}
-func (sel *nodeIdList) Get() int64 {
-	return sel.cho.Choose(sel.idList)
-}
-
 // RegisterCenter 注册中心，记录用户启动的本地服务id与用户使用的域名映射
 // 记录用户启动的服务的代理池
 type RegisterCenter struct {
-	lock       sync.RWMutex
-	nodeIdsNum int                    // 节点 Id 数量
-	nodes      map[string]*nodeIdList // 域名映射 一个域名对多个服务节点
-	pxyPool    conn.Pool              // 记录用户本地服务的代理 tcp 链接，使用 cid 获取链接
-	pushMsg    MessagePusher
+	lock     sync.RWMutex
+	userMng  *online.UserManager
+	pxyPools map[string]conn.Pool // 记录用户本地服务的代理 tcp 链接，使用 cid 获取链接
+	pushMsg  MessagePusher
+	caches   int
 }
 
-func NewRegisterCenter(pl conn.Pool, ph MessagePusher) *RegisterCenter {
+func NewRegisterCenter(caches int, ph MessagePusher, userMng *online.UserManager) *RegisterCenter {
 	return &RegisterCenter{
-		nodes:   make(map[string]*nodeIdList),
-		pxyPool: pl,
-		pushMsg: ph,
+		pxyPools: make(map[string]conn.Pool),
+		pushMsg:  ph,
+		caches:   caches, // 一个节点需能缓存的数量
+		userMng:  userMng,
 	}
 }
 
 // 注册用户链接
-func (sel *RegisterCenter) Register(domain string, id int64, cc conn.Conn) error {
+func (sel *RegisterCenter) Register(name string, id int64, cc conn.Conn) error {
 	// 把tcp连接放到代理池中
-	if err := sel.pxyPool.Push(id, cc); err != nil {
-		vlog.ERROR("[%d] register pool push error %s", id, err.Error())
+	if err := sel.addProxy(name, id, cc); err != nil {
+		vlog.ERROR("[%d]register proxy error %s", id, err.Error())
 		return err
 	}
-	if err := sel.addNodeId(domain, id); err != nil {
-		vlog.ERROR("[%d] register add node error %s", id, err.Error())
-		sel.pxyPool.Drop(id)
-		return err
-	}
-
 	return sel.pushMsg.PushMsg(id, &proto.Package{Cmd: proto.CmdRunProxyRsp, Body: []byte("{}")})
 }
 
-// addDmp 根据域名添加一个 客户端的链接ID
-func (sel *RegisterCenter) addNodeId(domain string, cid int64) error {
+func (sel *RegisterCenter) addProxy(name string, id int64, cc conn.Conn) error {
 	sel.lock.Lock()
 	defer sel.lock.Unlock()
-	if d, ok := sel.nodes[domain]; ok {
-		d.Add(cid)
-		return nil
+	if p, ok := sel.pxyPools[name]; ok {
+		return p.Push(id, cc)
 	}
-	idList := newNodeIdList(domain)
-	idList.Add(cid)
-	sel.nodes[domain] = idList
+	pl := conn.NewPool(sel.caches)
+	if err := pl.Push(id, cc); err != nil {
+		return err
+	}
+	sel.pxyPools[name] = pl
+	vlog.INFO("当前代理数量%d", pl.Size())
 	return nil
 }
 
-func (sel *RegisterCenter) delNodeId(domain string, cid int64) {
-	sel.lock.Lock()
-	defer sel.lock.Unlock()
-	if ids, ok := sel.nodes[domain]; ok {
-		if ids.Len() == 1 {
-			ids.Del(cid)
-			delete(sel.nodes, domain)
-		}
+func (sel *RegisterCenter) delProxy(name string, cid int64) {
+	if pl, ok := sel.pxyPools[name]; ok {
+		pl.Drop(cid)
+		delete(sel.pxyPools, name)
 	}
 }
 
 // GetProxy 获取代理tcp连接
-func (sel *RegisterCenter) GetProxy(domain string) (net.Conn, error) {
+func (sel *RegisterCenter) GetProxy(name string) (net.Conn, error) {
+	name = strings.Split(name, ".")[0]
 	sel.lock.RLock()
-	ids, ok := sel.nodes[domain]
-	if !ok {
-		sel.lock.RUnlock()
-		return nil, errs.ErrServerNotExist
-	}
+	pl, ok := sel.pxyPools[name]
 	sel.lock.RUnlock()
-	return sel.pxyPool.Get(ids.Get())
+	if ok {
+		if cn, err := pl.Get(0); err == nil {
+			vlog.INFO("获得代理连接：%d", cn.Id())
+			return &registerConn{cn}, nil
+		}
+	}
+	if pl == nil {
+		return nil, errs.ErrProxySrvNotExist
+	}
+
+	id := sel.userMng.GetId(name)
+	notice := &proto.Package{Cmd: proto.CmdNoticeRunProxy, Body: []byte("{}")}
+	if err := sel.pushMsg.PushMsg(id, notice); err != nil {
+		vlog.ERROR("[%d]push notice run proxy error %s", id, err.Error())
+		return nil, errs.ErrProxySrvNotExist
+	}
+	// 如果没有取到就发送重置消息，请求连接一个代理
+	tm := time.NewTicker(time.Second * 5)
+	select {
+	case cn, ok := <-pl.WaitGet():
+		if !ok {
+			return nil, errs.ErrProxySrvNotExist
+		}
+		return cn, nil
+	case <-tm.C:
+		vlog.WARN("wait get proxy timeout")
+	}
+	return nil, errs.ErrProxySrvNotExist
 }
 
 // LogOff 注销用户的代理
-func (sel *RegisterCenter) LogOff(domain string, id int64) {
-	sel.pxyPool.Drop(id)
-	sel.delNodeId(domain, id)
-	return
+func (sel *RegisterCenter) LogOff(name string, id int64) {
+	sel.delProxy(name, id)
+}
+
+type registerConn struct {
+	conn.Conn
+}
+
+func (sel *registerConn) Read(buf []byte) (int, error) {
+	n, err := sel.Conn.Read(buf)
+	if err != nil {
+		vlog.ERROR("读取消息错误了%v, error : %v", sel.Conn.RemoteAddr(), err)
+	}
+	return n, err
 }

@@ -70,3 +70,30 @@ func TestNetRepeater_relay(t *testing.T) {
 
 	time.Sleep(time.Second * 3)
 }
+
+func TestHttpTcp(t *testing.T) {
+	ls, err := net.Listen("tcp", ":23455")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	for {
+		c, err := ls.Accept()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		go func(c net.Conn) {
+			for {
+				buf := make([]byte, 1024*2)
+				n, err := c.Read(buf)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				buf = buf[:n]
+				fmt.Println(string(buf))
+			}
+		}(c)
+	}
+}

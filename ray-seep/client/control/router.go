@@ -16,6 +16,7 @@ type Handler interface {
 	LoginRsp(req *proto.Package) error
 	CreateHostRsp(req *proto.Package) (err error)
 	RunProxyRsp(req *proto.Package) error
+	NoticeRunProxy(req *proto.Package) error
 	LogoutRsp(req *proto.Package) error
 }
 
@@ -79,6 +80,8 @@ func (r *RouteControl) initRouter() {
 	r.route.Add(proto.CmdCreateHostRsp, r.hd.CreateHostRsp)
 	//
 	r.route.Add(proto.CmdRunProxyRsp, r.hd.RunProxyRsp)
+
+	r.route.Add(proto.CmdNoticeRunProxy, r.hd.NoticeRunProxy)
 
 }
 

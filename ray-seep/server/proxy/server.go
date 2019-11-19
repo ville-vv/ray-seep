@@ -64,26 +64,25 @@ func (s *ProxyServer) dealConn(cn conn.Conn) {
 		_ = cn.Close()
 		return
 	}
-	vlog.DEBUG("收到代理连接发送的消息%s", string(regProxy.Body))
 	if regProxy.Cmd != proto.CmdRunProxyReq {
 		vlog.ERROR("proxy cmd is error %d", regProxy.Cmd)
 		_ = cn.Close()
 		return
 	}
-
 	regData := proto.RunProxyReq{}
 	if err := json.Unmarshal(regProxy.Body, &regData); err != nil {
 		vlog.ERROR("parse register proxy request data fail %s , data is %s ", err.Error(), string(regProxy.Body))
 		_ = cn.Close()
 		return
 	}
+	_ = cn.SetDeadline(time.Time{})
 	// 把代理连接都注册到注册器里面
-	if err := s.register.Register(regData.SubDomain, regData.Cid, cn); err != nil {
+	if err := s.register.Register(regData.Name, regData.Cid, cn); err != nil {
 		vlog.ERROR("%s proxy is registered fail %s", cn.RemoteAddr().String(), err.Error())
 		_ = cn.Close()
 		return
 	}
-	defer s.register.LogOff(regData.SubDomain, regData.Cid)
+	defer s.register.LogOff(regData.Name, regData.Cid)
 
 	for {
 		select {}

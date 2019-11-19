@@ -7,11 +7,11 @@ package main
 import (
 	"os"
 	"os/signal"
-	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/server"
 	"ray-seep/ray-seep/server/http"
 	"ray-seep/ray-seep/server/node"
+	"ray-seep/ray-seep/server/online"
 	"ray-seep/ray-seep/server/proxy"
 	"syscall"
 	"time"
@@ -23,12 +23,13 @@ func main() {
 	vlog.DefaultLogger()
 	cfg := conf.InitServer()
 
-	controlHandler := node.NewMessageAdopter(cfg.Ctl)
-	regCenter := proxy.NewRegisterCenter(conn.NewPool(60), controlHandler)
+	userMng := online.NewUserManager()
+	msgAdopter := node.NewMessageAdopter(cfg, userMng)
+	regCenter := proxy.NewRegisterCenter(100, msgAdopter, userMng)
 
 	srv := server.NewRaySeepServer(cfg)
 	srv.Use(
-		node.NewControlServer(cfg.Ctl, controlHandler),
+		node.NewControlServer(cfg.Ctl, msgAdopter),
 		proxy.NewProxyServer(cfg.Pxy, regCenter),
 		http.NewServer(cfg.Http, regCenter),
 	)

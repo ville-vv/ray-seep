@@ -49,10 +49,10 @@ func (s *Server) Start() error {
 // dealConn 处理 http 请求链接
 func (s *Server) dealConn(c conn.Conn) {
 	defer func() {
-		if err := recover(); err != nil {
-			vlog.ERROR("http transfer error ", err)
-			return
-		}
+		//if err := recover(); err != nil {
+		//	vlog.ERROR("http transfer error %v", err)
+		//	return
+		//}
 	}()
 	defer c.Close()
 	vlog.DEBUG("client request： %s", c.RemoteAddr())

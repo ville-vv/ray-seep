@@ -20,8 +20,9 @@ type ProxySrv struct {
 
 // HttpSrv 服务程序对外的 http 服务信息
 type HttpSrv struct {
-	Host string `json:"host"`
-	Port int64  `json:"port"`
+	Host   string `json:"host"`
+	Port   int64  `json:"port"`
+	Domain string `json:"domain"` //服务的域名
 }
 
 // ControlSrv 用户控制器，用于与用户客户端消息通信，和控制命令的处理
@@ -31,7 +32,6 @@ type ControlSrv struct {
 	Timeout              int64  `json:"timeout"`                 // 连接的超时时间毫秒
 	MaxClientNumber      int64  `json:"max_client_number"`       // 最大客户端连接数
 	MaxClientProxyNumber int64  `json:"max_client_proxy_number"` // 一个客户的最大代理数
-	Domain               string `json:"domain"`                  //服务的域名
 }
 
 //--------------------------------------------------------------------

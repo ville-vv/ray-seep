@@ -5,9 +5,11 @@
 package node
 
 import (
+	"fmt"
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
+	"ray-seep/ray-seep/server/online"
 	"sync"
 	"vilgo/vlog"
 )
@@ -18,23 +20,33 @@ type Author interface {
 }
 
 type MessageAdopter struct {
-	mu     sync.Mutex
-	pods   map[int64]*Pod
-	cNum   int
-	author Author
-	cfg    *conf.ControlSrv
+	mu      sync.Mutex
+	pods    map[int64]*Pod
+	userMng *online.UserManager
+	cNum    int
+	author  Author
+	cfg     *conf.Server
 }
 
-func NewMessageAdopter(cfg *conf.ControlSrv) *MessageAdopter {
+func NewMessageAdopter(cfg *conf.Server, uMng *online.UserManager) *MessageAdopter {
 	return &MessageAdopter{
-		pods: make(map[int64]*Pod),
-		cfg:  cfg,
+		pods:    make(map[int64]*Pod),
+		cfg:     cfg,
+		userMng: uMng,
 	}
+}
+
+func (sel *MessageAdopter) Domain() string {
+	domain := sel.cfg.Http.Domain
+	if sel.cfg.Http.Port != 80 {
+		domain = fmt.Sprintf("%s:%d", domain, sel.cfg.Http.Port)
+	}
+	return domain
 }
 
 // OnConnect 有用户连接上来会出发这个事件
 func (sel *MessageAdopter) OnConnect(id int64, tr proto.MsgTransfer) (err error) {
-	pd := NewPod(id, tr, sel.cfg.Domain)
+	pd := NewPod(id, tr, sel.Domain(), sel.userMng)
 	// 建立连接的首要任务就是获取认证信息，如果认证失败就直接断开连接
 	var req proto.Package
 	if err = tr.RecvMsg(&req); err != nil {
@@ -69,12 +81,12 @@ func (sel *MessageAdopter) OnConnect(id int64, tr proto.MsgTransfer) (err error)
 func (sel *MessageAdopter) OnDisConnect(id int64) {
 	// 认证成功加入到管理服务中
 	sel.mu.Lock()
+	defer sel.mu.Unlock()
 	if _, ok := sel.pods[id]; ok {
 		delete(sel.pods, id)
 		sel.cNum--
 	}
-	vlog.DEBUG("Pod disconnect current number[%d]:%d", sel.cNum, id)
-	sel.mu.Unlock()
+	vlog.DEBUG("[%d] disconnect current number:%d", id, sel.cNum)
 }
 
 // OnMessage 客户端发送消息过来的时候会触发该事件
