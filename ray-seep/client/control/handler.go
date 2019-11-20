@@ -44,7 +44,7 @@ func (c *ClientControlHandler) Ping() {
 }
 
 func (c *ClientControlHandler) Pong(req *proto.Package) (err error) {
-	vlog.INFO("server message  pong [%d]", req.Cmd)
+	//vlog.INFO("server message  pong [%d]", req.Cmd)
 	return
 }
 

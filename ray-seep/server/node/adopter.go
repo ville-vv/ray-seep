@@ -82,7 +82,8 @@ func (sel *MessageAdopter) OnDisConnect(id int64) {
 	// 认证成功加入到管理服务中
 	sel.mu.Lock()
 	defer sel.mu.Unlock()
-	if _, ok := sel.pods[id]; ok {
+	if pd, ok := sel.pods[id]; ok {
+		_, _ = pd.LogoutReq([]byte{})
 		delete(sel.pods, id)
 		sel.cNum--
 	}

@@ -17,9 +17,10 @@ type PodRouterFun func([]byte) ([]byte, error)
 
 // Pod 是一个 代理服务 的管理器连接，包括代理和控制连接
 type Pod struct {
+	id      int64
+	name    string
 	domain  string
 	sender  proto.Sender
-	id      int64
 	route   map[int32]PodRouterFun
 	userMng *online.UserManager
 }
@@ -35,6 +36,7 @@ func (p *Pod) initRoute() {
 	p.route[proto.CmdLoginReq] = p.LoginReq
 	p.route[proto.CmdCreateHostReq] = p.CreateHostReq
 	p.route[proto.CmdRunProxyRsp] = p.RunProxyReq
+	p.route[proto.CmdLogoutReq] = p.LogoutReq
 }
 func (p *Pod) Id() int64 {
 	return p.id
@@ -58,6 +60,7 @@ func (p *Pod) LoginReq(req []byte) (rsp []byte, err error) {
 		return
 	}
 
+	p.name = reqLogin.Name
 	token := util.RandToken()
 	p.userMng.Login(p.id, reqLogin.Name, token)
 
@@ -103,4 +106,9 @@ func (p *Pod) RunProxyReq(req []byte) (rsp []byte, err error) {
 		return
 	}
 	return jsoniter.Marshal(proto.RunProxyRsp{})
+}
+
+func (p *Pod) LogoutReq(req []byte) (rsp []byte, err error) {
+	p.userMng.Logout(p.id, p.name)
+	return nil, nil
 }

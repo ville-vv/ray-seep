@@ -83,6 +83,7 @@ func (l *UserManager) Login(id int64, name, token string) {
 	return
 }
 func (l *UserManager) Logout(id int64, name string) {
+	vlog.DEBUG("[%d][%s]退出", id, name)
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	if user, ok := l.users[name]; ok {

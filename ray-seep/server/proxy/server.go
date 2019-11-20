@@ -82,9 +82,4 @@ func (s *ProxyServer) dealConn(cn conn.Conn) {
 		_ = cn.Close()
 		return
 	}
-	defer s.register.LogOff(regData.Name, regData.Cid)
-
-	for {
-		select {}
-	}
 }
