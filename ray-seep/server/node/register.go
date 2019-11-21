@@ -2,7 +2,7 @@
 // @Author   : Ville
 // @Time     : 19-10-12 下午3:32
 // proxy
-package proxy
+package node
 
 import (
 	"net"
@@ -10,7 +10,6 @@ import (
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/proto"
 	"ray-seep/ray-seep/server/online"
-	"strings"
 	"sync"
 	"time"
 	"vilgo/vlog"
@@ -24,18 +23,16 @@ type MessagePusher interface {
 // 记录用户启动的服务的代理池
 type RegisterCenter struct {
 	lock     sync.RWMutex
-	userMng  *online.UserManager
-	pxyPools map[string]conn.Pool // 记录用户本地服务的代理 tcp 链接，使用 cid 获取链接
+	pxyPools map[string]*online.ProxyPool // 记录用户本地服务的代理 tcp 链接，使用 cid 获取链接
 	pushMsg  MessagePusher
 	caches   int
 }
 
-func NewRegisterCenter(caches int, ph MessagePusher, userMng *online.UserManager) *RegisterCenter {
+func NewRegisterCenter(caches int, ph MessagePusher) *RegisterCenter {
 	return &RegisterCenter{
-		pxyPools: make(map[string]conn.Pool),
+		pxyPools: make(map[string]*online.ProxyPool),
 		pushMsg:  ph,
 		caches:   caches, // 一个节点需能缓存的数量
-		userMng:  userMng,
 	}
 }
 
@@ -43,7 +40,7 @@ func NewRegisterCenter(caches int, ph MessagePusher, userMng *online.UserManager
 func (sel *RegisterCenter) Register(name string, id int64, cc conn.Conn) error {
 	// 把tcp连接放到代理池中
 	if err := sel.addProxy(name, id, cc); err != nil {
-		vlog.ERROR("[%d]register proxy error %s", id, err.Error())
+		vlog.ERROR("[%s][%d]register proxy error %s", name, id, err.Error())
 		return err
 	}
 	return sel.pushMsg.PushMsg(id, &proto.Package{Cmd: proto.CmdRunProxyRsp, Body: []byte("{}")})
@@ -55,43 +52,45 @@ func (sel *RegisterCenter) addProxy(name string, id int64, cc conn.Conn) error {
 	if p, ok := sel.pxyPools[name]; ok {
 		return p.Push(id, cc)
 	}
-	pl := conn.NewPool(sel.caches)
+	pl := online.NewProxyPool(name, conn.NewPool(sel.caches))
 	if err := pl.Push(id, cc); err != nil {
 		return err
 	}
 	sel.pxyPools[name] = pl
-	vlog.INFO("当前代理数量%d", pl.Size())
+	// vlog.INFO("[%s][%d]当前代理数量%d", name, id, pl.Size())
 	return nil
 }
 
 func (sel *RegisterCenter) delProxy(name string, cid int64) {
 	if pl, ok := sel.pxyPools[name]; ok {
 		pl.Drop(cid)
-		delete(sel.pxyPools, name)
+		if pl.Size() == 0 {
+			pl.Close()
+			delete(sel.pxyPools, name)
+		}
 	}
 }
 
 // GetProxy 获取代理tcp连接
 func (sel *RegisterCenter) GetProxy(name string) (net.Conn, error) {
-	name = strings.Split(name, ".")[0]
 	sel.lock.RLock()
 	pl, ok := sel.pxyPools[name]
 	sel.lock.RUnlock()
 	if ok {
 		if cn, err := pl.Get(0); err == nil {
-			vlog.INFO("获得代理连接：%d", cn.Id())
-			return &registerConn{cn}, nil
+			return cn, nil
 		}
 	}
 	if pl == nil {
 		return nil, errs.ErrProxySrvNotExist
 	}
+	id := pl.GetId()
 
-	id := sel.userMng.GetId(name)
+	vlog.INFO("[%s][%d] notice proxy run", name, id)
 	notice := &proto.Package{Cmd: proto.CmdNoticeRunProxy, Body: []byte("{}")}
 	if err := sel.pushMsg.PushMsg(id, notice); err != nil {
-		vlog.ERROR("[%d]push notice run proxy error %s", id, err.Error())
-		return nil, errs.ErrProxySrvNotExist
+		vlog.ERROR("[%s][%d] push notice run proxy message error ", name, id, err.Error())
+		return nil, errs.ErrNoticeProxyRunErr
 	}
 	// 如果没有取到就发送重置消息，请求连接一个代理
 	tm := time.NewTicker(time.Second * 5)
@@ -100,11 +99,12 @@ func (sel *RegisterCenter) GetProxy(name string) (net.Conn, error) {
 		if !ok {
 			return nil, errs.ErrProxySrvNotExist
 		}
+		vlog.INFO("[%s][%d] notice proxy success", name, id)
 		return cn, nil
 	case <-tm.C:
-		vlog.WARN("wait get proxy timeout")
+		vlog.WARN("[%s][%d] wait get proxy timeout", name, id)
 	}
-	return nil, errs.ErrProxySrvNotExist
+	return nil, errs.ErrWaitProxyRunTimeout
 }
 
 // LogOff 注销用户的代理
@@ -118,6 +118,7 @@ type registerConn struct {
 
 func (sel *registerConn) Read(buf []byte) (int, error) {
 	n, err := sel.Conn.Read(buf)
+	vlog.DEBUG("获取消息长度%d", n)
 	if err != nil {
 		vlog.ERROR("读取消息错误了%v, error : %v", sel.Conn.RemoteAddr(), err)
 	}

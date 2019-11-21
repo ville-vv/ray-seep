@@ -31,7 +31,7 @@ func (sel *User) drop(id int64) {
 			sel.pods = append(sel.pods[:i], sel.pods[i+1:]...)
 		}
 	}
-	vlog.DEBUG("Del当前代理数[%s][%d]", sel.name, len(sel.pods))
+	vlog.DEBUG("当前在线用户[%s][%d]", sel.name, len(sel.pods))
 }
 func (sel *User) Len() int {
 	return len(sel.pods)

@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"time"
 	"vilgo/vlog"
 )
 
@@ -24,25 +25,28 @@ type ProxyGainer interface {
 
 // NetRepeater 网络请求的使用的中续器
 type NetRepeater struct {
-	regCenter ProxyGainer // 注册中心
+	pxyGainer ProxyGainer // 注册中心
 }
 
-func NewNetRepeater(regCenter ProxyGainer) *NetRepeater {
-	return &NetRepeater{regCenter: regCenter}
+func NewNetRepeater(pxyGainer ProxyGainer) *NetRepeater {
+	return &NetRepeater{pxyGainer: pxyGainer}
 }
 
 func (sel *NetRepeater) Transfer(host string, c net.Conn) {
-	pxyConn, err := sel.regCenter.GetProxy(host)
+	pxyConn, err := sel.pxyGainer.GetProxy(host)
 	if err != nil {
 		vlog.ERROR("获取代理服务错误：%s", err.Error())
 		return
 	}
-	reqLength, respLength, err := sel.relay(c, pxyConn)
+	defer pxyConn.Close()
+	_ = pxyConn.SetDeadline(time.Time{})
+	reqLength, respLength, err := sel.relay(pxyConn, c)
 	if err != nil {
-		vlog.ERROR("请求数据错误：%s", err.Error())
-		return
+		if netErr, ok := err.(net.Error); !(ok && netErr.Timeout()) {
+			vlog.ERROR("%s", err.Error())
+		}
 	}
-	vlog.INFO("请求数据长度：[%d]. 返回数据长度：[%d]", reqLength, respLength)
+	vlog.INFO("request size：[%d]. response size：[%d]", reqLength, respLength)
 }
 
 // exchange 请求数据转播
@@ -52,24 +56,22 @@ func (sel *NetRepeater) Transfer(host string, c net.Conn) {
 // @return 2 : 被请求者返回的数据长度
 // @return err : 错误
 func (sel *NetRepeater) relay(dst net.Conn, src net.Conn) (int64, int64, error) {
-	defer dst.Close()
-	defer src.Close()
 	type res struct {
 		N   int64
 		Err error
 	}
 	ch := make(chan res)
-	wg := sync.WaitGroup{}
-	wg.Add(1)
 	go func() {
-		wg.Done()
 		// 先启动
 		n, err := io.Copy(src, dst)
+		_ = src.SetDeadline(time.Now())
+		_ = dst.SetDeadline(time.Now())
 		ch <- res{N: n, Err: err}
 
 	}()
-	wg.Wait()
 	n, err := io.Copy(dst, src)
+	_ = src.SetDeadline(time.Now())
+	_ = dst.SetDeadline(time.Now())
 	rs := <-ch
 	if err == nil {
 		err = rs.Err

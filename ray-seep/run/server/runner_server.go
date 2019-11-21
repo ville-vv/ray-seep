@@ -25,13 +25,13 @@ func main() {
 
 	userMng := online.NewUserManager()
 	msgAdopter := node.NewMessageAdopter(cfg, userMng)
-	regCenter := proxy.NewRegisterCenter(100, msgAdopter, userMng)
+	//regCenter := node.NewRegisterCenter(100, msgAdopter, userMng)
 
 	srv := server.NewRaySeepServer(cfg)
 	srv.Use(
 		node.NewControlServer(cfg.Ctl, msgAdopter),
-		proxy.NewProxyServer(cfg.Pxy, regCenter),
-		http.NewServer(cfg.Http, regCenter),
+		proxy.NewProxyServer(cfg.Pxy, msgAdopter),
+		http.NewServer(cfg.Http, msgAdopter),
 	)
 
 	go srv.Start()

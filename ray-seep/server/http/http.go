@@ -5,11 +5,14 @@
 package http
 
 import (
+	"bytes"
 	"fmt"
-	"ray-seep/ray-seep/common/conn"
+	"io/ioutil"
+	"net"
+	"net/http"
 	"ray-seep/ray-seep/common/rayhttp"
 	"ray-seep/ray-seep/conf"
-	"ray-seep/ray-seep/server/proxy"
+	"time"
 	"vilgo/vlog"
 )
 
@@ -27,49 +30,63 @@ func (s *Server) Scheme() string {
 
 // NewServer http 请求服务
 // repeat 用于 http 请求转发
-func NewServer(c *conf.HttpSrv, reg *proxy.RegisterCenter) *Server {
+func NewServer(c *conf.HttpSrv, pxyGainer ProxyGainer) *Server {
 	addr := fmt.Sprintf("%s:%d", c.Host, c.Port)
-	return &Server{addr: addr, repeat: NewNetRepeater(reg)}
+	return &Server{addr: addr, repeat: NewNetRepeater(pxyGainer)}
 }
 
 // Start 启动http服务
 func (s *Server) Start() error {
-	lis, err := conn.Listen(s.addr)
+	lin, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		vlog.ERROR("%v", err)
 		return nil
 	}
 	vlog.INFO("HttpServer start [%s]", s.addr)
-	for c := range lis.Conn {
+	for {
+		c, err := lin.Accept()
+		if err != nil {
+			vlog.ERROR("http accept error %s", err.Error())
+		}
 		go s.dealConn(c)
 	}
-	return nil
 }
 
 // dealConn 处理 http 请求链接
-func (s *Server) dealConn(c conn.Conn) {
+func (s *Server) dealConn(c net.Conn) {
 	defer func() {
-		//if err := recover(); err != nil {
-		//	vlog.ERROR("http transfer error %v", err)
-		//	return
-		//}
+		if err := recover(); err != nil {
+			vlog.ERROR("http transfer error %v", err)
+			return
+		}
 	}()
 	defer c.Close()
-	vlog.DEBUG("client request： %s", c.RemoteAddr())
+	_ = c.(*net.TCPConn).SetKeepAlive(true)
+	vlog.INFO("http request from： %s", c.RemoteAddr())
 	// 请求连接转为http协议
 	copyHttp, err := rayhttp.ToHttp(c)
 	if err != nil {
-		vlog.ERROR("%v", err)
-		copyHttp.SayBackText(400, []byte("Bad Request"))
+		vlog.ERROR("tcp connect  to http request error %v", err.Error())
+		SayBackText(c, 400, []byte("Bad Request"))
 		return
 	}
-
 	// 获取请求的地址（主要是子域名有用）
 	host := copyHttp.Host()
-	vlog.DEBUG("request host is [%s]", host)
-	//copyHttp.SayBackText(200, []byte("收到请求，请求转发尚未完成开发......"))
-	// 这里转会成 Conn
-	//c = conn.TurnConn(copyHttp)
+	//vlog.DEBUG("request proxy host is [%s]", host)
 	// 根据host 获取  proxy 转发
 	s.repeat.Transfer(host, copyHttp)
+}
+
+func SayBackText(c net.Conn, status int, body []byte) {
+	resp := http.Response{
+		StatusCode:    status,
+		ProtoMajor:    1,
+		ProtoMinor:    1,
+		Header:        http.Header{},
+		ContentLength: int64(len(body)),
+		Body:          ioutil.NopCloser(bytes.NewBuffer(body)),
+	}
+	resp.Header.Add("Content-Type", "text/html;charset=utf-8")
+	resp.Header.Add("date", time.Now().Format(time.RFC1123))
+	resp.Write(c)
 }

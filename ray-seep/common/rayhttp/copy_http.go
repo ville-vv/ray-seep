@@ -83,7 +83,6 @@ type CopyHttp struct {
 // ToHttp 转为HTTP格式，获取http消息
 func ToHttp(c net.Conn) (hp *CopyHttp, err error) {
 	rq, rd := newBuildRequest(c)
-
 	hp = &CopyHttp{
 		buildRequest: rq,
 	}
@@ -91,14 +90,7 @@ func ToHttp(c net.Conn) (hp *CopyHttp, err error) {
 	if hp.request, err = http.ReadRequest(bufio.NewReader(rd)); err != nil {
 		return
 	}
-
 	defer hp.request.Body.Close()
-	hp.body = hp.buf.Bytes()
-	//bf := hp.buf.Bytes()
-	//hp.body = make([]byte, len(bf))
-	//for v := range bf {
-	//	hp.body[v] = bf[v]
-	//}
 	return
 }
 

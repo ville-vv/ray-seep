@@ -5,6 +5,7 @@
 package conn
 
 import (
+	"fmt"
 	"ray-seep/ray-seep/common/errs"
 	"sync"
 	"sync/atomic"
@@ -18,6 +19,7 @@ type Pool interface {
 	WaitGet() <-chan Conn
 	Size() int
 	Drop(key int64)
+	Close()
 }
 
 type element struct {
@@ -28,7 +30,8 @@ type element struct {
 
 // 代理链接的缓存池
 type pool struct {
-	cntCacheNum int64         // 当前缓存数量
+	cntCacheNum int64 // 当前缓存数量
+	maxCacheNum int
 	expire      time.Duration // 链接到期时间
 	lock        sync.Mutex
 	pxyConn     map[int64]*element
@@ -38,10 +41,11 @@ type pool struct {
 
 func NewPool(cacheNum int) Pool {
 	p := &pool{
-		expire:  time.Second * time.Duration(30),
-		pxyConn: make(map[int64]*element),
-		caches:  make(chan Conn, cacheNum),
-		expCh:   make(chan int64, 10000),
+		expire:      time.Second * time.Duration(30),
+		pxyConn:     make(map[int64]*element),
+		caches:      make(chan Conn, cacheNum),
+		expCh:       make(chan int64, 10000),
+		maxCacheNum: cacheNum,
 	}
 
 	return p
@@ -89,15 +93,24 @@ func (p *pool) Get(key int64) (Conn, error) {
 }
 
 func (p *pool) WaitGet() <-chan Conn {
+	atomic.AddInt64(&p.cntCacheNum, -1)
 	return p.caches
 }
 func (p *pool) Drop(key int64) {
+	close(p.caches)
+	fmt.Println("被清理一次", key)
 	for v := range p.caches {
 		_ = v.Close()
 	}
+	p.caches = make(chan Conn, p.maxCacheNum)
 }
 
 func (p *pool) Size() int {
 	l := atomic.LoadInt64(&p.cntCacheNum)
 	return int(l)
+}
+func (p *pool) Close() {
+	//p.Drop(0)
+	close(p.caches)
+	close(p.expCh)
 }

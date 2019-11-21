@@ -72,6 +72,7 @@ func TestNetRepeater_relay(t *testing.T) {
 }
 
 func TestHttpTcp(t *testing.T) {
+	t.Skip()
 	ls, err := net.Listen("tcp", ":23455")
 	if err != nil {
 		fmt.Println(err)

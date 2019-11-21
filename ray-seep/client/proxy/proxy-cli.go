@@ -64,21 +64,6 @@ func (sel *ClientProxy) dial() {
 	}
 	//tm := time.NewTicker(time.Second * 15)
 	for {
-		//buf := make([]byte, 1024*4)
-		//n, err := cn.Read(buf)
-		//if err != nil {
-		//	vlog.DEBUG("proxy 错误：%s", err.Error())
-		//	return
-		//}
-		//buf = buf[:n]
-		//vlog.DEBUG("proxy 收到消息：%s", string(buf))
-		//select {
-		//case <-tm.C:
-		//	vlog.WARN("代理连接超时自动退出")
-		//	return
-		//case <-sel.stopCh:
-		//	return
-		//}
 		cn2, err := net.Dial("tcp", ":3000") //23455
 		if err != nil {
 			vlog.ERROR("代理服务连接错误%v", err)

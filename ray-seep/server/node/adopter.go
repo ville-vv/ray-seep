@@ -6,10 +6,13 @@ package node
 
 import (
 	"fmt"
+	"net"
+	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
 	"ray-seep/ray-seep/server/online"
+	"strings"
 	"sync"
 	"vilgo/vlog"
 )
@@ -20,20 +23,24 @@ type Author interface {
 }
 
 type MessageAdopter struct {
-	mu      sync.Mutex
-	pods    map[int64]*Pod
-	userMng *online.UserManager
-	cNum    int
-	author  Author
-	cfg     *conf.Server
+	mu       sync.Mutex
+	pods     map[int64]*Pod
+	userMng  *online.UserManager
+	cNum     int
+	author   Author
+	cfg      *conf.Server
+	register *RegisterCenter
 }
 
 func NewMessageAdopter(cfg *conf.Server, uMng *online.UserManager) *MessageAdopter {
-	return &MessageAdopter{
+	m := &MessageAdopter{
 		pods:    make(map[int64]*Pod),
 		cfg:     cfg,
 		userMng: uMng,
 	}
+	m.register = NewRegisterCenter(100, m)
+
+	return m
 }
 
 func (sel *MessageAdopter) Domain() string {
@@ -83,6 +90,7 @@ func (sel *MessageAdopter) OnDisConnect(id int64) {
 	sel.mu.Lock()
 	defer sel.mu.Unlock()
 	if pd, ok := sel.pods[id]; ok {
+		sel.register.LogOff(pd.name, id)
 		_, _ = pd.LogoutReq([]byte{})
 		delete(sel.pods, id)
 		sel.cNum--
@@ -113,6 +121,15 @@ func (sel *MessageAdopter) OnMessage(id int64, req *proto.Package) (rsp proto.Pa
 	}
 
 	return
+}
+
+func (sel *MessageAdopter) Register(name string, id int64, cc conn.Conn) (err error) {
+	return sel.register.Register(name, id, cc)
+}
+
+func (sel *MessageAdopter) GetProxy(name string) (net.Conn, error) {
+
+	return sel.register.GetProxy(strings.Split(name, ".")[0])
 }
 
 // PushMsg 主动消息推送

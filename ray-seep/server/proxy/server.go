@@ -12,7 +12,6 @@ import (
 
 type IRegister interface {
 	Register(domain string, id int64, cc conn.Conn) error
-	LogOff(domain string, id int64)
 }
 
 type ProxyServer struct {
