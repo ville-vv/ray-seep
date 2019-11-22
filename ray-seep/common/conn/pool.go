@@ -5,7 +5,6 @@
 package conn
 
 import (
-	"fmt"
 	"ray-seep/ray-seep/common/errs"
 	"sync"
 	"sync/atomic"
@@ -98,10 +97,10 @@ func (p *pool) WaitGet() <-chan Conn {
 }
 func (p *pool) Drop(key int64) {
 	close(p.caches)
-	fmt.Println("被清理一次", key)
 	for v := range p.caches {
 		_ = v.Close()
 	}
+	p.caches = nil
 	p.caches = make(chan Conn, p.maxCacheNum)
 }
 
@@ -110,7 +109,9 @@ func (p *pool) Size() int {
 	return int(l)
 }
 func (p *pool) Close() {
-	//p.Drop(0)
 	close(p.caches)
+	for v := range p.caches {
+		_ = v.Close()
+	}
 	close(p.expCh)
 }

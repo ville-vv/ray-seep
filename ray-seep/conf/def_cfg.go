@@ -8,12 +8,13 @@ var clientDefaultConfig = `
 [Control]
 Host=""
 Port=32201
-Domain="exampletest.cn"
-SubDomain="test"
+Name="test"
 
 [Proxy]
-Host=""
-Port=32202
+Address = ":32202"
+
+[Web]
+Address = ":3000"
 `
 
 //--------------------------------------------------------------------
@@ -23,9 +24,11 @@ var serverDefaultConfig = `
 Host = ""
 Port = 32201
 # 连接的超时时间 单位/毫秒
-Timeout=10000
-MaxClientNumber = 5
-MaxClientProxyNumber = 5
+ReadMsgTimeout=10000
+#最大客户端连接数
+MaxUserNum = 5
+# 一个客户端最大的代理数
+UserMaxProxyNum = 10
 
 [Http]
 Host = ""

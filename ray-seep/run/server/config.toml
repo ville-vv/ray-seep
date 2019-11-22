@@ -1,0 +1,18 @@
+[Control]
+Host = ""
+Port = 32209
+# 连接的超时时间 单位/毫秒
+ReadMsgTimeout=10000
+#最大客户端连接数
+MaxUserNum = 5
+# 一个客户端最大的代理数
+UserMaxProxyNum = 10
+
+[Http]
+Host = ""
+Port = 32203
+Domain = "example.com"
+
+[Proxy]
+Host=""
+Port=32202

@@ -22,9 +22,9 @@ type ClientControlHandler struct {
 func NewClientControlHandler(cfg *conf.Client) *ClientControlHandler {
 	stopCh := make(chan int)
 	return &ClientControlHandler{
-		name:         cfg.Control.SubDomain,
+		name:         cfg.Control.Name,
 		cliPxyStopCh: stopCh,
-		cliPxy:       proxy.NewClientProxy(stopCh, cfg.Pxy.Host, cfg.Pxy.Port),
+		cliPxy:       proxy.NewClientProxy(stopCh, cfg),
 	}
 }
 
@@ -60,12 +60,12 @@ func (c *ClientControlHandler) Login(push ResponsePush) (err error) {
 }
 
 func (c *ClientControlHandler) LoginRsp(req *proto.Package) (err error) {
-	vlog.INFO("login success")
+	//vlog.INFO("login success body:%s", string(req.Body))
 	rsp := &proto.LoginRsp{}
 	if err := jsoniter.Unmarshal(req.Body, rsp); err != nil {
 		return err
 	}
-	vlog.INFO("当前被分配的 ID：%d  Token:%s", rsp.Id, rsp.Token)
+	vlog.INFO("login success ID:%d  Token:%s", rsp.Id, rsp.Token)
 	c.cId = rsp.Id
 	c.token = rsp.Token
 	c.Ping()
@@ -83,12 +83,13 @@ func (c *ClientControlHandler) CreateHostReq() error {
 
 // CreateHostRsp 创建服务主机返回
 func (c *ClientControlHandler) CreateHostRsp(req *proto.Package) (err error) {
-	vlog.INFO("收到 [CreateHostRsp]Cmd:%d Body:%s", req.Cmd, string(req.Body))
+	//vlog.INFO("收到 [CreateHostRsp]Cmd:%d Body:%s", req.Cmd, string(req.Body))
 	ctInfo := &proto.CreateHostRsp{}
 	if err = jsoniter.Unmarshal(req.Body, ctInfo); err != nil {
 		vlog.ERROR("create host response json un parse error %s", err.Error())
 		return
 	}
+	vlog.INFO("[%d] create host success, domain is [%s]", c.cId, ctInfo.Domain)
 	c.domain = ctInfo.Domain
 	// 收到创建主机的返回信息就可 运行代理了
 	return c.RunProxyReq()
@@ -96,7 +97,7 @@ func (c *ClientControlHandler) CreateHostRsp(req *proto.Package) (err error) {
 
 // NoticeRunProxy 通知创建代理
 func (c *ClientControlHandler) NoticeRunProxy(req *proto.Package) error {
-	vlog.INFO("收到 [NoticeRunProxy]Cmd:%d Body:%s", req.Cmd, string(req.Body))
+	//vlog.INFO("收到 [NoticeRunProxy]Cmd:%d Body:%s", req.Cmd, string(req.Body))
 	return c.RunProxyReq()
 }
 
@@ -105,7 +106,7 @@ func (c *ClientControlHandler) RunProxyReq() (err error) {
 }
 
 func (c *ClientControlHandler) RunProxyRsp(req *proto.Package) (err error) {
-	vlog.INFO("收到 [RunProxyRsp]Cmd:%d Body:%s", req.Cmd, string(req.Body))
+	//vlog.INFO("收到 [RunProxyRsp]Cmd:%d Body:%s", req.Cmd, string(req.Body))
 	return nil
 }
 

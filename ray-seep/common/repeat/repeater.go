@@ -2,7 +2,7 @@
 // @Author   : Ville
 // @Time     : 19-10-12 下午3:22
 // http
-package http
+package repeat
 
 import (
 	"io"
@@ -12,28 +12,22 @@ import (
 	"vilgo/vlog"
 )
 
-// Repeater 是一个中继器，用于转发 conn 的数据
-type Repeater interface {
-	// 转发
-	Transfer(host string, c net.Conn)
-}
-
 // ProxyGainer 代理连接获取器
-type ProxyGainer interface {
-	GetProxy(identify string) (net.Conn, error)
+type NetConnGainer interface {
+	GetNetConn(name string) (net.Conn, error)
 }
 
 // NetRepeater 网络请求的使用的中续器
 type NetRepeater struct {
-	pxyGainer ProxyGainer // 注册中心
+	pxyGainer NetConnGainer // 注册中心
 }
 
-func NewNetRepeater(pxyGainer ProxyGainer) *NetRepeater {
+func NewNetRepeater(pxyGainer NetConnGainer) *NetRepeater {
 	return &NetRepeater{pxyGainer: pxyGainer}
 }
 
 func (sel *NetRepeater) Transfer(host string, c net.Conn) {
-	pxyConn, err := sel.pxyGainer.GetProxy(host)
+	pxyConn, err := sel.pxyGainer.GetNetConn(host)
 	if err != nil {
 		vlog.ERROR("获取代理服务错误：%s", err.Error())
 		return
@@ -43,7 +37,9 @@ func (sel *NetRepeater) Transfer(host string, c net.Conn) {
 	reqLength, respLength, err := sel.relay(pxyConn, c)
 	if err != nil {
 		if netErr, ok := err.(net.Error); !(ok && netErr.Timeout()) {
-			vlog.ERROR("%s", err.Error())
+			if err != io.EOF {
+				vlog.ERROR("%s", err.Error())
+			}
 		}
 	}
 	vlog.INFO("request size：[%d]. response size：[%d]", reqLength, respLength)

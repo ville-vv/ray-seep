@@ -17,17 +17,11 @@ import (
 	"vilgo/vlog"
 )
 
-// 身份认证
-type Author interface {
-	Identity(name string, password string, token string) error
-}
-
 type MessageAdopter struct {
 	mu       sync.Mutex
 	pods     map[int64]*Pod
 	userMng  *online.UserManager
 	cNum     int
-	author   Author
 	cfg      *conf.Server
 	register *RegisterCenter
 }
@@ -38,7 +32,7 @@ func NewMessageAdopter(cfg *conf.Server, uMng *online.UserManager) *MessageAdopt
 		cfg:     cfg,
 		userMng: uMng,
 	}
-	m.register = NewRegisterCenter(100, m)
+	m.register = NewRegisterCenter(cfg.Ctl.UserMaxProxyNum, m)
 
 	return m
 }
@@ -60,27 +54,29 @@ func (sel *MessageAdopter) OnConnect(id int64, tr proto.MsgTransfer) (err error)
 		vlog.ERROR("[%d] get auth message error %s", id, err.Error())
 		return err
 	}
-
 	rsp := &proto.Package{
 		Cmd: proto.CmdLoginRsp,
 	}
-	rsp.Body, err = pd.OnMessage(req.Cmd, req.Body)
+	rsp.Body, err = pd.LoginReq(req.Body)
 	if err != nil {
 		vlog.ERROR("[%d] on connect deal message error:%d", id, err.Error())
 		return
 	}
-
-	//authMsgRsp := proto.NewWithObj(proto.CmdLoginRsp, proto.LoginRsp{Id: id, Token: util.RandToken()})
 	if err = tr.SendMsg(rsp); err != nil {
 		vlog.ERROR("[%d] response auth message error %s", id, err.Error())
 		return
 	}
 	// 认证成功加入到管理服务中
+	return sel.addPod(id, pd)
+}
+
+func (sel *MessageAdopter) addPod(id int64, pd *Pod) error {
+	// 认证成功加入到管理服务中
 	sel.mu.Lock()
+	defer sel.mu.Unlock()
 	sel.pods[id] = pd
 	sel.cNum += 1
 	vlog.DEBUG("[%d] pod disconnect current number[%d]", id, sel.cNum)
-	sel.mu.Unlock()
 	return nil
 }
 
@@ -127,9 +123,8 @@ func (sel *MessageAdopter) Register(name string, id int64, cc conn.Conn) (err er
 	return sel.register.Register(name, id, cc)
 }
 
-func (sel *MessageAdopter) GetProxy(name string) (net.Conn, error) {
-
-	return sel.register.GetProxy(strings.Split(name, ".")[0])
+func (sel *MessageAdopter) GetNetConn(name string) (net.Conn, error) {
+	return sel.register.GetNetConn(strings.Split(name, ".")[0])
 }
 
 // PushMsg 主动消息推送

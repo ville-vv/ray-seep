@@ -7,29 +7,23 @@ package conf
 import "vilgo/vcnf"
 
 type Client struct {
-	Pxy     *ProxyCli   `json:"pxy" toml:"Proxy"`
-	Control *ControlCli `json:"control"`
-	//Node    *NodeCli    `json:"node"`
+	Pxy     *ProxyCli     `json:"proxy" toml:"Proxy"`
+	Control *ControlCli   `json:"control" toml:"Control"`
+	Web     *WebServerCli `json:"web" toml:"Web"`
 }
 
-// 节点信息配置， 一个用户一个节点，一个 node 可以有多个 Pod, Pod 想到
-//type NodeCli struct {
-//	Host      string `json:"host"`
-//	Port      int64  `json:"port"`
-//	Domain    string `json:"domain"`     // 域名
-//	SubDomain string `json:"sub_domain"` // 子域名
-//}
+type WebServerCli struct {
+	Address string `json:"address"`
+}
 
 type ProxyCli struct {
-	Host string `json:"host"`
-	Port int64  `json:"port"`
+	Address string `json:"address"`
 }
 
 type ControlCli struct {
-	Host      string `json:"host"`
-	Port      int64  `json:"port"`
-	Domain    string `json:"domain"`     // 域名
-	SubDomain string `json:"sub_domain"` // 子域名
+	Host string `json:"host"`
+	Port int64  `json:"port"`
+	Name string `json:"name" toml:"Name"` // 子域名
 }
 
 // 初始化客户端配置

@@ -27,11 +27,11 @@ type HttpSrv struct {
 
 // ControlSrv 用户控制器，用于与用户客户端消息通信，和控制命令的处理
 type ControlSrv struct {
-	Host                 string `json:"host"`
-	Port                 int64  `json:"port"`
-	Timeout              int64  `json:"timeout"`                 // 连接的超时时间毫秒
-	MaxClientNumber      int64  `json:"max_client_number"`       // 最大客户端连接数
-	MaxClientProxyNumber int64  `json:"max_client_proxy_number"` // 一个客户的最大代理数
+	Host            string `json:"host"`
+	Port            int64  `json:"port"`
+	ReadMsgTimeout  int64  `json:"read_msg_timeout"`   // 连接的超时时间毫秒
+	MaxUserNum      int    `json:"max_user_num"`       // 最大客户端连接数
+	UserMaxProxyNum int    `json:"user_max_proxy_num"` // 一个客户的最大代理数
 }
 
 //--------------------------------------------------------------------

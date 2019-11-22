@@ -11,10 +11,18 @@ import (
 	"net"
 	"net/http"
 	"ray-seep/ray-seep/common/rayhttp"
+	"ray-seep/ray-seep/common/repeat"
 	"ray-seep/ray-seep/conf"
+	"runtime/debug"
 	"time"
 	"vilgo/vlog"
 )
+
+// Repeater 是一个中继器，用于转发 conn 的数据
+type Repeater interface {
+	// 转发
+	Transfer(host string, c net.Conn)
+}
 
 type Server struct {
 	addr   string
@@ -30,9 +38,9 @@ func (s *Server) Scheme() string {
 
 // NewServer http 请求服务
 // repeat 用于 http 请求转发
-func NewServer(c *conf.HttpSrv, pxyGainer ProxyGainer) *Server {
+func NewServer(c *conf.HttpSrv, pxyGainer repeat.NetConnGainer) *Server {
 	addr := fmt.Sprintf("%s:%d", c.Host, c.Port)
-	return &Server{addr: addr, repeat: NewNetRepeater(pxyGainer)}
+	return &Server{addr: addr, repeat: repeat.NewNetRepeater(pxyGainer)}
 }
 
 // Start 启动http服务
@@ -56,13 +64,13 @@ func (s *Server) Start() error {
 func (s *Server) dealConn(c net.Conn) {
 	defer func() {
 		if err := recover(); err != nil {
-			vlog.ERROR("http transfer error %v", err)
+			debug.PrintStack()
 			return
 		}
 	}()
 	defer c.Close()
 	_ = c.(*net.TCPConn).SetKeepAlive(true)
-	vlog.INFO("http request from： %s", c.RemoteAddr())
+	vlog.DEBUG("http request from： %s", c.RemoteAddr())
 	// 请求连接转为http协议
 	copyHttp, err := rayhttp.ToHttp(c)
 	if err != nil {

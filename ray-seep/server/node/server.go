@@ -37,7 +37,7 @@ func (sel *ControlServer) Scheme() string {
 }
 
 func NewControlServer(ctlCnf *conf.ControlSrv, handler ServerMsgHandler) *ControlServer {
-	timeout := ctlCnf.Timeout
+	timeout := ctlCnf.ReadMsgTimeout
 	addr := fmt.Sprintf("%s:%d", ctlCnf.Host, ctlCnf.Port)
 	if timeout == 0 {
 		timeout = 5000
@@ -104,7 +104,7 @@ func (sel *ControlServer) dealConn(c conn.Conn) {
 			}
 			_ = msgMng.SendMsg(&rsp)
 		case err := <-cancel:
-			vlog.INFO("断开连接：%v", err)
+			vlog.INFO("%v", err)
 			return
 		}
 	}

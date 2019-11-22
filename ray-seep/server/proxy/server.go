@@ -6,6 +6,7 @@ import (
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
+	"runtime/debug"
 	"time"
 	"vilgo/vlog"
 )
@@ -51,7 +52,7 @@ func (s *ProxyServer) Start() error {
 func (s *ProxyServer) dealConn(cn conn.Conn) {
 	defer func() {
 		if err := recover(); err != nil {
-			vlog.DEBUG("")
+			debug.PrintStack()
 			return
 		}
 	}()
