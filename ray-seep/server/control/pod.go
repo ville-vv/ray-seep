@@ -2,7 +2,7 @@
 // @Author   : Ville
 // @Time     : 19-9-26 下午4:40
 // node
-package node
+package control
 
 import (
 	jsoniter "github.com/json-iterator/go"
@@ -20,13 +20,13 @@ type Pod struct {
 	id      int64
 	name    string
 	domain  string
-	sender  proto.Sender
+	out     chan proto.Package
 	route   map[int32]PodRouterFun
 	userMng *online.UserManager
 }
 
-func NewPod(id int64, sender proto.Sender, domain string, userMng *online.UserManager) *Pod {
-	p := &Pod{id: id, sender: sender, domain: domain, userMng: userMng}
+func NewPod(id int64, domain string, userMng *online.UserManager, out chan proto.Package) *Pod {
+	p := &Pod{id: id, domain: domain, userMng: userMng, out: out}
 	p.initRoute()
 	return p
 }
@@ -42,7 +42,8 @@ func (p *Pod) Id() int64 {
 	return p.id
 }
 func (p *Pod) PushMsg(msgPkg *proto.Package) (err error) {
-	return p.sender.SendMsg(msgPkg)
+	p.out <- *msgPkg
+	return
 }
 
 func (p *Pod) OnMessage(cmd int32, body []byte) ([]byte, error) {
@@ -59,11 +60,8 @@ func (p *Pod) LoginReq(req []byte) (rsp []byte, err error) {
 		vlog.ERROR("[%d] login Unmarshal error:%s", err.Error())
 		return
 	}
-
 	p.name = reqLogin.Name
 	token := util.RandToken()
-	p.userMng.Login(p.id, reqLogin.Name, token)
-
 	rsp, err = jsoniter.Marshal(&proto.LoginRsp{
 		Id:    p.id,
 		Token: token,
@@ -109,6 +107,5 @@ func (p *Pod) RunProxyReq(req []byte) (rsp []byte, err error) {
 }
 
 func (p *Pod) LogoutReq(req []byte) (rsp []byte, err error) {
-	p.userMng.Logout(p.id, p.name)
 	return nil, nil
 }

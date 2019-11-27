@@ -7,7 +7,6 @@ package repeat
 import (
 	"io"
 	"net"
-	"sync"
 	"time"
 	"vilgo/vlog"
 )
@@ -45,8 +44,6 @@ func (sel *NetRepeater) Transfer(host string, c net.Conn) {
 	vlog.INFO("request size：[%d]. response size：[%d]", reqLength, respLength)
 }
 
-// pip
-
 type result struct {
 	N   int64
 	Err error
@@ -77,18 +74,4 @@ func Relay(dst net.Conn, src net.Conn) (int64, int64, error) {
 		err = rs.Err
 	}
 	return n, rs.N, err
-}
-func (sel *NetRepeater) join(dst net.Conn, src net.Conn) (int64, int64, error) {
-	var wait sync.WaitGroup
-	var err error
-	pipe := func(dst net.Conn, src net.Conn, bytesCopied *int64) {
-		defer wait.Done()
-		*bytesCopied, err = io.Copy(dst, src)
-	}
-	wait.Add(2)
-	var fromBytes, toBytes int64
-	go pipe(src, dst, &fromBytes)
-	go pipe(dst, src, &toBytes)
-	wait.Wait()
-	return fromBytes, toBytes, err
 }

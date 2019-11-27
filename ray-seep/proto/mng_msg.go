@@ -20,7 +20,7 @@ const (
 // 消息发送器
 type Receiver interface {
 	RecvMsg(p *Package) (err error)
-	RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- Package, cancel chan<- interface{})
+	AsyncRecvMsg(wait *sync.WaitGroup, mCh chan<- Package, cancel chan<- interface{})
 }
 
 type receiver struct {
@@ -67,7 +67,7 @@ func (c *receiver) RecvMsg(p *Package) (err error) {
 }
 
 // RecvMsgWithChan 开启一个协程 使用 chan 来接收定义好格式的消息
-func (c *receiver) RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- Package, cancel chan<- interface{}) {
+func (c *receiver) AsyncRecvMsg(wait *sync.WaitGroup, mCh chan<- Package, cancel chan<- interface{}) {
 	go func() {
 		wait.Done()
 		for {
@@ -85,7 +85,7 @@ func (c *receiver) RecvMsgWithChan(wait *sync.WaitGroup, mCh chan<- Package, can
 // 消息发送器
 type Sender interface {
 	SendMsg(p *Package) (err error)
-	SendMsgWithChan(wait *sync.WaitGroup, mch <-chan Package, t time.Duration)
+	AsyncSendMsg(wait *sync.WaitGroup, mch <-chan Package, t time.Duration)
 }
 
 type sender struct {
@@ -119,15 +119,11 @@ func (c *sender) SendMsg(p *Package) (err error) {
 }
 
 // SendMsgWithChan 开启一个协程 使用 chan 发送定义好格式的消息
-func (c *sender) SendMsgWithChan(wait *sync.WaitGroup, mch <-chan Package, t time.Duration) {
-	wait.Add(1)
+func (c *sender) AsyncSendMsg(wait *sync.WaitGroup, mch <-chan Package, t time.Duration) {
 	go func() {
-		//tk := time.NewTicker(t)
 		wait.Done()
 		for {
 			select {
-			//case <-tk.C:
-			//	return
 			case mch, ok := <-mch:
 				if !ok {
 					return

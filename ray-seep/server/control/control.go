@@ -2,7 +2,7 @@
 // @Author   : Ville
 // @Time     : 19-9-27 下午3:27
 // node
-package node
+package control
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ import (
 	"vilgo/vlog"
 )
 
-type MessageAdopter struct {
+type MessageControl struct {
 	mu       sync.Mutex
 	pods     map[int64]*Pod
 	userMng  *online.UserManager
@@ -26,8 +26,8 @@ type MessageAdopter struct {
 	register *RegisterCenter
 }
 
-func NewMessageAdopter(cfg *conf.Server, uMng *online.UserManager) *MessageAdopter {
-	m := &MessageAdopter{
+func NewMessageControl(cfg *conf.Server, uMng *online.UserManager) *MessageControl {
+	m := &MessageControl{
 		pods:    make(map[int64]*Pod),
 		cfg:     cfg,
 		userMng: uMng,
@@ -37,7 +37,7 @@ func NewMessageAdopter(cfg *conf.Server, uMng *online.UserManager) *MessageAdopt
 	return m
 }
 
-func (sel *MessageAdopter) Domain() string {
+func (sel *MessageControl) Domain() string {
 	domain := sel.cfg.Http.Domain
 	if sel.cfg.Http.Port != 80 {
 		domain = fmt.Sprintf("%s:%d", domain, sel.cfg.Http.Port)
@@ -45,32 +45,28 @@ func (sel *MessageAdopter) Domain() string {
 	return domain
 }
 
-// OnConnect 有用户连接上来会出发这个事件
-func (sel *MessageAdopter) OnConnect(id int64, tr proto.MsgTransfer) (err error) {
-	pd := NewPod(id, tr, sel.Domain(), sel.userMng)
+func (sel *MessageControl) OnConnect(id int64, in, out chan proto.Package) (err error) {
+	pd := NewPod(id, sel.Domain(), sel.userMng, out)
 	// 建立连接的首要任务就是获取认证信息，如果认证失败就直接断开连接
-	var req proto.Package
-	if err = tr.RecvMsg(&req); err != nil {
-		vlog.ERROR("[%d] get auth message error %s", id, err.Error())
-		return err
-	}
-	rsp := &proto.Package{
+	rsp := proto.Package{
 		Cmd: proto.CmdLoginRsp,
 	}
+	req, ok := <-in
+	if !ok {
+		return fmt.Errorf("[%d] get auth message error ", id)
+	}
+
 	rsp.Body, err = pd.LoginReq(req.Body)
 	if err != nil {
 		vlog.ERROR("[%d] on connect deal message error:%d", id, err.Error())
 		return
 	}
-	if err = tr.SendMsg(rsp); err != nil {
-		vlog.ERROR("[%d] response auth message error %s", id, err.Error())
-		return
-	}
+	out <- rsp
 	// 认证成功加入到管理服务中
 	return sel.addPod(id, pd)
 }
 
-func (sel *MessageAdopter) addPod(id int64, pd *Pod) error {
+func (sel *MessageControl) addPod(id int64, pd *Pod) error {
 	// 认证成功加入到管理服务中
 	sel.mu.Lock()
 	defer sel.mu.Unlock()
@@ -81,7 +77,7 @@ func (sel *MessageAdopter) addPod(id int64, pd *Pod) error {
 }
 
 // OnDisConnect 有用户断开连接的时候会触发这个事件
-func (sel *MessageAdopter) OnDisConnect(id int64) {
+func (sel *MessageControl) OnDisConnect(id int64) {
 	// 认证成功加入到管理服务中
 	sel.mu.Lock()
 	defer sel.mu.Unlock()
@@ -95,7 +91,7 @@ func (sel *MessageAdopter) OnDisConnect(id int64) {
 }
 
 // OnMessage 客户端发送消息过来的时候会触发该事件
-func (sel *MessageAdopter) OnMessage(id int64, req *proto.Package) (rsp proto.Package, err error) {
+func (sel *MessageControl) OnMessage(id int64, req *proto.Package) (rsp proto.Package, err error) {
 	// 心跳直接返回
 	if req.Cmd == proto.CmdPing {
 		//vlog.DEBUG("[%d] Ping", id)
@@ -119,20 +115,20 @@ func (sel *MessageAdopter) OnMessage(id int64, req *proto.Package) (rsp proto.Pa
 	return
 }
 
-func (sel *MessageAdopter) Register(name string, id int64, cc conn.Conn) (err error) {
+func (sel *MessageControl) Register(name string, id int64, cc conn.Conn) (err error) {
 	return sel.register.Register(name, id, cc)
 }
 
-func (sel *MessageAdopter) GetNetConn(name string) (net.Conn, error) {
+func (sel *MessageControl) GetNetConn(name string) (net.Conn, error) {
 	return sel.register.GetNetConn(strings.Split(name, ".")[0])
 }
 
 // PushMsg 主动消息推送
-func (sel *MessageAdopter) PushMsg(id int64, p *proto.Package) error {
+func (sel *MessageControl) PushMsg(id int64, p *proto.Package) error {
 	return sel.pushMsg(id, p)
 }
 
-func (sel *MessageAdopter) pushMsg(id int64, p *proto.Package) error {
+func (sel *MessageControl) pushMsg(id int64, p *proto.Package) error {
 	sel.mu.Lock()
 	pod, ok := sel.pods[id]
 	sel.mu.Unlock()

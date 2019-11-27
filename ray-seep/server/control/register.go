@@ -2,7 +2,7 @@
 // @Author   : Ville
 // @Time     : 19-10-12 下午3:32
 // proxy
-package node
+package control
 
 import (
 	"net"

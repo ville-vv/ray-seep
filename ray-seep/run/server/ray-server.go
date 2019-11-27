@@ -10,10 +10,6 @@ import (
 	"os/signal"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/server"
-	"ray-seep/ray-seep/server/http"
-	"ray-seep/ray-seep/server/node"
-	"ray-seep/ray-seep/server/online"
-	"ray-seep/ray-seep/server/proxy"
 	"syscall"
 	"time"
 	"vilgo/vlog"
@@ -35,17 +31,7 @@ func main() {
 
 	cfg := conf.InitServer(configPath)
 	vlog.DefaultLogger()
-
-	userMng := online.NewUserManager()
-	msgAdopter := node.NewMessageAdopter(cfg, userMng)
-
 	srv := server.NewRaySeepServer(cfg)
-	srv.Use(
-		node.NewControlServer(cfg.Ctl, msgAdopter),
-		proxy.NewProxyServer(cfg.Pxy, msgAdopter),
-		http.NewServer(cfg.Http, msgAdopter),
-	)
-
 	go srv.Start()
 	// 获取系统信号
 	sig := make(chan os.Signal)
