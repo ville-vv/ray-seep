@@ -4,12 +4,17 @@
 // config
 package conf
 
-import "vilgo/vcnf"
+import (
+	"vilgo/vcnf"
+	"vilgo/vredis"
+	"vilgo/vsql"
+)
 
 type Server struct {
-	Ctl  *ControlSrv `json:"ctl" toml:"Control"`
-	Http *HttpSrv    `json:"http" toml:"Http"`
-	Pxy  *ProxySrv   `json:"pxy" toml:"Proxy"`
+	Ctl      *ControlSrv  `json:"ctl" toml:"Control"`
+	Pxy      *ProxySrv    `json:"pxy" toml:"Proxy"`
+	Proto    *ProtoSrv    `json:"proto" toml:"Proto"`
+	DataBase *DataBaseSrv `json:"database" toml:"DataBase"`
 }
 
 // ProxySrv 代理服务， 用户建立客户端连接后，需要建立代理的连接
@@ -19,7 +24,8 @@ type ProxySrv struct {
 }
 
 // HttpSrv 服务程序对外的 http 服务信息
-type HttpSrv struct {
+type ProtoSrv struct {
+	Proto  string `json:"proto"`
 	Host   string `json:"host"`
 	Port   int64  `json:"port"`
 	Domain string `json:"domain"` //服务的域名
@@ -32,6 +38,11 @@ type ControlSrv struct {
 	ReadMsgTimeout  int64  `json:"read_msg_timeout"`   // 连接的超时时间毫秒
 	MaxUserNum      int    `json:"max_user_num"`       // 最大客户端连接数
 	UserMaxProxyNum int    `json:"user_max_proxy_num"` // 一个客户的最大代理数
+}
+
+type DataBaseSrv struct {
+	Redis *vredis.RedisCnf `json:"redis" toml:"Redis"`
+	Mysql *vsql.MySqlCnf   `json:"mysql" toml:"Mysql"`
 }
 
 //--------------------------------------------------------------------

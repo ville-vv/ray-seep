@@ -50,7 +50,7 @@ func (c *ClientControlHandler) Pong(req *proto.Package) (err error) {
 
 // 登录服务器
 func (c *ClientControlHandler) Login(push ResponsePush) (err error) {
-	dt, err := jsoniter.Marshal(&proto.LoginReq{Name: c.name, Password: ""})
+	dt, err := jsoniter.Marshal(&proto.LoginReq{UserId: 1234, Name: c.name, AppId: ""})
 	if err != nil {
 		vlog.ERROR("push event json marshal error %s", err.Error())
 		return err

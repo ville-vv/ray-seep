@@ -11,7 +11,6 @@ import (
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
-	"ray-seep/ray-seep/server/online"
 	"strings"
 	"sync"
 	"vilgo/vlog"
@@ -20,17 +19,17 @@ import (
 type MessageControl struct {
 	mu       sync.Mutex
 	pods     map[int64]*Pod
-	userMng  *online.UserManager
+	podHd    *PodHandler
 	cNum     int
 	cfg      *conf.Server
 	register *RegisterCenter
 }
 
-func NewMessageControl(cfg *conf.Server, uMng *online.UserManager) *MessageControl {
+func NewMessageControl(cfg *conf.Server, podHd *PodHandler) *MessageControl {
 	m := &MessageControl{
-		pods:    make(map[int64]*Pod),
-		cfg:     cfg,
-		userMng: uMng,
+		pods:  make(map[int64]*Pod),
+		cfg:   cfg,
+		podHd: podHd,
 	}
 	m.register = NewRegisterCenter(cfg.Ctl.UserMaxProxyNum, m)
 
@@ -38,15 +37,15 @@ func NewMessageControl(cfg *conf.Server, uMng *online.UserManager) *MessageContr
 }
 
 func (sel *MessageControl) Domain() string {
-	domain := sel.cfg.Http.Domain
-	if sel.cfg.Http.Port != 80 {
-		domain = fmt.Sprintf("%s:%d", domain, sel.cfg.Http.Port)
+	domain := sel.cfg.Proto.Domain
+	if sel.cfg.Proto.Port != 80 {
+		domain = fmt.Sprintf("%s:%d", domain, sel.cfg.Proto.Port)
 	}
 	return domain
 }
 
 func (sel *MessageControl) OnConnect(id int64, in, out chan proto.Package) (err error) {
-	pd := NewPod(id, sel.Domain(), sel.userMng, out)
+	pd := NewPod(id, sel.Domain(), sel.podHd, out)
 	// 建立连接的首要任务就是获取认证信息，如果认证失败就直接断开连接
 	rsp := proto.Package{
 		Cmd: proto.CmdLoginRsp,

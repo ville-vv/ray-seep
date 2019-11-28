@@ -17,16 +17,19 @@ type PodRouterFun func([]byte) ([]byte, error)
 
 // Pod 是一个 代理服务 的管理器连接，包括代理和控制连接
 type Pod struct {
-	id      int64
+	connId  int64
+	userId  int64
 	name    string
+	secret  string
 	domain  string
 	out     chan proto.Package
 	route   map[int32]PodRouterFun
 	userMng *online.UserManager
+	podHd   *PodHandler
 }
 
-func NewPod(id int64, domain string, userMng *online.UserManager, out chan proto.Package) *Pod {
-	p := &Pod{id: id, domain: domain, userMng: userMng, out: out}
+func NewPod(id int64, domain string, podHd *PodHandler, out chan proto.Package) *Pod {
+	p := &Pod{connId: id, domain: domain, podHd: podHd, out: out}
 	p.initRoute()
 	return p
 }
@@ -38,8 +41,8 @@ func (p *Pod) initRoute() {
 	p.route[proto.CmdRunProxyRsp] = p.RunProxyReq
 	p.route[proto.CmdLogoutReq] = p.LogoutReq
 }
-func (p *Pod) Id() int64 {
-	return p.id
+func (p *Pod) ConnId() int64 {
+	return p.connId
 }
 func (p *Pod) PushMsg(msgPkg *proto.Package) (err error) {
 	p.out <- *msgPkg
@@ -47,7 +50,7 @@ func (p *Pod) PushMsg(msgPkg *proto.Package) (err error) {
 }
 
 func (p *Pod) OnMessage(cmd int32, body []byte) ([]byte, error) {
-	vlog.INFO("[%d] message cmd:[%d] body:%s", p.id, cmd, string(body))
+	vlog.INFO("[%d] message cmd:[%d] body:%s", p.connId, cmd, string(body))
 	if rt, ok := p.route[cmd]; ok {
 		return rt(body)
 	}
@@ -60,16 +63,21 @@ func (p *Pod) LoginReq(req []byte) (rsp []byte, err error) {
 		vlog.ERROR("[%d] login Unmarshal error:%s", err.Error())
 		return
 	}
-	p.name = reqLogin.Name
 	token := util.RandToken()
+	secret, err := p.podHd.OnLogin(p.connId, reqLogin.UserId, reqLogin.AppId, token)
+	if err != nil {
+		vlog.ERROR("[%d] login store token error:%s", err.Error())
+		return
+	}
 	rsp, err = jsoniter.Marshal(&proto.LoginRsp{
-		Id:    p.id,
+		Id:    p.connId,
 		Token: token,
 	})
-
 	if err != nil {
 		vlog.ERROR("[%d] login Marshal error:%s", err.Error())
 	}
+	p.name = reqLogin.Name
+	p.secret = secret
 	return
 }
 
@@ -93,7 +101,7 @@ func (p *Pod) NoticeRunProxy() {
 	}
 
 	if err := p.PushMsg(notice); err != nil {
-		vlog.ERROR("[%d] notice run proxy error %s", p.id, err.Error())
+		vlog.ERROR("[%d] notice run proxy error %s", p.connId, err.Error())
 	}
 }
 

@@ -5,8 +5,9 @@
 package proto
 
 type LoginReq struct {
-	Name     string `json:"name"`
-	Password string `json:"password"`
+	UserId int64  `json:"user_id"`
+	Name   string `json:"name"`
+	AppId  string `json:"app_id"`
 }
 
 type LoginRsp struct {

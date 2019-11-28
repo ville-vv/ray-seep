@@ -38,7 +38,7 @@ func (s *Server) Scheme() string {
 
 // NewServer http 请求服务
 // repeat 用于 http 请求转发
-func NewServer(c *conf.HttpSrv, pxyGainer repeat.NetConnGainer) *Server {
+func NewServer(c *conf.ProtoSrv, pxyGainer repeat.NetConnGainer) *Server {
 	addr := fmt.Sprintf("%s:%d", c.Host, c.Port)
 	return &Server{addr: addr, repeat: repeat.NewNetRepeater(pxyGainer)}
 }

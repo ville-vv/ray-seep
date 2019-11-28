@@ -30,7 +30,8 @@ MaxUserNum = 5
 # 一个客户端最大的代理数
 UserMaxProxyNum = 10
 
-[Http]
+[Proto]
+Proto="http"
 Host = ""
 Port = 32203
 Domain = "example.com"
@@ -38,4 +39,24 @@ Domain = "example.com"
 [Proxy]
 Host=""
 Port=32202
+
+[DataBase]
+[DataBase.Redis]
+Address = "127.0.0.1:6379"    
+Password =""    
+UserName = ""     
+MaxIdles = 100    
+MaxOpens = 1000    
+IdleTimeout = 10
+IsMaxConnWait = false
+Db=0
+
+[DataBase.Mysql]
+Version="8"
+UserName="root"
+Password="Root123"
+Address="127.0.0.1:3306"
+Default="information_schema"
+Databases=["ray_seep"]
+
 `

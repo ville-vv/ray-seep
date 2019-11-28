@@ -101,7 +101,7 @@ func (sel *ClientControl) dealConn(c net.Conn) {
 	recvCh := make(chan proto.Package)
 	cancel := make(chan interface{})
 	wg.Add(1)
-	sel.msgMng.RecvMsgWithChan(&wg, recvCh, cancel)
+	sel.msgMng.AsyncRecvMsg(&wg, recvCh, cancel)
 	wg.Wait()
 	isOff := false
 	for {
