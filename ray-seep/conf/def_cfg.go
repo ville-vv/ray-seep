@@ -55,7 +55,7 @@ Db=0
 Version="8"
 UserName="root"
 Password="Root123"
-Address="127.0.0.1:3306"
+Address="192.168.3.8:3306"
 Default="information_schema"
 Databases=["ray_seep"]
 

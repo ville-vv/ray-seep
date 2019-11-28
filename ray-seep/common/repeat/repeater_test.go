@@ -24,7 +24,6 @@ func TestNetRepeater_relay(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		wg.Done()
-		repeat := &NetRepeater{}
 		for {
 			cn2, err := l2.Accept()
 			if err != nil {
@@ -41,7 +40,7 @@ func TestNetRepeater_relay(t *testing.T) {
 				cn2.Close()
 				return
 			}
-			_, _, err = repeat.relay(ccn, copyHttp)
+			_, _, err = Relay(ccn, copyHttp)
 			if err != nil {
 				cn2.Close()
 				t.Error(err)

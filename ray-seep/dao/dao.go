@@ -9,7 +9,7 @@ type RaySeepServer struct {
 
 func NewRaySeepServer(cfg *conf.DataBaseSrv) *RaySeepServer {
 	return &RaySeepServer{
-		rdsDb: NewRedisClient(cfg.Redis),
+		//rdsDb: NewRedisClient(cfg.Redis),
 		sqlDb: NewMysqlClient(cfg.Mysql),
 	}
 }

@@ -60,13 +60,14 @@ func (p *Pod) OnMessage(cmd int32, body []byte) ([]byte, error) {
 func (p *Pod) LoginReq(req []byte) (rsp []byte, err error) {
 	reqLogin := proto.LoginReq{}
 	if err = jsoniter.Unmarshal(req, &reqLogin); err != nil {
-		vlog.ERROR("[%d] login Unmarshal error:%s", err.Error())
+		vlog.ERROR("[%d] login Unmarshal error:%s", p.connId, err.Error())
 		return
 	}
 	token := util.RandToken()
+	vlog.INFO("login request userId=%d,appId=%s,token=%s", reqLogin.UserId, reqLogin.AppId, token)
 	secret, err := p.podHd.OnLogin(p.connId, reqLogin.UserId, reqLogin.AppId, token)
 	if err != nil {
-		vlog.ERROR("[%d] login store token error:%s", err.Error())
+		vlog.ERROR("[%d] login store token error:%s", p.connId, err.Error())
 		return
 	}
 	rsp, err = jsoniter.Marshal(&proto.LoginRsp{
