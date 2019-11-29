@@ -47,10 +47,9 @@ func NewServer(c *conf.ProtoSrv, pxyGainer repeat.NetConnGainer) *Server {
 func (s *Server) Start() error {
 	lin, err := net.Listen("tcp", s.addr)
 	if err != nil {
-		vlog.ERROR("%v", err)
-		return nil
+		vlog.ERROR("http listen error %v", err)
+		return err
 	}
-	vlog.INFO("HttpServer start [%s]", s.addr)
 	for {
 		c, err := lin.Accept()
 		if err != nil {

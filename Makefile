@@ -29,14 +29,14 @@ build-client:
 	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o $(CLIENT_MAC_BINARY)  $(PROJECTNAME)/run/client/main.go
 	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o $(CLIENT_WIN_BINARY)  $(PROJECTNAME)/run/client/main.go
 
-docker-read:
+docker-ready:
 	sudo rm -rf $(DOCKER_BUILD)
 	mkdir -p $(DOCKER_BUILD)
 	cp docker/* $(DOCKER_BUILD)
 	cp -r $(SERVER_UNIX_BINARY) $(DOCKER_BUILD)/$(PROJECTNAME)
 	echo $(PROJECTNAME)
 
-docker-build: docker-read
+docker-build: docker-ready
 	sudo docker build -t $(PROJECTNAME) $(DOCKER_BUILD)
 
 docker_stop:

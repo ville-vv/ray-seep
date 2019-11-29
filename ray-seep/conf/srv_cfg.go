@@ -11,10 +11,11 @@ import (
 )
 
 type Server struct {
-	Ctl      *ControlSrv  `json:"ctl" toml:"Control"`
-	Pxy      *ProxySrv    `json:"pxy" toml:"Proxy"`
-	Proto    *ProtoSrv    `json:"proto" toml:"Proto"`
-	DataBase *DataBaseSrv `json:"database" toml:"DataBase"`
+	Ctl      *ControlSrv     `json:"ctl" toml:"Control"`
+	Pxy      *ProxySrv       `json:"pxy" toml:"Proxy"`
+	Proto    *ProtoSrv       `json:"proto" toml:"Proto"`
+	DataBase *DataBaseSrv    `json:"database" toml:"DataBase"`
+	User     map[string]User `json:"user" toml:"User"`
 }
 
 // ProxySrv 代理服务， 用户建立客户端连接后，需要建立代理的连接
@@ -43,6 +44,12 @@ type ControlSrv struct {
 type DataBaseSrv struct {
 	Redis *vredis.RedisCnf `json:"redis" toml:"Redis"`
 	Mysql *vsql.MySqlCnf   `json:"mysql" toml:"Mysql"`
+}
+
+type User struct {
+	UserId int64  `json:"user_id"`
+	Secret string `json:"secret"`
+	AppKey string `json:"app_key"`
 }
 
 //--------------------------------------------------------------------

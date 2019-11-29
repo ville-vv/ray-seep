@@ -6,6 +6,7 @@ package control
 
 import (
 	"fmt"
+	jsoniter "github.com/json-iterator/go"
 	"net"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/errs"
@@ -55,11 +56,17 @@ func (sel *MessageControl) OnConnect(id int64, in, out chan proto.Package) (err 
 		return fmt.Errorf("[%d] get auth message error ", id)
 	}
 
-	rsp.Body, err = pd.LoginReq(req.Body)
+	loginRsp, err := pd.LoginReq(req.Body)
 	if err != nil {
-		vlog.ERROR("[%d] on connect deal message error:%d", id, err.Error())
+		vlog.ERROR("[%d] on connect deal message error:%s", id, err.Error())
 		return
 	}
+
+	if rsp.Body, err = jsoniter.Marshal(loginRsp); err != nil {
+		vlog.ERROR("[%d] on connect json marshal login response error:%s", id, err.Error())
+		return
+	}
+
 	out <- rsp
 	// 认证成功加入到管理服务中
 	return sel.addPod(id, pd)
@@ -71,7 +78,7 @@ func (sel *MessageControl) addPod(id int64, pd *Pod) error {
 	defer sel.mu.Unlock()
 	sel.pods[id] = pd
 	sel.cNum += 1
-	vlog.DEBUG("[%d] pod disconnect current number[%d]", id, sel.cNum)
+	vlog.DEBUG("current number [%d]", sel.cNum)
 	return nil
 }
 

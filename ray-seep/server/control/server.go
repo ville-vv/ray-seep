@@ -52,9 +52,9 @@ func NewNodeServer(ctlCnf *conf.ControlSrv, handler ServerMsgHandler) *NodeServe
 func (sel *NodeServer) Start() error {
 	lis, err := conn.Listen(sel.addr)
 	if err != nil {
-		panic(err)
+		vlog.ERROR("control listen error %v", err)
+		return err
 	}
-	vlog.INFO("ConnServer start [%s]", sel.addr)
 	for c := range lis.Conn {
 		go sel.dealConn(c)
 	}
@@ -63,7 +63,7 @@ func (sel *NodeServer) Start() error {
 
 // dealConn 处理连接
 func (sel *NodeServer) dealConn(c conn.Conn) {
-	vlog.DEBUG("[%d] connecting ", c.Id())
+	//vlog.DEBUG("[%d] connecting ", c.Id())
 
 	defer func() {
 		if r := recover(); r != nil {

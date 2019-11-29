@@ -21,9 +21,12 @@ type ProxyCli struct {
 }
 
 type ControlCli struct {
-	Host string `json:"host"`
-	Port int64  `json:"port"`
-	Name string `json:"name" toml:"Name"` // 子域名
+	Host   string `json:"host"`
+	Port   int64  `json:"port"`
+	Name   string `json:"name" toml:"Name"` // 子域名
+	UserId int64  `json:"user_id"`
+	Secret string `json:"secret" toml:"Secret"`
+	AppKey string `json:"app_key" toml:"AppKey"`
 }
 
 // 初始化客户端配置

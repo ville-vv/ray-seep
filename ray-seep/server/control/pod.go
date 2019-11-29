@@ -13,12 +13,13 @@ import (
 	"vilgo/vlog"
 )
 
-type PodRouterFun func([]byte) ([]byte, error)
+type PodRouterFun func([]byte) (interface{}, error)
 
 // Pod 是一个 代理服务 的管理器连接，包括代理和控制连接
 type Pod struct {
 	connId  int64
 	userId  int64
+	appKey  string
 	name    string
 	secret  string
 	domain  string
@@ -50,39 +51,42 @@ func (p *Pod) PushMsg(msgPkg *proto.Package) (err error) {
 }
 
 func (p *Pod) OnMessage(cmd int32, body []byte) ([]byte, error) {
-	vlog.INFO("[%d] message cmd:[%d] body:%s", p.connId, cmd, string(body))
 	if rt, ok := p.route[cmd]; ok {
-		return rt(body)
+		rsp, err := rt(body)
+		if err != nil {
+			return nil, err
+		}
+		rspBody, err := jsoniter.Marshal(rsp)
+		if err != nil {
+			return nil, err
+		}
+		return rspBody, nil
 	}
 	return nil, errs.ErrNoCmdRouterNot
 }
 
-func (p *Pod) LoginReq(req []byte) (rsp []byte, err error) {
+func (p *Pod) LoginReq(req []byte) (interface{}, error) {
 	reqLogin := proto.LoginReq{}
-	if err = jsoniter.Unmarshal(req, &reqLogin); err != nil {
+	resp := &proto.LoginRsp{Id: p.connId, Token: util.RandToken()}
+
+	if err := jsoniter.Unmarshal(req, &reqLogin); err != nil {
 		vlog.ERROR("[%d] login Unmarshal error:%s", p.connId, err.Error())
-		return
+		return nil, err
 	}
-	token := util.RandToken()
-	vlog.INFO("login request userId=%d,appId=%s,token=%s", reqLogin.UserId, reqLogin.AppId, token)
-	secret, err := p.podHd.OnLogin(p.connId, reqLogin.UserId, reqLogin.AppId, token)
+
+	vlog.INFO("[%d] login request userId=%d ", p.connId, reqLogin.UserId)
+	secret, err := p.podHd.OnLogin(p.connId, reqLogin.UserId, reqLogin.AppKey, resp.Token)
 	if err != nil {
 		vlog.ERROR("[%d] login store token error:%s", p.connId, err.Error())
-		return
+		return nil, err
 	}
-	rsp, err = jsoniter.Marshal(&proto.LoginRsp{
-		Id:    p.connId,
-		Token: token,
-	})
-	if err != nil {
-		vlog.ERROR("[%d] login Marshal error:%s", err.Error())
-	}
+	p.appKey = reqLogin.AppKey
 	p.name = reqLogin.Name
 	p.secret = secret
-	return
+	return resp, nil
 }
 
-func (p *Pod) CreateHostReq(req []byte) (rsp []byte, err error) {
+func (p *Pod) CreateHostReq(req []byte) (rsp interface{}, err error) {
 	reqObj := &proto.CreateHostReq{}
 	if err = jsoniter.Unmarshal(req, reqObj); err != nil {
 		vlog.ERROR("")
@@ -91,7 +95,7 @@ func (p *Pod) CreateHostReq(req []byte) (rsp []byte, err error) {
 	rspObj := proto.CreateHostRsp{
 		Domain: reqObj.SubDomain + "." + p.domain,
 	}
-	return jsoniter.Marshal(rspObj)
+	return rspObj, nil
 }
 
 // NoticeRunProxy 通知用户启动代理服务服务
@@ -106,15 +110,15 @@ func (p *Pod) NoticeRunProxy() {
 	}
 }
 
-func (p *Pod) RunProxyReq(req []byte) (rsp []byte, err error) {
+func (p *Pod) RunProxyReq(req []byte) (rsp interface{}, err error) {
 	reqObj := &proto.RunProxyReq{}
 	if err = jsoniter.Unmarshal(req, reqObj); err != nil {
 		vlog.ERROR("run proxy request error %s", err.Error())
 		return
 	}
-	return jsoniter.Marshal(proto.RunProxyRsp{})
+	return proto.RunProxyRsp{}, nil
 }
 
-func (p *Pod) LogoutReq(req []byte) (rsp []byte, err error) {
+func (p *Pod) LogoutReq(req []byte) (rsp interface{}, err error) {
 	return nil, nil
 }

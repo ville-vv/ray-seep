@@ -71,7 +71,7 @@ func (sel *RegisterCenter) delProxy(name string, cid int64) {
 	}
 }
 
-// GetProxy 获取代理tcp连接
+// GetNetConn 获取代理tcp连接
 func (sel *RegisterCenter) GetNetConn(name string) (net.Conn, error) {
 	sel.lock.RLock()
 	pl, ok := sel.pxyPools[name]
@@ -88,7 +88,7 @@ func (sel *RegisterCenter) GetNetConn(name string) (net.Conn, error) {
 
 func (sel *RegisterCenter) getAndRunProxy(name string, pl *online.ProxyPool) (net.Conn, error) {
 	id := pl.GetId()
-	vlog.DEBUG("[%s][%d] notice proxy run", name, id)
+	//vlog.DEBUG("[%s][%d] notice proxy run", name, id)
 	if err := sel.noticeRunProxy(name, id); err != nil {
 		vlog.ERROR("[%s][%d] push notice run proxy message error %s", name, id, err.Error())
 		return nil, errs.ErrNoticeProxyRunErr
@@ -100,7 +100,7 @@ func (sel *RegisterCenter) getAndRunProxy(name string, pl *online.ProxyPool) (ne
 		if !ok {
 			return nil, errs.ErrProxySrvNotExist
 		}
-		vlog.DEBUG("[%s][%d] notice proxy success", name, id)
+		//vlog.DEBUG("[%s][%d] notice proxy success", name, id)
 		return cn, nil
 	case <-tm.C:
 		vlog.WARN("[%s][%d] wait get proxy timeout", name, id)
@@ -116,17 +116,4 @@ func (sel *RegisterCenter) noticeRunProxy(name string, id int64) error {
 // LogOff 注销用户的代理
 func (sel *RegisterCenter) LogOff(name string, id int64) {
 	sel.delProxy(name, id)
-}
-
-type registerConn struct {
-	conn.Conn
-}
-
-func (sel *registerConn) Read(buf []byte) (int, error) {
-	n, err := sel.Conn.Read(buf)
-	vlog.DEBUG("获取消息长度%d", n)
-	if err != nil {
-		vlog.ERROR("读取消息错误了%v, error : %v", sel.Conn.RemoteAddr(), err)
-	}
-	return n, err
 }

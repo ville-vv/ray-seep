@@ -16,11 +16,11 @@ func NewRaySeepServer(cfg *conf.DataBaseSrv) *RaySeepServer {
 
 func (sel *RaySeepServer) Close() {
 	_ = sel.sqlDb.Close()
-	_ = sel.rdsDb.Close()
+	//_ = sel.rdsDb.Close()
 }
 
-func (sel *RaySeepServer) UserLogin(userId int64, appId string, token string) (string, error) {
-	secret, err := sel.sqlDb.UserAuth(userId, appId)
+func (sel *RaySeepServer) UserLogin(userId int64, appKey string, token string) (string, error) {
+	secret, err := sel.sqlDb.UserAuth(userId, appKey)
 	if err != nil {
 		return "", err
 	}

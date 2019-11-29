@@ -40,9 +40,9 @@ func NewProxyServer(c *conf.ProxySrv, reg IRegister) *ProxyServer {
 func (s *ProxyServer) Start() error {
 	ls, err := conn.Listen(s.addr)
 	if err != nil {
+		vlog.ERROR("proxy listen error %v", err)
 		return err
 	}
-	vlog.INFO("ProxyServer start [%s]", s.addr)
 	for c := range ls.Conn {
 		go s.dealConn(c)
 	}

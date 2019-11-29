@@ -5,6 +5,7 @@
 package server
 
 import (
+	"os"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/dao"
 	"ray-seep/ray-seep/server/control"
@@ -51,6 +52,7 @@ func (r *RaySeepServer) toGo(name string, f func() error) {
 			if err := recover(); err != nil {
 				r.Stop()
 				debug.PrintStack()
+				os.Exit(2)
 			}
 		}()
 		if err := f(); err != nil {
@@ -63,8 +65,9 @@ func (r *RaySeepServer) Start() {
 	r.toGo(r.control.Scheme(), r.control.Start)
 	r.toGo(r.proxy.Scheme(), r.proxy.Start)
 	r.toGo(r.http.Scheme(), r.http.Start)
+	vlog.INFO("server have started success")
 	<-r.stopCh
-	vlog.INFO("server [all] have stop success")
+	vlog.INFO("server have stop success")
 }
 
 func (r *RaySeepServer) Stop() {

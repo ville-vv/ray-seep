@@ -10,8 +10,11 @@ import (
 )
 
 type ClientControlHandler struct {
-	cId          int64
+	connId       int64
+	userId       int64
 	token        string
+	secret       string
+	appKey       string
 	domain       string
 	name         string // 子域名
 	push         ResponsePush
@@ -25,6 +28,9 @@ func NewClientControlHandler(cfg *conf.Client) *ClientControlHandler {
 		name:         cfg.Control.Name,
 		cliPxyStopCh: stopCh,
 		cliPxy:       proxy.NewClientProxy(stopCh, cfg),
+		appKey:       cfg.Control.AppKey,
+		userId:       cfg.Control.UserId,
+		secret:       cfg.Control.Secret,
 	}
 }
 
@@ -50,9 +56,10 @@ func (c *ClientControlHandler) Pong(req *proto.Package) (err error) {
 
 // 登录服务器
 func (c *ClientControlHandler) Login(push ResponsePush) (err error) {
-	dt, err := jsoniter.Marshal(&proto.LoginReq{UserId: 1234, Name: c.name, AppId: ""})
+
+	dt, err := jsoniter.Marshal(&proto.LoginReq{UserId: c.userId, Name: c.name, AppKey: c.appKey})
 	if err != nil {
-		vlog.ERROR("push event json marshal error %s", err.Error())
+		vlog.ERROR("push event json marshal error  %s", err.Error())
 		return err
 	}
 	c.push = push
@@ -60,13 +67,12 @@ func (c *ClientControlHandler) Login(push ResponsePush) (err error) {
 }
 
 func (c *ClientControlHandler) LoginRsp(req *proto.Package) (err error) {
-	//vlog.INFO("login success body:%s", string(req.Body))
 	rsp := &proto.LoginRsp{}
 	if err := jsoniter.Unmarshal(req.Body, rsp); err != nil {
 		return err
 	}
-	vlog.INFO("login success ID:%d  Token:%s", rsp.Id, rsp.Token)
-	c.cId = rsp.Id
+	vlog.INFO("login success")
+	c.connId = rsp.Id
 	c.token = rsp.Token
 	c.Ping()
 	return c.CreateHostReq()
@@ -83,13 +89,20 @@ func (c *ClientControlHandler) CreateHostReq() error {
 
 // CreateHostRsp 创建服务主机返回
 func (c *ClientControlHandler) CreateHostRsp(req *proto.Package) (err error) {
-	//vlog.INFO("收到 [CreateHostRsp]Cmd:%d Body:%s", req.Cmd, string(req.Body))
 	ctInfo := &proto.CreateHostRsp{}
 	if err = jsoniter.Unmarshal(req.Body, ctInfo); err != nil {
 		vlog.ERROR("create host response json un parse error %s", err.Error())
 		return
 	}
-	vlog.INFO("[%d] create host success, domain is [%s]", c.cId, ctInfo.Domain)
+	vlog.INFO("")
+	vlog.INFO("\t---------------------create host success-----------------------")
+	vlog.INFO("\t\t     user_id : %d ", c.userId)
+	vlog.INFO("\t\t      secret : %s ", c.secret)
+	vlog.INFO("\t\t     app_key : %s ", c.appKey)
+	vlog.INFO("\t\t     conn_id : %d ", c.connId)
+	vlog.INFO("\t\t       token : %s ", c.token)
+	vlog.INFO("\t\t   http host : %s ", ctInfo.Domain)
+	vlog.INFO("\t---------------------------------------------------------------")
 	c.domain = ctInfo.Domain
 	// 收到创建主机的返回信息就可 运行代理了
 	return c.RunProxyReq()
@@ -102,7 +115,7 @@ func (c *ClientControlHandler) NoticeRunProxy(req *proto.Package) error {
 }
 
 func (c *ClientControlHandler) RunProxyReq() (err error) {
-	return c.cliPxy.RunProxy(c.cId, c.token, c.name)
+	return c.cliPxy.RunProxy(c.connId, c.token, c.name)
 }
 
 func (c *ClientControlHandler) RunProxyRsp(req *proto.Package) (err error) {
@@ -111,6 +124,6 @@ func (c *ClientControlHandler) RunProxyRsp(req *proto.Package) (err error) {
 }
 
 func (c *ClientControlHandler) LogoutRsp(req *proto.Package) (err error) {
-	vlog.INFO("disconnect cid:%d", c.cId)
+	vlog.INFO("disconnect cid:%d", c.connId)
 	return nil
 }

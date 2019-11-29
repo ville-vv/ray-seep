@@ -7,12 +7,12 @@ package proto
 type LoginReq struct {
 	UserId int64  `json:"user_id"`
 	Name   string `json:"name"`
-	AppId  string `json:"app_id"`
+	AppKey string `json:"app_key"`
 }
 
 type LoginRsp struct {
-	Id    int64
-	Token string
+	Id    int64  `json:"id"`
+	Token string `json:"token"`
 }
 
 type Ping struct{}

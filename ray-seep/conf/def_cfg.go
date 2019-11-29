@@ -7,14 +7,17 @@ package conf
 var clientDefaultConfig = `
 [Control]
 Host=""
-Port=32201
+Port=4301
 Name="test"
+UserId=123
+Secret="4a35022cb0af2bc8471a1345d162575d"
+AppKey="b753c6ad848e19ddd36c529430d262d5"
 
 [Proxy]
-Address = ":32202"
+Address = ":4303"
 
 [Web]
-Address = ":9090"
+Address = ":80"
 `
 
 //--------------------------------------------------------------------
@@ -22,7 +25,7 @@ Address = ":9090"
 var serverDefaultConfig = `
 [Control]
 Host = ""
-Port = 32201
+Port = 4301
 # 连接的超时时间 单位/毫秒
 ReadMsgTimeout=10000
 #最大客户端连接数
@@ -33,12 +36,12 @@ UserMaxProxyNum = 10
 [Proto]
 Proto="http"
 Host = ""
-Port = 32203
+Port = 4302
 Domain = "example.com"
 
 [Proxy]
 Host=""
-Port=32202
+Port=4303
 
 [DataBase]
 [DataBase.Redis]
@@ -55,7 +58,7 @@ Db=0
 Version="8"
 UserName="root"
 Password="Root123"
-Address="192.168.3.8:3306"
+Address="127.0.0.1:3306"
 Default="information_schema"
 Databases=["ray_seep"]
 

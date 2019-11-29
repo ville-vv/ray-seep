@@ -3,7 +3,6 @@ package control
 import (
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/proto"
-	"vilgo/vlog"
 )
 
 type ResponsePush interface {
@@ -60,11 +59,9 @@ func (r *RouteControl) OnConnect(sender proto.Sender) error {
 	return r.hd.Login(r)
 }
 
-func (r *RouteControl) OnMessage(req *proto.Package) {
+func (r *RouteControl) OnMessage(req *proto.Package) error {
 	//vlog.INFO("收到服务器的信息：cmd[%d]", req.Cmd)
-	if err := r.route.route(req, r); err != nil {
-		vlog.ERROR("on message exec route [%d] error  %s", req.Cmd, err.Error())
-	}
+	return r.route.route(req, r)
 }
 
 func (r *RouteControl) OnDisconnect(localId int64) {

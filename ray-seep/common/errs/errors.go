@@ -21,4 +21,5 @@ const (
 	ErrNoCmdRouterNot        ErrCode = "router not found"
 	ErrClientControlNotExist ErrCode = "client control is not exist"
 	ErrProxyConnNotExist     ErrCode = "proxy connect is not exist"
+	ErrSecretIsInValid       ErrCode = "secret key is invalid"
 )

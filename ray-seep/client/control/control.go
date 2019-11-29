@@ -13,7 +13,7 @@ import (
 
 type Router interface {
 	OnConnect(sender proto.Sender) error
-	OnMessage(req *proto.Package)
+	OnMessage(req *proto.Package) error
 	OnDisconnect(id int64)
 }
 
@@ -110,13 +110,16 @@ func (sel *ClientControl) dealConn(c net.Conn) {
 			if !ok {
 				isOff = true
 			}
-			sel.hd.OnMessage(&ms)
+			if err := sel.hd.OnMessage(&ms); err != nil {
+				isOff = false
+				return
+			}
 		case err := <-cancel:
 			vlog.ERROR("disconnect：%v", err)
 			isOff = true
 		}
 		if isOff {
-			sel.offCh <- 1
+			//sel.offCh <- 1
 			return
 		}
 	}

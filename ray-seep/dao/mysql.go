@@ -23,8 +23,8 @@ func (sel *MysqlClient) Close() error {
 	return sel.db.Close()
 }
 
-func (sel *MysqlClient) UserAuth(userId int64, appId string) (string, error) {
-	sqlStr := fmt.Sprintf("SELECT secret FROM user_account WHERE user_id='%d' and app_id='%s' LIMIT 1; ", userId, appId)
+func (sel *MysqlClient) UserAuth(userId int64, appKey string) (string, error) {
+	sqlStr := fmt.Sprintf("SELECT secret FROM user_account WHERE user_id='%d' and app_key='%s' LIMIT 1; ", userId, appKey)
 	rows, err := sel.db.Query(sqlStr)
 	if err != nil {
 		return "", err
