@@ -11,15 +11,17 @@ import (
 	"os/signal"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/server"
+	"ray-seep/ray-seep/server/env_init"
 	"syscall"
 	"time"
 	"vilgo/vlog"
 )
 
 var (
-	configPath = ""
+	configPath string
 	help       bool
-	genCfgFile = ""
+	genCfgFile string
+	dbInit     bool
 )
 
 func printServerInfo(cfg *conf.Server) {
@@ -30,20 +32,31 @@ func printServerInfo(cfg *conf.Server) {
 	fmt.Printf(" ==================================================================\n")
 }
 
-func main() {
+func argsParse() {
 	flag.StringVar(&configPath, "c", "", "the config file")
 	flag.BoolVar(&help, "h", false, "the tool use help")
+	flag.BoolVar(&dbInit, "db-init", false, "create database and table if not exist, must to do with -c point config file")
 	flag.StringVar(&genCfgFile, "gen", "", "generate default config file")
+
 	flag.Parse()
 	if help {
 		flag.PrintDefaults()
-		return
+		os.Exit(0)
 	}
 	if genCfgFile != "" {
 		conf.GenDefServerConfigFile(genCfgFile)
-		return
+		os.Exit(0)
+	}
+	if dbInit {
+		vlog.DefaultLogger()
+		env_init.InitDb(conf.InitServer(configPath))
+		os.Exit(0)
 	}
 
+}
+
+func main() {
+	argsParse()
 	cfg := conf.InitServer(configPath)
 	vlog.DefaultLogger()
 	if cfg.Log != nil {
