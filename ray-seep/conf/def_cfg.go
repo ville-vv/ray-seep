@@ -6,23 +6,29 @@ package conf
 
 var clientDefaultConfig = `
 [Control]
-Host=""
+Host="193.112.47.13"
+#Host=""
 Port=4301
-Name="test"
+Name="rayseep"
 UserId=123
 Secret="4a35022cb0af2bc8471a1345d162575d"
 AppKey="b753c6ad848e19ddd36c529430d262d5"
 
 [Proxy]
-Address = ":4303"
+Address = "193.112.47.13:4303"
 
 [Web]
-Address = ":80"
+Address = ":9090"
 `
 
 //--------------------------------------------------------------------
 
 var serverDefaultConfig = `
+[Log]
+ProgramName="ray_seep"
+OutPutFile=["stdout","./log/rayseep.log"]
+OutPutErrFile=[""]
+Level="INFO"
 [Control]
 Host = ""
 Port = 4301
@@ -44,6 +50,9 @@ Host=""
 Port=4303
 
 [DataBase]
+OpenRedis=false
+OpenMysql=false
+
 [DataBase.Redis]
 Address = "127.0.0.1:6379"    
 Password =""    
@@ -61,5 +70,12 @@ Password="Root123"
 Address="127.0.0.1:3306"
 Default="information_schema"
 Databases=["ray_seep"]
+
+[User]
+[User.test]
+UserName="test"
+UserId=123
+Secret="4a35022cb0af2bc8471a1345d162575d"
+AppKey="b753c6ad848e19ddd36c529430d262d5"
 
 `

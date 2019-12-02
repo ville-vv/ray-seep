@@ -1,0 +1,4 @@
+2019/12/02 17:24:20.64 server.go:68 ▶ INFO 001[0m server have started success
+2019/12/02 17:24:22.56 server.go:70 ▶ INFO 002[0m server have stop success
+2019/12/02 17:24:54.27 server.go:68 ▶ INFO 001[0m server have started success
+2019/12/02 17:25:06.12 server.go:70 ▶ INFO 002[0m server have stop success

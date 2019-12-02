@@ -48,10 +48,9 @@ func (sel *ClientControl) Stop() {
 func (sel *ClientControl) Start() {
 	go sel.offDial()
 	go sel.onDial()
-
 	c, err := net.Dial("tcp", sel.addr)
 	if err != nil {
-		vlog.LogE("connect server fail %v", err)
+		vlog.LogE("connect control server fail %v", err)
 		return
 	}
 	sel.onCh <- c

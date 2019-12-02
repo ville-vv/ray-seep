@@ -1,11 +1,11 @@
 FROM alpine
 
-WORKDIR /go
+WORKDIR /rayseep
 
 ADD . ./
 
-RUN chmod +x /go/start.sh
+RUN chmod +x /rayseep/start.sh && mkdir /etc/rayseep
 
-EXPOSE 32202 32201 32203
+EXPOSE 4301 4302 4303
 
-CMD ["./ray-seep","-c","/etc/rayseep.toml"]
+CMD ["./ray-seep","-c","/etc/rayseep/rayseep.toml"]

@@ -33,7 +33,7 @@ type RaySeepServer struct {
 
 func NewRaySeepServer(cfg *conf.Server) *RaySeepServer {
 
-	rds := dao.NewRaySeepServer(cfg.DataBase)
+	rds := dao.NewRaySeepServer(cfg)
 	msgAdopter := control.NewMessageControl(cfg, control.NewPodHandler(rds))
 
 	return &RaySeepServer{

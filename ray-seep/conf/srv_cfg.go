@@ -5,17 +5,20 @@
 package conf
 
 import (
+	"os"
 	"vilgo/vcnf"
+	"vilgo/vlog"
 	"vilgo/vredis"
 	"vilgo/vsql"
 )
 
 type Server struct {
-	Ctl      *ControlSrv     `json:"ctl" toml:"Control"`
-	Pxy      *ProxySrv       `json:"pxy" toml:"Proxy"`
-	Proto    *ProtoSrv       `json:"proto" toml:"Proto"`
-	DataBase *DataBaseSrv    `json:"database" toml:"DataBase"`
-	User     map[string]User `json:"user" toml:"User"`
+	Log      *vlog.LogCnf     `json:"log"`
+	Ctl      *ControlSrv      `json:"ctl" toml:"Control"`
+	Pxy      *ProxySrv        `json:"pxy" toml:"Proxy"`
+	Proto    *ProtoSrv        `json:"proto" toml:"Proto"`
+	DataBase *DataBaseSrv     `json:"database" toml:"DataBase"`
+	User     map[string]*User `json:"user" toml:"User"`
 }
 
 // ProxySrv 代理服务， 用户建立客户端连接后，需要建立代理的连接
@@ -42,14 +45,17 @@ type ControlSrv struct {
 }
 
 type DataBaseSrv struct {
-	Redis *vredis.RedisCnf `json:"redis" toml:"Redis"`
-	Mysql *vsql.MySqlCnf   `json:"mysql" toml:"Mysql"`
+	OpenRedis bool             `json:"open_redis"`
+	OpenMysql bool             `json:"open_mysql"`
+	Redis     *vredis.RedisCnf `json:"redis" toml:"Redis"`
+	Mysql     *vsql.MySqlCnf   `json:"mysql" toml:"Mysql"`
 }
 
 type User struct {
-	UserId int64  `json:"user_id"`
-	Secret string `json:"secret"`
-	AppKey string `json:"app_key"`
+	UserId   int64  `json:"user_id" toml:"UserId"`
+	UserName string `json:"user_name" toml:"UserName"`
+	Secret   string `json:"secret" toml:"Secret"`
+	AppKey   string `json:"app_key" toml:"AppKey"`
 }
 
 //--------------------------------------------------------------------
@@ -68,4 +74,15 @@ func InitServer(fileName ...string) *Server {
 		panic(err)
 	}
 	return srvCnf
+}
+
+func GenDefServerConfigFile(fileName string) {
+	file, err := os.Create(fileName)
+	if err != nil {
+		panic(err)
+	}
+	_, err = file.Write([]byte(serverDefaultConfig))
+	if err != nil {
+		panic(err)
+	}
 }

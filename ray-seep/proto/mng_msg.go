@@ -44,6 +44,9 @@ func (c *receiver) recvForPkg() (buf []byte, err error) {
 	if err != nil {
 		return
 	}
+	if l < 0 || l > 1024*1024 {
+		l = 1024 * 1024
+	}
 	buf = make([]byte, l)
 
 	// 再读取消息体

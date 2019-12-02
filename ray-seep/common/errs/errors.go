@@ -22,4 +22,5 @@ const (
 	ErrClientControlNotExist ErrCode = "client control is not exist"
 	ErrProxyConnNotExist     ErrCode = "proxy connect is not exist"
 	ErrSecretIsInValid       ErrCode = "secret key is invalid"
+	ErrNoThisUser            ErrCode = "no this user"
 )

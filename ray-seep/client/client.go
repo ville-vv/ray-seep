@@ -28,10 +28,6 @@ func Main() {
 		ctrCli.Start()
 	}()
 
-	//go func() {
-	//	proxy.Start()
-	//}()
-
 	sgn := make(chan os.Signal, 1)
 	signal.Notify(sgn, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 	fmt.Println(<-sgn)
