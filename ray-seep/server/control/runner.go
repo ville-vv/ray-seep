@@ -1,9 +1,9 @@
 package control
 
 import (
-	"fmt"
 	"ray-seep/ray-seep/common/repeat"
 	"ray-seep/ray-seep/server/http"
+	"sync"
 )
 
 type IRunner interface {
@@ -51,20 +51,22 @@ func (sel *Runner) Leave() chan<- LeaveItem {
 }
 
 func (sel *Runner) Start() error {
-
+	w := sync.WaitGroup{}
+	w.Add(2)
 	go func() {
-		fmt.Println("开启了 删除")
+		w.Done()
 		for v := range sel.leave {
 			sel.delItem(&v)
 		}
 	}()
 
 	go func() {
-		fmt.Println("开启了 添加")
+		w.Done()
 		for v := range sel.join {
 			sel.addItem(&v)
 		}
 	}()
+	w.Wait()
 	return nil
 }
 
@@ -73,7 +75,6 @@ func (sel *Runner) addItem(item *JoinItem) {
 		item.Err <- nil
 		return
 	}
-	fmt.Println("添加成功")
 	run := http.NewServerWithAddr(item.Addr, sel.gainer)
 	errCh := make(chan error)
 	go func() {
@@ -83,7 +84,6 @@ func (sel *Runner) addItem(item *JoinItem) {
 	if err == nil {
 		sel.items[item.Name] = run
 	}
-	fmt.Println("添加成功", err)
 	item.Err <- err
 	return
 }

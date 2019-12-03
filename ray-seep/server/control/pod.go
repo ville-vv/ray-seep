@@ -8,6 +8,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/common/util"
+	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
 	"ray-seep/ray-seep/server/online"
 	"vilgo/vlog"
@@ -17,27 +18,35 @@ type PodRouterFun func([]byte) (interface{}, error)
 
 // Pod 是一个 代理服务 的管理器连接，包括代理和控制连接
 type Pod struct {
-	connId  int64
-	userId  int64
-	appKey  string
-	name    string
-	secret  string
-	domain  string
-	out     chan proto.Package
-	route   map[int32]PodRouterFun
-	userMng *online.UserManager
-	podHd   *PodHandler
-	runner  *Runner
+	connId   int64
+	userId   int64
+	appKey   string
+	name     string
+	secret   string
+	domain   string
+	out      chan proto.Package
+	route    map[int32]PodRouterFun
+	userMng  *online.UserManager
+	podHd    *PodHandler
+	runner   *Runner
+	proxyCfg conf.ProxySrv
+	protoCfg conf.ProtoSrv
 }
 
-func NewPod(id int64, domain string, podHd *PodHandler, out chan proto.Package, runner *Runner) *Pod {
+func NewPod(id int64, cfg *conf.Server, podHd *PodHandler, out chan proto.Package, runner *Runner) *Pod {
 	p := &Pod{
 		connId: id,
-		domain: domain,
 		podHd:  podHd,
 		out:    out,
 		runner: runner,
 	}
+	if cfg.Proto != nil {
+		p.protoCfg = *cfg.Proto
+	}
+	if cfg.Pxy != nil {
+		p.proxyCfg = *cfg.Pxy
+	}
+
 	p.initRoute()
 	return p
 }
@@ -100,18 +109,24 @@ func (p *Pod) CreateHostReq(req []byte) (rsp interface{}, err error) {
 		return
 	}
 
-	//addr := ":4900"
-	//
-	//p.runner.Join() <- JoinItem{
-	//	Name:   reqObj.SubDomain,
-	//	ConnId: p.connId,
-	//	Addr:   "4900",
-	//	Err:    make(chan error),
-	//}
+	addr := ":4900"
+
+	join := JoinItem{
+		Name:   reqObj.SubDomain,
+		ConnId: p.connId,
+		Addr:   addr,
+		Err:    make(chan error),
+	}
+
+	p.runner.Join() <- join
+	if err = <-join.Err; err != nil {
+		vlog.ERROR("[%d] http join error %s", p.connId, err.Error())
+		return
+	}
 
 	rspObj := proto.CreateHostRsp{
-		ProxyHost: "",
-		Domain:    reqObj.SubDomain + "." + p.domain,
+		ProxyPort:  p.proxyCfg.Port,
+		HttpDomain: reqObj.SubDomain + "." + p.protoCfg.Domain + addr,
 	}
 	return rspObj, nil
 }
@@ -141,6 +156,9 @@ func (p *Pod) LogoutReq(req []byte) (rsp interface{}, err error) {
 	reqObj := make(map[string]interface{})
 	if err = jsoniter.Unmarshal(req, &reqObj); err != nil {
 		return
+	}
+	if reqObj["IsClean"].(bool) {
+		p.runner.Leave()
 	}
 	vlog.INFO("能否彻底关掉%v", reqObj)
 	return nil, nil

@@ -1,6 +1,7 @@
 package control
 
 import (
+	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"ray-seep/ray-seep/client/proxy"
 	"ray-seep/ray-seep/conf"
@@ -17,6 +18,8 @@ type ClientControlHandler struct {
 	appKey       string
 	domain       string
 	name         string // 子域名
+	pxyHost      string
+	pxyPort      int64
 	push         ResponsePush
 	cliPxy       *proxy.ClientProxy
 	cliPxyStopCh chan int
@@ -31,6 +34,7 @@ func NewClientControlHandler(cfg *conf.Client) *ClientControlHandler {
 		appKey:       cfg.Control.AppKey,
 		userId:       cfg.Control.UserId,
 		secret:       cfg.Control.Secret,
+		pxyHost:      cfg.Pxy.Address,
 	}
 }
 
@@ -101,9 +105,10 @@ func (c *ClientControlHandler) CreateHostRsp(req *proto.Package) (err error) {
 	vlog.INFO("\t\t     app_key : %s ", c.appKey)
 	vlog.INFO("\t\t     conn_id : %d ", c.connId)
 	vlog.INFO("\t\t       token : %s ", c.token)
-	vlog.INFO("\t\t   http host : %s ", ctInfo.Domain)
+	vlog.INFO("\t\t   http host : %s ", ctInfo.HttpDomain)
 	vlog.INFO("\t---------------------------------------------------------------")
-	c.domain = ctInfo.Domain
+	c.domain = ctInfo.HttpDomain
+	c.pxyPort = ctInfo.ProxyPort
 	// 收到创建主机的返回信息就可 运行代理了
 	return c.RunProxyReq()
 }
@@ -115,7 +120,7 @@ func (c *ClientControlHandler) NoticeRunProxy(req *proto.Package) error {
 }
 
 func (c *ClientControlHandler) RunProxyReq() (err error) {
-	return c.cliPxy.RunProxy(c.connId, c.token, c.name)
+	return c.cliPxy.RunProxy(c.connId, c.token, c.name, fmt.Sprintf("%s:%d", c.pxyHost, c.pxyPort))
 }
 
 func (c *ClientControlHandler) RunProxyRsp(req *proto.Package) (err error) {

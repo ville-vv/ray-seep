@@ -35,7 +35,7 @@ func NewMessageControl(cfg *conf.Server, podHd *PodHandler, runner *Runner) *Mes
 	}
 	m.register = NewRegisterCenter(cfg.Ctl.UserMaxProxyNum, m)
 	m.runner = runner
-	m.runner.SetGainer(m.register)
+	m.runner.SetGainer(m)
 
 	return m
 }
@@ -49,7 +49,7 @@ func (sel *MessageControl) Domain() string {
 }
 
 func (sel *MessageControl) OnConnect(id int64, in, out chan proto.Package) (err error) {
-	pd := NewPod(id, sel.Domain(), sel.podHd, out, sel.runner)
+	pd := NewPod(id, sel.cfg, sel.podHd, out, sel.runner)
 	// 建立连接的首要任务就是获取认证信息，如果认证失败就直接断开连接
 	rsp := proto.Package{
 		Cmd: proto.CmdLoginRsp,
@@ -92,7 +92,7 @@ func (sel *MessageControl) OnDisConnect(id int64) {
 	defer sel.mu.Unlock()
 	if pd, ok := sel.pods[id]; ok {
 		clean := sel.register.LogOff(pd.name, id)
-		_, _ = pd.LogoutReq([]byte(fmt.Sprintf(`{"IsClean"":%v}`, clean)))
+		_, _ = pd.LogoutReq([]byte(fmt.Sprintf(`{"IsClean":%v}`, clean)))
 		delete(sel.pods, id)
 		sel.cNum--
 	}

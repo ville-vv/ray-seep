@@ -23,8 +23,8 @@ type CreateHostReq struct {
 	SubDomain string `json:"sub_domain"`
 }
 type CreateHostRsp struct {
-	ProxyHost string `json:"proxy_host"`
-	Domain    string `json:"domain"`
+	ProxyPort  int64  `json:"proxy_port"`
+	HttpDomain string `json:"http_domain"`
 }
 
 type NoticeRunProxy struct {

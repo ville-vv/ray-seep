@@ -59,13 +59,16 @@ func (s *Server) Start() error {
 		return err
 	}
 	s.lis = lin
-	for !s.isStop {
-		c, err := lin.Accept()
-		if err != nil {
-			vlog.ERROR("http accept error %s", err.Error())
+	go func() {
+		for !s.isStop {
+			c, err := lin.Accept()
+			if err != nil {
+				vlog.ERROR("http accept error %s", err.Error())
+				return
+			}
+			go s.dealConn(c)
 		}
-		go s.dealConn(c)
-	}
+	}()
 	return nil
 }
 

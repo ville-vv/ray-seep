@@ -27,10 +27,11 @@ func NewClientProxy(stopCh chan int, cfg *conf.Client) *ClientProxy {
 	}
 }
 
-func (sel *ClientProxy) RunProxy(id int64, token string, name string) error {
+func (sel *ClientProxy) RunProxy(id int64, token string, name string, addr string) error {
 	sel.cid = id
 	sel.token = token
 	sel.name = name
+	sel.addr = addr
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
