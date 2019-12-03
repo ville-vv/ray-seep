@@ -61,14 +61,16 @@ func (sel *RegisterCenter) addProxy(name string, id int64, cc conn.Conn) error {
 	return nil
 }
 
-func (sel *RegisterCenter) delProxy(name string, cid int64) {
+func (sel *RegisterCenter) delProxy(name string, cid int64) (clean bool) {
 	if pl, ok := sel.pxyPools[name]; ok {
 		pl.Drop(cid)
 		if pl.Size() == 0 {
 			pl.Close()
 			delete(sel.pxyPools, name)
+			clean = true
 		}
 	}
+	return
 }
 
 // GetNetConn 获取代理tcp连接
@@ -114,6 +116,6 @@ func (sel *RegisterCenter) noticeRunProxy(name string, id int64) error {
 }
 
 // LogOff 注销用户的代理
-func (sel *RegisterCenter) LogOff(name string, id int64) {
-	sel.delProxy(name, id)
+func (sel *RegisterCenter) LogOff(name string, id int64) (clean bool) {
+	return sel.delProxy(name, id)
 }

@@ -27,10 +27,17 @@ type Pod struct {
 	route   map[int32]PodRouterFun
 	userMng *online.UserManager
 	podHd   *PodHandler
+	runner  *Runner
 }
 
-func NewPod(id int64, domain string, podHd *PodHandler, out chan proto.Package) *Pod {
-	p := &Pod{connId: id, domain: domain, podHd: podHd, out: out}
+func NewPod(id int64, domain string, podHd *PodHandler, out chan proto.Package, runner *Runner) *Pod {
+	p := &Pod{
+		connId: id,
+		domain: domain,
+		podHd:  podHd,
+		out:    out,
+		runner: runner,
+	}
 	p.initRoute()
 	return p
 }
@@ -92,8 +99,19 @@ func (p *Pod) CreateHostReq(req []byte) (rsp interface{}, err error) {
 		vlog.ERROR("")
 		return
 	}
+
+	//addr := ":4900"
+	//
+	//p.runner.Join() <- JoinItem{
+	//	Name:   reqObj.SubDomain,
+	//	ConnId: p.connId,
+	//	Addr:   "4900",
+	//	Err:    make(chan error),
+	//}
+
 	rspObj := proto.CreateHostRsp{
-		Domain: reqObj.SubDomain + "." + p.domain,
+		ProxyHost: "",
+		Domain:    reqObj.SubDomain + "." + p.domain,
 	}
 	return rspObj, nil
 }
@@ -120,5 +138,10 @@ func (p *Pod) RunProxyReq(req []byte) (rsp interface{}, err error) {
 }
 
 func (p *Pod) LogoutReq(req []byte) (rsp interface{}, err error) {
+	reqObj := make(map[string]interface{})
+	if err = jsoniter.Unmarshal(req, &reqObj); err != nil {
+		return
+	}
+	vlog.INFO("能否彻底关掉%v", reqObj)
 	return nil, nil
 }

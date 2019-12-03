@@ -48,6 +48,7 @@ func (sel *ClientProxy) RunProxy(id int64, token string, name string) error {
 }
 
 func (sel *ClientProxy) dial() (net.Conn, error) {
+	vlog.INFO("连接服务：%s", sel.addr)
 	cn, err := net.Dial("tcp", sel.addr)
 	msgMng := proto.NewMsgTransfer(conn.TurnConn(cn))
 	if err != nil {

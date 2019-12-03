@@ -22,27 +22,30 @@ type Server interface {
 }
 
 type RaySeepServer struct {
-	cfg     *conf.Server
-	proxy   *proxy.ProxyServer
-	http    *http.Server
-	control *control.NodeServer
-	start   []string
-	stopCh  chan int
-	db      *dao.RaySeepServer
+	cfg         *conf.Server
+	proxy       *proxy.ProxyServer
+	http        *http.Server
+	control     *control.NodeServer
+	start       []string
+	stopCh      chan int
+	db          *dao.RaySeepServer
+	proxyRunner *control.Runner
 }
 
 func NewRaySeepServer(cfg *conf.Server) *RaySeepServer {
 
 	rds := dao.NewRaySeepServer(cfg)
-	msgAdopter := control.NewMessageControl(cfg, control.NewPodHandler(rds))
+	runner := control.NewRunner()
+	msgAdopter := control.NewMessageControl(cfg, control.NewPodHandler(rds), runner)
 
 	return &RaySeepServer{
-		cfg:     cfg,
-		stopCh:  make(chan int, 1),
-		http:    http.NewServer(cfg.Proto, msgAdopter),
-		proxy:   proxy.NewProxyServer(cfg.Pxy, msgAdopter),
-		control: control.NewNodeServer(cfg.Ctl, msgAdopter),
-		db:      rds,
+		cfg:         cfg,
+		stopCh:      make(chan int, 1),
+		http:        http.NewServer(cfg.Proto, msgAdopter),
+		proxy:       proxy.NewProxyServer(cfg.Pxy, msgAdopter),
+		control:     control.NewNodeServer(cfg.Ctl, msgAdopter),
+		db:          rds,
+		proxyRunner: runner,
 	}
 }
 
@@ -65,6 +68,7 @@ func (r *RaySeepServer) Start() {
 	r.toGo(r.control.Scheme(), r.control.Start)
 	r.toGo(r.proxy.Scheme(), r.proxy.Start)
 	r.toGo(r.http.Scheme(), r.http.Start)
+	r.toGo("runner", r.proxyRunner.Start)
 	vlog.INFO("server have started success")
 	<-r.stopCh
 	vlog.INFO("server have stop success")

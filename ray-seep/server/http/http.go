@@ -25,12 +25,16 @@ type Repeater interface {
 }
 
 type Server struct {
+	lis    net.Listener
+	isStop bool
 	addr   string
 	repeat Repeater // 请求中续器
-
 }
 
-func (s *Server) Stop() {}
+func (s *Server) Stop() {
+	s.isStop = true
+	_ = s.lis.Close()
+}
 
 func (s *Server) Scheme() string {
 	return "http server"
@@ -43,6 +47,10 @@ func NewServer(c *conf.ProtoSrv, pxyGainer repeat.NetConnGainer) *Server {
 	return &Server{addr: addr, repeat: repeat.NewNetRepeater(pxyGainer)}
 }
 
+func NewServerWithAddr(addr string, pxyGainer repeat.NetConnGainer) *Server {
+	return &Server{addr: addr, repeat: repeat.NewNetRepeater(pxyGainer)}
+}
+
 // Start 启动http服务
 func (s *Server) Start() error {
 	lin, err := net.Listen("tcp", s.addr)
@@ -50,13 +58,15 @@ func (s *Server) Start() error {
 		vlog.ERROR("http listen error %v", err)
 		return err
 	}
-	for {
+	s.lis = lin
+	for !s.isStop {
 		c, err := lin.Accept()
 		if err != nil {
 			vlog.ERROR("http accept error %s", err.Error())
 		}
 		go s.dealConn(c)
 	}
+	return nil
 }
 
 // dealConn 处理 http 请求链接

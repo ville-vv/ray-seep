@@ -6,16 +6,17 @@ package conf
 
 var clientDefaultConfig = `
 [Control]
-Host="193.112.47.13"
-#Host=""
+#Host="193.112.47.13"
+Host=""
 Port=4301
-Name="rayseep"
+Name="test"
 UserId=123
 Secret="4a35022cb0af2bc8471a1345d162575d"
 AppKey="b753c6ad848e19ddd36c529430d262d5"
 
 [Proxy]
-Address = "193.112.47.13:4303"
+#Address = ":4303"
+Address = ":4900"
 
 [Web]
 Address = ":9090"
@@ -26,9 +27,10 @@ Address = ":9090"
 var serverDefaultConfig = `
 [Log]
 ProgramName="ray_seep"
-OutPutFile=["stdout","./log/rayseep.log"]
+OutPutFile=["stdout"]
 OutPutErrFile=[""]
 Level="INFO"
+
 [Control]
 Host = ""
 Port = 4301

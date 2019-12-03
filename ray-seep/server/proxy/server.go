@@ -43,9 +43,12 @@ func (s *ProxyServer) Start() error {
 		vlog.ERROR("proxy listen error %v", err)
 		return err
 	}
-	for c := range ls.Conn {
-		go s.dealConn(c)
-	}
+	go func() {
+		for c := range ls.Conn {
+			go s.dealConn(c)
+		}
+	}()
+
 	return nil
 }
 

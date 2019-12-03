@@ -24,15 +24,18 @@ type MessageControl struct {
 	cNum     int
 	cfg      *conf.Server
 	register *RegisterCenter
+	runner   *Runner
 }
 
-func NewMessageControl(cfg *conf.Server, podHd *PodHandler) *MessageControl {
+func NewMessageControl(cfg *conf.Server, podHd *PodHandler, runner *Runner) *MessageControl {
 	m := &MessageControl{
 		pods:  make(map[int64]*Pod),
 		cfg:   cfg,
 		podHd: podHd,
 	}
 	m.register = NewRegisterCenter(cfg.Ctl.UserMaxProxyNum, m)
+	m.runner = runner
+	m.runner.SetGainer(m.register)
 
 	return m
 }
@@ -42,11 +45,11 @@ func (sel *MessageControl) Domain() string {
 	if sel.cfg.Proto.Port != 80 {
 		domain = fmt.Sprintf("%s:%d", domain, sel.cfg.Proto.Port)
 	}
-	return domain
+	return sel.cfg.Proto.Domain
 }
 
 func (sel *MessageControl) OnConnect(id int64, in, out chan proto.Package) (err error) {
-	pd := NewPod(id, sel.Domain(), sel.podHd, out)
+	pd := NewPod(id, sel.Domain(), sel.podHd, out, sel.runner)
 	// 建立连接的首要任务就是获取认证信息，如果认证失败就直接断开连接
 	rsp := proto.Package{
 		Cmd: proto.CmdLoginRsp,
@@ -88,8 +91,8 @@ func (sel *MessageControl) OnDisConnect(id int64) {
 	sel.mu.Lock()
 	defer sel.mu.Unlock()
 	if pd, ok := sel.pods[id]; ok {
-		sel.register.LogOff(pd.name, id)
-		_, _ = pd.LogoutReq([]byte{})
+		clean := sel.register.LogOff(pd.name, id)
+		_, _ = pd.LogoutReq([]byte(fmt.Sprintf(`{"IsClean"":%v}`, clean)))
 		delete(sel.pods, id)
 		sel.cNum--
 	}
