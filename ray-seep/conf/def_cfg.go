@@ -18,7 +18,7 @@ AppKey="b753c6ad848e19ddd36c529430d262d5"
 Host = "193.112.47.13"
 
 [Web]
-Address = "172.16.5.221:9090"
+Address = "192.168.3.8:3000"
 `
 
 //--------------------------------------------------------------------
@@ -31,7 +31,7 @@ OutPutErrFile=[""]
 Level="DEBUG"
 
 [Control]
-Host = "172.16.5.221"
+Host = ""
 Port = 4301
 # 连接的超时时间 单位/毫秒
 ReadMsgTimeout=10000
@@ -42,9 +42,9 @@ UserMaxProxyNum = 10
 
 [Proto]
 Proto="http"
-Host = "172.16.5.221"
+Host = ""
 Port = 4302
-Domain = "172.16.5.221"
+Domain = "192.168.3.21"
 
 [Proxy]
 Host=""

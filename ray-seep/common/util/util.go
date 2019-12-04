@@ -9,7 +9,9 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"io"
+	"os"
 )
 
 // 生成32位md5字串
@@ -33,4 +35,18 @@ func RandToken() string {
 	b := make([]byte, 48)
 	io.ReadFull(rand.Reader, b)
 	return GetMd5String(base64.URLEncoding.EncodeToString(b))
+}
+
+func WritePid(path string) error {
+	pid := os.Getpid()
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString(fmt.Sprintf("%d", pid))
+	if err != nil {
+		return err
+	}
+	f.Sync()
+	return nil
 }

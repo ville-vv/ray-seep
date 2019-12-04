@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"ray-seep/ray-seep/common/util"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/server"
 	"ray-seep/ray-seep/server/env_init"
@@ -55,6 +56,7 @@ func argsParse() {
 }
 
 func main() {
+	_ = util.WritePid("process_id")
 	argsParse()
 	cfg := conf.InitServer(configPath)
 	vlog.DefaultLogger()

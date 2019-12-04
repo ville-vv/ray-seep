@@ -5,6 +5,7 @@
 package client
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -14,14 +15,38 @@ import (
 	"vilgo/vlog"
 )
 
+var (
+	configPath string
+	help       bool
+	genCfgFile string
+	dbInit     bool
+)
+
 type RaySeepClient struct {
 	ctl *control.ClientControl
 }
 
+func argsParse() {
+	flag.StringVar(&configPath, "c", "", "the config file")
+	flag.BoolVar(&help, "h", false, "the tool use help")
+	flag.StringVar(&genCfgFile, "gen", "", "generate default config file")
+
+	flag.Parse()
+	if help {
+		flag.PrintDefaults()
+		os.Exit(0)
+	}
+	if genCfgFile != "" {
+		conf.GenDefClientConfigFile(genCfgFile)
+		os.Exit(0)
+	}
+}
+
 func Main() {
-	vlog.DefaultLogger()
+	argsParse()
 	// 初始化配置
-	cfg := conf.InitClient()
+	cfg := conf.InitClient(configPath)
+	vlog.DefaultLogger()
 	ctrCli := control.NewClientControl(cfg.Control, control.NewClientControlHandler(cfg))
 
 	go func() {

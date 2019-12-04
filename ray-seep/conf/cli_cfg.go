@@ -4,7 +4,10 @@
 // config
 package conf
 
-import "vilgo/vcnf"
+import (
+	"os"
+	"vilgo/vcnf"
+)
 
 type Client struct {
 	Pxy     *ProxyCli     `json:"proxy" toml:"Proxy"`
@@ -45,4 +48,15 @@ func InitClient(fileName ...string) *Client {
 		panic(err)
 	}
 	return cliCnf
+}
+
+func GenDefClientConfigFile(fileName string) {
+	file, err := os.Create(fileName)
+	if err != nil {
+		panic(err)
+	}
+	_, err = file.Write([]byte(clientDefaultConfig))
+	if err != nil {
+		panic(err)
+	}
 }
