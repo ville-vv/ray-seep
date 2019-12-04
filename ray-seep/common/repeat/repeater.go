@@ -28,7 +28,7 @@ func NewNetRepeater(pxyGainer NetConnGainer) *NetRepeater {
 func (sel *NetRepeater) Transfer(host string, c net.Conn) {
 	pxyConn, err := sel.pxyGainer.GetNetConn(host)
 	if err != nil {
-		vlog.ERROR("获取代理服务错误：%s", err.Error())
+		vlog.ERROR("get proxy connect failed：%s", err.Error())
 		return
 	}
 	defer pxyConn.Close()

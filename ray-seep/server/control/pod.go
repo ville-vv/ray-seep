@@ -5,11 +5,14 @@
 package control
 
 import (
+	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"ray-seep/ray-seep/common/errs"
+	"ray-seep/ray-seep/common/repeat"
 	"ray-seep/ray-seep/common/util"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
+	"ray-seep/ray-seep/server/http"
 	"ray-seep/ray-seep/server/online"
 	"vilgo/vlog"
 )
@@ -23,22 +26,25 @@ type Pod struct {
 	appKey   string
 	name     string
 	secret   string
-	domain   string
+	httpAddr string
+	httpPort string
 	out      chan proto.Package
 	route    map[int32]PodRouterFun
 	userMng  *online.UserManager
 	podHd    *PodHandler
+	gainer   repeat.NetConnGainer
 	runner   *Runner
 	proxyCfg conf.ProxySrv
 	protoCfg conf.ProtoSrv
 }
 
-func NewPod(id int64, cfg *conf.Server, podHd *PodHandler, out chan proto.Package, runner *Runner) *Pod {
+func NewPod(id int64, cfg *conf.Server, podHd *PodHandler, out chan proto.Package, runner *Runner, gainer repeat.NetConnGainer) *Pod {
 	p := &Pod{
 		connId: id,
 		podHd:  podHd,
 		out:    out,
 		runner: runner,
+		gainer: gainer,
 	}
 	if cfg.Proto != nil {
 		p.protoCfg = *cfg.Proto
@@ -91,14 +97,16 @@ func (p *Pod) LoginReq(req []byte) (interface{}, error) {
 	}
 
 	vlog.INFO("[%d] login request userId=%d ", p.connId, reqLogin.UserId)
-	secret, err := p.podHd.OnLogin(p.connId, reqLogin.UserId, reqLogin.AppKey, resp.Token)
+	ul, err := p.podHd.OnLogin(p.connId, reqLogin.UserId, reqLogin.AppKey, resp.Token)
 	if err != nil {
 		vlog.ERROR("[%d] login store token error:%s", p.connId, err.Error())
 		return nil, err
 	}
 	p.appKey = reqLogin.AppKey
 	p.name = reqLogin.Name
-	p.secret = secret
+	p.secret = ul.Secret
+	p.httpPort = ul.HttpPort
+	p.httpAddr = fmt.Sprintf("%s:%s", p.protoCfg.Domain, ul.HttpPort)
 	return resp, nil
 }
 
@@ -109,12 +117,10 @@ func (p *Pod) CreateHostReq(req []byte) (rsp interface{}, err error) {
 		return
 	}
 
-	addr := ":4900"
-
 	join := JoinItem{
-		Name:   reqObj.SubDomain,
+		Name:   p.httpAddr,
 		ConnId: p.connId,
-		Addr:   addr,
+		Run:    http.NewServerWithAddr(":"+p.httpPort, p.gainer),
 		Err:    make(chan error),
 	}
 
@@ -126,7 +132,7 @@ func (p *Pod) CreateHostReq(req []byte) (rsp interface{}, err error) {
 
 	rspObj := proto.CreateHostRsp{
 		ProxyPort:  p.proxyCfg.Port,
-		HttpDomain: reqObj.SubDomain + "." + p.protoCfg.Domain + addr,
+		HttpDomain: p.httpAddr,
 	}
 	return rspObj, nil
 }
@@ -157,9 +163,11 @@ func (p *Pod) LogoutReq(req []byte) (rsp interface{}, err error) {
 	if err = jsoniter.Unmarshal(req, &reqObj); err != nil {
 		return
 	}
-	if reqObj["IsClean"].(bool) {
-		p.runner.Leave()
+	vlog.DEBUG("[%s] 是否能被清理%v", p.httpAddr, reqObj["IsClean"])
+	if reqObj["IsClean"].(bool) == true {
+		p.runner.Leave() <- LeaveItem{
+			Name: p.httpAddr,
+		}
 	}
-	vlog.INFO("能否彻底关掉%v", reqObj)
 	return nil, nil
 }

@@ -17,16 +17,17 @@ type WebServerCli struct {
 }
 
 type ProxyCli struct {
-	Address string `json:"address"`
+	Host string `json:"Host"`
 }
 
 type ControlCli struct {
-	Host   string `json:"host"`
-	Port   int64  `json:"port"`
-	Name   string `json:"name" toml:"Name"` // 子域名
-	UserId int64  `json:"user_id"`
-	Secret string `json:"secret" toml:"Secret"`
-	AppKey string `json:"app_key" toml:"AppKey"`
+	Host     string `json:"host"`
+	Port     int64  `json:"port"`
+	Name     string `json:"name" toml:"Name"` // 子域名
+	UserId   int64  `json:"user_id"`
+	Secret   string `json:"secret" toml:"Secret"`
+	AppKey   string `json:"app_key" toml:"AppKey"`
+	HttpPort string `json:"http_port" toml:"HttpPort"`
 }
 
 // 初始化客户端配置

@@ -29,9 +29,9 @@ type ProxySrv struct {
 
 // HttpSrv 服务程序对外的 http 服务信息
 type ProtoSrv struct {
-	Proto  string `json:"proto"`
-	Host   string `json:"host"`
-	Port   int64  `json:"port"`
+	Proto string `json:"proto"`
+	//Host   string `json:"host"`
+	//Port   int64  `json:"port"`
 	Domain string `json:"domain"` //服务的域名
 }
 
@@ -56,6 +56,7 @@ type User struct {
 	UserName string `json:"user_name" toml:"UserName"`
 	Secret   string `json:"secret" toml:"Secret"`
 	AppKey   string `json:"app_key" toml:"AppKey"`
+	HttpPort string `json:"http_port" toml:"HttpPort"`
 }
 
 //--------------------------------------------------------------------

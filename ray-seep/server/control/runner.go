@@ -1,9 +1,8 @@
 package control
 
 import (
-	"ray-seep/ray-seep/common/repeat"
-	"ray-seep/ray-seep/server/http"
 	"sync"
+	"vilgo/vlog"
 )
 
 type IRunner interface {
@@ -14,7 +13,7 @@ type IRunner interface {
 type JoinItem struct {
 	Name   string
 	ConnId int64
-	Addr   string
+	Run    IRunner
 	Err    chan error
 }
 
@@ -24,10 +23,9 @@ type LeaveItem struct {
 }
 
 type Runner struct {
-	join   chan JoinItem
-	leave  chan LeaveItem
-	items  map[string]IRunner
-	gainer repeat.NetConnGainer
+	join  chan JoinItem
+	leave chan LeaveItem
+	items map[string]IRunner
 }
 
 func NewRunner() *Runner {
@@ -36,10 +34,6 @@ func NewRunner() *Runner {
 		leave: make(chan LeaveItem, 100),
 		items: make(map[string]IRunner),
 	}
-}
-
-func (sel *Runner) SetGainer(gainer repeat.NetConnGainer) {
-	sel.gainer = gainer
 }
 
 func (sel *Runner) Join() chan<- JoinItem {
@@ -75,14 +69,14 @@ func (sel *Runner) addItem(item *JoinItem) {
 		item.Err <- nil
 		return
 	}
-	run := http.NewServerWithAddr(item.Addr, sel.gainer)
 	errCh := make(chan error)
 	go func() {
-		errCh <- run.Start()
+		errCh <- item.Run.Start()
 	}()
 	err := <-errCh
 	if err == nil {
-		sel.items[item.Name] = run
+		vlog.DEBUG("启动服务：%s", item.Name)
+		sel.items[item.Name] = item.Run
 	}
 	item.Err <- err
 	return
@@ -90,6 +84,7 @@ func (sel *Runner) addItem(item *JoinItem) {
 
 func (sel *Runner) delItem(item *LeaveItem) {
 	if pxy, ok := sel.items[item.Name]; ok {
+		vlog.DEBUG("清理服务：%s", item.Name)
 		pxy.Stop()
 		delete(sel.items, item.Name)
 	}

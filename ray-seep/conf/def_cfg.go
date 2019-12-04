@@ -6,20 +6,19 @@ package conf
 
 var clientDefaultConfig = `
 [Control]
-#Host="193.112.47.13"
-Host=""
+Host="193.112.47.13"
+#Host=""
 Port=4301
-Name="test"
+Name="ray"
 UserId=123
 Secret="4a35022cb0af2bc8471a1345d162575d"
 AppKey="b753c6ad848e19ddd36c529430d262d5"
 
 [Proxy]
-#Address = ":4303"
-Address = "127.0.0.1"
+Host = "193.112.47.13"
 
 [Web]
-Address = ":23455"
+Address = "172.16.5.221:9090"
 `
 
 //--------------------------------------------------------------------
@@ -29,10 +28,10 @@ var serverDefaultConfig = `
 ProgramName="ray_seep"
 OutPutFile=["stdout"]
 OutPutErrFile=[""]
-Level="INFO"
+Level="DEBUG"
 
 [Control]
-Host = ""
+Host = "172.16.5.221"
 Port = 4301
 # 连接的超时时间 单位/毫秒
 ReadMsgTimeout=10000
@@ -43,9 +42,9 @@ UserMaxProxyNum = 10
 
 [Proto]
 Proto="http"
-Host = ""
+Host = "172.16.5.221"
 Port = 4302
-Domain = "example.com"
+Domain = "172.16.5.221"
 
 [Proxy]
 Host=""
@@ -79,5 +78,5 @@ UserName="test"
 UserId=123
 Secret="4a35022cb0af2bc8471a1345d162575d"
 AppKey="b753c6ad848e19ddd36c529430d262d5"
-
+HttpPort="4900"
 `

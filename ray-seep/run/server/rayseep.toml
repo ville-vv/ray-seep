@@ -1,9 +1,9 @@
-
 [Log]
 ProgramName="ray_seep"
 OutPutFile=["stdout"]
 OutPutErrFile=[""]
-Level="INFO"
+Level="DEBUG"
+
 [Control]
 Host = ""
 Port = 4301
@@ -18,7 +18,7 @@ UserMaxProxyNum = 10
 Proto="http"
 Host = ""
 Port = 4302
-Domain = "example.com"
+Domain = "ray.example.com"
 
 [Proxy]
 Host=""
@@ -40,9 +40,9 @@ Db=0
 
 [DataBase.Mysql]
 Version="8"
-UserName="ville"
-Password="mySQL@123456."
-Address="193.112.47.13:3306"
+UserName="root"
+Password="Root123"
+Address="127.0.0.1:3306"
 Default="information_schema"
 Databases=["ray_seep"]
 
@@ -52,4 +52,4 @@ UserName="test"
 UserId=123
 Secret="4a35022cb0af2bc8471a1345d162575d"
 AppKey="b753c6ad848e19ddd36c529430d262d5"
-
+HttpPort="4900"

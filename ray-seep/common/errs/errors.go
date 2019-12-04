@@ -22,5 +22,6 @@ const (
 	ErrClientControlNotExist ErrCode = "client control is not exist"
 	ErrProxyConnNotExist     ErrCode = "proxy connect is not exist"
 	ErrSecretIsInValid       ErrCode = "secret key is invalid"
+	ErrHttpPortIsInValid     ErrCode = "http port is invalid"
 	ErrNoThisUser            ErrCode = "no this user"
 )

@@ -12,7 +12,7 @@ func InitDb(cfg *conf.Server) {
 		return
 	}
 
-	if err := mig.CreateTable(TableUserAccount); err != nil {
+	if err := mig.CreateTable(TableUserAccount, TableUserProtocol); err != nil {
 		vlog.ERROR("create table error %s", err.Error())
 		return
 	}

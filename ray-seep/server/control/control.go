@@ -12,7 +12,6 @@ import (
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
-	"strings"
 	"sync"
 	"vilgo/vlog"
 )
@@ -35,21 +34,20 @@ func NewMessageControl(cfg *conf.Server, podHd *PodHandler, runner *Runner) *Mes
 	}
 	m.register = NewRegisterCenter(cfg.Ctl.UserMaxProxyNum, m)
 	m.runner = runner
-	m.runner.SetGainer(m)
 
 	return m
 }
 
 func (sel *MessageControl) Domain() string {
-	domain := sel.cfg.Proto.Domain
-	if sel.cfg.Proto.Port != 80 {
-		domain = fmt.Sprintf("%s:%d", domain, sel.cfg.Proto.Port)
-	}
+	//domain := sel.cfg.Proto.Domain
+	//if sel.cfg.Proto.Port != 80 {
+	//	domain = fmt.Sprintf("%s:%d", domain, sel.cfg.Proto.Port)
+	//}
 	return sel.cfg.Proto.Domain
 }
 
 func (sel *MessageControl) OnConnect(id int64, in, out chan proto.Package) (err error) {
-	pd := NewPod(id, sel.cfg, sel.podHd, out, sel.runner)
+	pd := NewPod(id, sel.cfg, sel.podHd, out, sel.runner, sel)
 	// 建立连接的首要任务就是获取认证信息，如果认证失败就直接断开连接
 	rsp := proto.Package{
 		Cmd: proto.CmdLoginRsp,
@@ -91,7 +89,7 @@ func (sel *MessageControl) OnDisConnect(id int64) {
 	sel.mu.Lock()
 	defer sel.mu.Unlock()
 	if pd, ok := sel.pods[id]; ok {
-		clean := sel.register.LogOff(pd.name, id)
+		clean := sel.register.LogOff(pd.httpAddr, id)
 		_, _ = pd.LogoutReq([]byte(fmt.Sprintf(`{"IsClean":%v}`, clean)))
 		delete(sel.pods, id)
 		sel.cNum--
@@ -129,7 +127,7 @@ func (sel *MessageControl) Register(name string, id int64, cc conn.Conn) (err er
 }
 
 func (sel *MessageControl) GetNetConn(name string) (net.Conn, error) {
-	return sel.register.GetNetConn(strings.Split(name, ".")[0])
+	return sel.register.GetNetConn(name)
 }
 
 // PushMsg 主动消息推送

@@ -3,6 +3,7 @@ package dao
 import (
 	"database/sql"
 	"fmt"
+	"ray-seep/ray-seep/model"
 	"vilgo/vsql"
 )
 
@@ -23,17 +24,16 @@ func (sel *MysqlClient) Close() error {
 	return sel.db.Close()
 }
 
-func (sel *MysqlClient) UserAuth(userId int64, appKey string) (string, error) {
+func (sel *MysqlClient) UserAuth(userId int64, appKey string, ul *model.UserLoginDao) error {
 	sqlStr := fmt.Sprintf("SELECT secret FROM user_account WHERE user_id='%d' and app_key='%s' LIMIT 1; ", userId, appKey)
 	rows, err := sel.db.Query(sqlStr)
 	if err != nil {
-		return "", err
+		return err
 	}
-	var secret string
 	for rows.Next() {
-		if err := rows.Scan(&secret); err != nil {
-			return "", nil
+		if err := rows.Scan(&ul.Secret); err != nil {
+			return nil
 		}
 	}
-	return secret, err
+	return err
 }

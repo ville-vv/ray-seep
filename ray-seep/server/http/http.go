@@ -6,7 +6,6 @@ package http
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -33,7 +32,9 @@ type Server struct {
 
 func (s *Server) Stop() {
 	s.isStop = true
-	_ = s.lis.Close()
+	if s.lis != nil {
+		_ = s.lis.Close()
+	}
 }
 
 func (s *Server) Scheme() string {
@@ -43,8 +44,8 @@ func (s *Server) Scheme() string {
 // NewServer http 请求服务
 // repeat 用于 http 请求转发
 func NewServer(c *conf.ProtoSrv, pxyGainer repeat.NetConnGainer) *Server {
-	addr := fmt.Sprintf("%s:%d", c.Host, c.Port)
-	return &Server{addr: addr, repeat: repeat.NewNetRepeater(pxyGainer)}
+	//addr := fmt.Sprintf("%s:%d", c.Host, "")
+	return &Server{addr: "", repeat: repeat.NewNetRepeater(pxyGainer)}
 }
 
 func NewServerWithAddr(addr string, pxyGainer repeat.NetConnGainer) *Server {

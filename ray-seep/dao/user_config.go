@@ -3,6 +3,7 @@ package dao
 import (
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/conf"
+	"ray-seep/ray-seep/model"
 	"sync"
 )
 
@@ -20,18 +21,21 @@ func NewUserConfig(user map[string]*conf.User) *UserConfig {
 			UserName: v.UserName,
 			Secret:   v.Secret,
 			AppKey:   v.AppKey,
+			HttpPort: v.HttpPort,
 		}
 	}
 
 	return &UserConfig{user: u}
 }
 
-func (sel *UserConfig) UserAuth(userId int64, appKey string) (string, error) {
+func (sel *UserConfig) UserAuth(userId int64, appKey string, ul *model.UserLoginDao) error {
 	sel.lock.RLock()
 	defer sel.lock.RUnlock()
 	user, ok := sel.user[userId]
 	if !ok {
-		return "", errs.ErrSecretIsInValid
+		return errs.ErrSecretIsInValid
 	}
-	return user.Secret, nil
+	ul.Secret = user.Secret
+	ul.HttpPort = user.HttpPort
+	return nil
 }

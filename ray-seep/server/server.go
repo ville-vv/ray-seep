@@ -28,13 +28,13 @@ type RaySeepServer struct {
 	control     *control.NodeServer
 	start       []string
 	stopCh      chan int
-	db          *dao.RaySeepServer
+	db          dao.BaseDao
 	proxyRunner *control.Runner
 }
 
 func NewRaySeepServer(cfg *conf.Server) *RaySeepServer {
 
-	rds := dao.NewRaySeepServer(cfg)
+	rds := dao.NewDao(cfg)
 	runner := control.NewRunner()
 	msgAdopter := control.NewMessageControl(cfg, control.NewPodHandler(rds), runner)
 
@@ -67,7 +67,6 @@ func (r *RaySeepServer) toGo(name string, f func() error) {
 func (r *RaySeepServer) Start() {
 	r.toGo(r.control.Scheme(), r.control.Start)
 	r.toGo(r.proxy.Scheme(), r.proxy.Start)
-	r.toGo(r.http.Scheme(), r.http.Start)
 	r.toGo("runner", r.proxyRunner.Start)
 	vlog.INFO("server have started success")
 	<-r.stopCh

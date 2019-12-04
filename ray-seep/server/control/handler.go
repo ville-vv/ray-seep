@@ -3,23 +3,27 @@ package control
 import (
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/dao"
+	"ray-seep/ray-seep/model"
 )
 
 type PodHandler struct {
-	db *dao.RaySeepServer
+	db dao.BaseDao
 }
 
-func NewPodHandler(db *dao.RaySeepServer) *PodHandler {
+func NewPodHandler(db dao.BaseDao) *PodHandler {
 	return &PodHandler{db: db}
 }
 
-func (sel *PodHandler) OnLogin(connId, userId int64, appKey string, token string) (secret string, err error) {
-	secret, err = sel.db.UserLogin(userId, appKey, token)
+func (sel *PodHandler) OnLogin(connId, userId int64, appKey string, token string) (loginDao *model.UserLoginDao, err error) {
+	loginDao, err = sel.db.UserLogin(userId, appKey, token)
 	if err != nil {
 		return
 	}
-	if secret == "" {
-		return "", errs.ErrSecretIsInValid
+	if loginDao.Secret == "" {
+		return nil, errs.ErrSecretIsInValid
+	}
+	if loginDao.HttpPort == "" {
+		return nil, errs.ErrHttpPortIsInValid
 	}
 	// TODO redis
 	return

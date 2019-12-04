@@ -90,7 +90,6 @@ func (sel *RegisterCenter) GetNetConn(name string) (net.Conn, error) {
 
 func (sel *RegisterCenter) getAndRunProxy(name string, pl *online.ProxyPool) (net.Conn, error) {
 	id := pl.GetId()
-	//vlog.DEBUG("[%s][%d] notice proxy run", name, id)
 	if err := sel.noticeRunProxy(name, id); err != nil {
 		vlog.ERROR("[%s][%d] push notice run proxy message error %s", name, id, err.Error())
 		return nil, errs.ErrNoticeProxyRunErr
@@ -102,7 +101,6 @@ func (sel *RegisterCenter) getAndRunProxy(name string, pl *online.ProxyPool) (ne
 		if !ok {
 			return nil, errs.ErrProxySrvNotExist
 		}
-		//vlog.DEBUG("[%s][%d] notice proxy success", name, id)
 		return cn, nil
 	case <-tm.C:
 		vlog.WARN("[%s][%d] wait get proxy timeout", name, id)
