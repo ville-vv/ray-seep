@@ -9,16 +9,16 @@ var clientDefaultConfig = `
 Host="193.112.47.13"
 #Host=""
 Port=4301
-Name="ray"
-UserId=123
-Secret="4a35022cb0af2bc8471a1345d162575d"
-AppKey="b753c6ad848e19ddd36c529430d262d5"
+Name="admin"
+UserId=190
+Secret="example"
+AppKey="example"
 
 [Proxy]
 Host = "193.112.47.13"
 
 [Web]
-Address = "192.168.3.8:3000"
+Address = ":12345"
 `
 
 //--------------------------------------------------------------------
