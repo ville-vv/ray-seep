@@ -2,15 +2,15 @@ package control
 
 import (
 	"ray-seep/ray-seep/common/errs"
-	"ray-seep/ray-seep/dao"
+	"ray-seep/ray-seep/databus"
 	"ray-seep/ray-seep/model"
 )
 
 type PodHandler struct {
-	db dao.BaseDao
+	db databus.BaseDao
 }
 
-func NewPodHandler(db dao.BaseDao) *PodHandler {
+func NewPodHandler(db databus.BaseDao) *PodHandler {
 	return &PodHandler{db: db}
 }
 

@@ -7,7 +7,7 @@ package server
 import (
 	"os"
 	"ray-seep/ray-seep/conf"
-	"ray-seep/ray-seep/dao"
+	"ray-seep/ray-seep/databus"
 	"ray-seep/ray-seep/server/control"
 	"ray-seep/ray-seep/server/http"
 	"ray-seep/ray-seep/server/proxy"
@@ -28,13 +28,13 @@ type RaySeepServer struct {
 	control     *control.NodeServer
 	start       []string
 	stopCh      chan int
-	db          dao.BaseDao
+	db          databus.BaseDao
 	proxyRunner *control.Runner
 }
 
 func NewRaySeepServer(cfg *conf.Server) *RaySeepServer {
 
-	rds := dao.NewDao(cfg)
+	rds := databus.NewDao(cfg)
 	runner := control.NewRunner()
 	msgAdopter := control.NewMessageControl(cfg, control.NewPodHandler(rds), runner)
 
