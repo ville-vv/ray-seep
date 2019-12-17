@@ -6,19 +6,20 @@ package conf
 
 var clientDefaultConfig = `
 [Control]
-Host="193.112.47.13"
-#Host=""
+#Host="193.112.47.13"
+Host=""
 Port=4301
-Name="admin"
-UserId=190
-Secret="example"
-AppKey="example"
+Name="test"
+#UserId=190
+UserId=123
+Secret="4a35022cb0af2bc8471a1345d162575d"
+AppKey="b753c6ad848e19ddd36c529430d262d5"
 
 [Proxy]
-Host = "193.112.47.13"
+Host = ""
 
 [Web]
-Address = ":12345"
+Address = ":3000"
 `
 
 //--------------------------------------------------------------------
@@ -44,7 +45,7 @@ UserMaxProxyNum = 10
 Proto="http"
 Host = ""
 Port = 4302
-Domain = "192.168.3.21"
+Domain = "ray.example.com"
 
 [Proxy]
 Host=""

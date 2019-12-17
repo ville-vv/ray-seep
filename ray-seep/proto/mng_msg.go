@@ -37,7 +37,7 @@ func (c *receiver) Recv(buf []byte) (int, error) {
 
 // recvForPkg 读取一个定义好格式的消息体
 func (c *receiver) recvForPkg() (buf []byte, err error) {
-	var l int64
+	var l int32
 
 	// 先读取消息长度， 必须写入 消息的时候有写入消息长度
 	err = binary.Read(c.r, binary.LittleEndian, &l)
@@ -102,7 +102,7 @@ func (c *sender) send(m []byte) (err error) {
 
 func (c *sender) sendForPkg(data []byte) (err error) {
 	// 先发送消息的长度
-	err = binary.Write(c.w, binary.LittleEndian, int64(len(data)))
+	err = binary.Write(c.w, binary.LittleEndian, int32(len(data)))
 	if err != nil {
 		return
 	}
