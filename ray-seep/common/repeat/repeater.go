@@ -25,11 +25,11 @@ func NewNetRepeater(pxyGainer NetConnGainer) *NetRepeater {
 	return &NetRepeater{pxyGainer: pxyGainer}
 }
 
-func (sel *NetRepeater) Transfer(host string, c net.Conn) {
+func (sel *NetRepeater) Transfer(host string, c net.Conn) (int64, int64, error) {
 	pxyConn, err := sel.pxyGainer.GetNetConn(host)
 	if err != nil {
 		vlog.ERROR("get proxy connect failed：%s", err.Error())
-		return
+		return 0, 0, nil
 	}
 	defer pxyConn.Close()
 	_ = pxyConn.SetDeadline(time.Time{})
@@ -37,11 +37,11 @@ func (sel *NetRepeater) Transfer(host string, c net.Conn) {
 	if err != nil {
 		if netErr, ok := err.(net.Error); !(ok && netErr.Timeout()) {
 			if err != io.EOF {
-				vlog.ERROR("%s", err.Error())
+				return 0, 0, err
 			}
 		}
 	}
-	vlog.INFO("request size：[%d]. response size：[%d]", reqLength, respLength)
+	return reqLength, respLength, nil
 }
 
 type result struct {

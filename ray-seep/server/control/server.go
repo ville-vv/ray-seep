@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/conf"
+	"ray-seep/ray-seep/monitor"
 	"ray-seep/ray-seep/proto"
 	"runtime/debug"
 	"sync"
@@ -23,6 +24,7 @@ type ServerMsgHandler interface {
 
 // 处理用户的通信，接收和发送用户的操作信息
 type NodeServer struct {
+	mtr     monitor.Monitor
 	addr    string
 	timeout int64
 	ish     ServerMsgHandler
@@ -42,6 +44,7 @@ func NewNodeServer(ctlCnf *conf.ControlSrv, handler ServerMsgHandler) *NodeServe
 		timeout = 5000
 	}
 	return &NodeServer{
+		mtr:     monitor.NewMonitor("node-server", "counter"),
 		timeout: timeout,
 		addr:    addr,
 		ish:     handler,
@@ -89,9 +92,12 @@ func (sel *NodeServer) dealConn(c conn.Conn) {
 		vlog.ERROR("[%d] connect fail %s", c.Id(), err.Error())
 		return
 	}
+	sel.mtr.Inc(1)
+
 	vlog.DEBUG("[%d] connect success", c.Id())
 	// 通知有连接断开
 	defer func() {
+		sel.mtr.Dec(1)
 		sel.ish.OnDisConnect(c.Id())
 		close(recvMsg)
 		close(sendMsg)

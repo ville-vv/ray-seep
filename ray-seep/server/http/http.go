@@ -12,6 +12,7 @@ import (
 	"ray-seep/ray-seep/common/rayhttp"
 	"ray-seep/ray-seep/common/repeat"
 	"ray-seep/ray-seep/conf"
+	"ray-seep/ray-seep/monitor"
 	"runtime/debug"
 	"time"
 	"vilgo/vlog"
@@ -20,10 +21,11 @@ import (
 // Repeater 是一个中继器，用于转发 conn 的数据
 type Repeater interface {
 	// 转发
-	Transfer(host string, c net.Conn)
+	Transfer(host string, c net.Conn) (int64, int64, error)
 }
 
 type Server struct {
+	mtr    monitor.Monitor
 	lis    net.Listener
 	isStop bool
 	addr   string
@@ -49,7 +51,7 @@ func NewServer(c *conf.ProtoSrv, pxyGainer repeat.NetConnGainer) *Server {
 }
 
 func NewServerWithAddr(addr string, pxyGainer repeat.NetConnGainer) *Server {
-	return &Server{addr: addr, repeat: repeat.NewNetRepeater(pxyGainer)}
+	return &Server{addr: addr, repeat: repeat.NewNetRepeater(pxyGainer), mtr: monitor.NewMonitor("http", "gauge", "meter")}
 }
 
 // Start 启动http服务
@@ -63,6 +65,8 @@ func (s *Server) Start() error {
 	go func() {
 		for !s.isStop {
 			c, err := lin.Accept()
+			// 上报连接数
+			s.mtr.Meter(1)
 			if err != nil {
 				vlog.ERROR("http accept error %s", err.Error())
 				return
@@ -95,7 +99,14 @@ func (s *Server) dealConn(c net.Conn) {
 	host := copyHttp.Host()
 	//vlog.DEBUG("request proxy host is [%s]", host)
 	// 根据host 获取  proxy 转发
-	s.repeat.Transfer(host, copyHttp)
+	reqLength, respLength, err := s.repeat.Transfer(host, copyHttp)
+	if err != nil {
+		vlog.ERROR("%s", err.Error())
+		return
+	}
+	vlog.INFO("request size：[%d]. response size：[%d]", reqLength, respLength)
+	// 返回数据流量
+	s.mtr.Gauge(respLength)
 }
 
 func SayBackText(c net.Conn, status int, body []byte) {

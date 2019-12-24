@@ -44,7 +44,12 @@ func (sel *ClientProxy) RunProxy(id int64, token string, httpDomain string, pxyA
 			vlog.ERROR("connect to proxy server error %s", err.Error())
 		}
 		defer cn.Close()
-		sel.netRet.Transfer(httpDomain, cn)
+		reqLength, respLength, err := sel.netRet.Transfer(httpDomain, cn)
+		if err != nil {
+			vlog.ERROR("%s", err.Error())
+			return
+		}
+		vlog.INFO("request size：[%d]. response size：[%d]", reqLength, respLength)
 	}()
 	return nil
 }

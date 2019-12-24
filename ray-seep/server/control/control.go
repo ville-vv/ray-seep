@@ -38,14 +38,6 @@ func NewMessageControl(cfg *conf.Server, podHd *PodHandler, runner *Runner) *Mes
 	return m
 }
 
-func (sel *MessageControl) Domain() string {
-	//domain := sel.cfg.Proto.Domain
-	//if sel.cfg.Proto.Port != 80 {
-	//	domain = fmt.Sprintf("%s:%d", domain, sel.cfg.Proto.Port)
-	//}
-	return sel.cfg.Proto.Domain
-}
-
 func (sel *MessageControl) OnConnect(id int64, in, out chan proto.Package) (err error) {
 	pd := NewPod(id, sel.cfg, sel.podHd, out, sel.runner, sel)
 	// 建立连接的首要任务就是获取认证信息，如果认证失败就直接断开连接
@@ -67,7 +59,6 @@ func (sel *MessageControl) OnConnect(id int64, in, out chan proto.Package) (err 
 		vlog.ERROR("[%d] on connect json marshal login response error:%s", id, err.Error())
 		return
 	}
-
 	out <- rsp
 	// 认证成功加入到管理服务中
 	return sel.addPod(id, pd)
