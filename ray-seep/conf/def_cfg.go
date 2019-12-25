@@ -6,7 +6,7 @@ package conf
 
 var clientDefaultConfig = `
 [Control]
-#Host="193.112.47.13"
+#Host="127.0.0.1"
 Host=""
 Port=4301
 Name="test"
@@ -19,7 +19,7 @@ AppKey="b753c6ad848e19ddd36c529430d262d5"
 Host = ""
 
 [Web]
-Address = ":3000"
+Address = ":12345"
 `
 
 //--------------------------------------------------------------------
@@ -45,15 +45,14 @@ UserMaxProxyNum = 10
 Proto="http"
 Host = ""
 Port = 4302
-Domain = "ray.example.com"
+Domain = "rayseep.example.com"
 
 [Proxy]
 Host=""
 Port=4303
 
 [DataBase]
-OpenRedis=false
-OpenMysql=false
+OpenDb=false
 
 [DataBase.Redis]
 Address = "127.0.0.1:6379"    

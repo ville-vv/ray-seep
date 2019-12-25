@@ -56,6 +56,7 @@ func NewServerWithAddr(addr string, pxyGainer repeat.NetConnGainer) *Server {
 
 // Start 启动http服务
 func (s *Server) Start() error {
+	s.mtr.StartPrint(monitor.DefautlMetricePrint, time.Second*60*5)
 	lin, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		vlog.ERROR("http listen error %v", err)
@@ -66,11 +67,14 @@ func (s *Server) Start() error {
 		for !s.isStop {
 			c, err := lin.Accept()
 			// 上报连接数
-			s.mtr.Meter(1)
 			if err != nil {
-				vlog.ERROR("http accept error %s", err.Error())
+				operr, ok := err.(*net.OpError)
+				if !(ok && operr.Err.Error() == "use of closed network connection") {
+					vlog.ERROR("http accept error %s", err.Error())
+				}
 				return
 			}
+			s.mtr.Meter(1)
 			go s.dealConn(c)
 		}
 	}()

@@ -86,6 +86,9 @@ func (m *BaseMonitor) Histograms(n int64) {
 }
 
 func (m *BaseMonitor) StartPrint(l metrics.Logger, freq time.Duration) {
+	if freq <= 0 {
+		freq = time.Second * 60 * 5
+	}
 	go metrics.Log(m.reg, freq, l)
 }
 

@@ -14,7 +14,7 @@ type BaseDao interface {
 }
 
 func NewDao(cfg *conf.Server) BaseDao {
-	if cfg.DataBase.OpenMysql {
+	if cfg.DataBase.OpenDb {
 		return NewRaySeepServer(cfg)
 	}
 	vlog.INFO("dao use NewNotSqlDao")

@@ -116,8 +116,10 @@ func (p *Pod) CreateHostReq(req []byte) (rsp interface{}, err error) {
 		vlog.ERROR("")
 		return
 	}
-
-	p.podHd.OnLogin()
+	// 创建主机需要检验是否已经登录了
+	if err = p.podHd.OnCreateHost(p.connId, p.name, reqObj.Token); err != nil {
+		return
+	}
 
 	join := JoinItem{
 		Name:   p.httpAddr,

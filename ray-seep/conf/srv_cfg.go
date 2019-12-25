@@ -45,10 +45,9 @@ type ControlSrv struct {
 }
 
 type DataBaseSrv struct {
-	OpenRedis bool             `json:"open_redis"`
-	OpenMysql bool             `json:"open_mysql"`
-	Redis     *vredis.RedisCnf `json:"redis" toml:"Redis"`
-	Mysql     *vsql.MySqlCnf   `json:"mysql" toml:"Mysql"`
+	OpenDb bool             `json:"open_db"`
+	Redis  *vredis.RedisCnf `json:"redis" toml:"Redis"`
+	Mysql  *vsql.MySqlCnf   `json:"mysql" toml:"Mysql"`
 }
 
 type User struct {

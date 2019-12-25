@@ -84,7 +84,7 @@ func (c *ClientControlHandler) LoginRsp(req *proto.Package) (err error) {
 
 //  CreateHostReq 创建服务主机
 func (c *ClientControlHandler) CreateHostReq() error {
-	reqData, err := jsoniter.Marshal(proto.CreateHostReq{SubDomain: c.name})
+	reqData, err := jsoniter.Marshal(proto.CreateHostReq{SubDomain: c.name, Token: c.token})
 	if err != nil {
 		return err
 	}

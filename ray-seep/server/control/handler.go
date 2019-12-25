@@ -30,6 +30,9 @@ func (sel *PodHandler) OnLogout(name string, id int64) error {
 }
 
 // 创建主机判断是否登录
-func (sel *PodHandler) OnCreateHost(id int64, token string) error {
+func (sel *PodHandler) OnCreateHost(connId int64, user string, token string) error {
+	if token != sel.db.GetToken(connId, user) || token == "" {
+		return errs.ErrNoLogin
+	}
 	return nil
 }
