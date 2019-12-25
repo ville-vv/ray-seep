@@ -1,13 +1,15 @@
 package databus
 
 import (
+	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/model"
 	"vilgo/vlog"
 )
 
 type BaseDao interface {
-	UserLogin(userId int64, appKey string, token string) (*model.UserLoginDao, error)
+	UserLogin(connId int64, userId int64, user string, appKey string, token string) (*model.UserLoginDao, error)
+	GetToken(connId int64, user string) string
 	Close()
 }
 
@@ -41,10 +43,17 @@ func (sel *RaySeepServer) Close() {
 	}
 }
 
-func (sel *RaySeepServer) UserLogin(userId int64, appKey string, token string) (*model.UserLoginDao, error) {
+func (sel *RaySeepServer) UserLogin(connId int64, userId int64, user string, appKey string, token string) (*model.UserLoginDao, error) {
 	ul := &model.UserLoginDao{}
 	if err := sel.sqlDb.UserAuth(userId, appKey, ul); err != nil {
 		return nil, err
 	}
-	return ul, nil
+	if ul.Secret == "" {
+		return nil, errs.ErrSecretIsInValid
+	}
+	return ul, sel.rdsDb.SetUserToken(connId, user, token)
+}
+
+func (sel *RaySeepServer) GetToken(connId int64, user string) string {
+	return sel.rdsDb.GetUserToken(connId, user)
 }

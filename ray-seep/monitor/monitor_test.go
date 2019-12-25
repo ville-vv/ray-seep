@@ -46,7 +46,6 @@ func TestBaseMonitor_Meter(t *testing.T) {
 			time.Sleep(time.Millisecond * 10)
 		}
 	}()
-
-	go metrics.Log(m.reg, 5*time.Second, log.New(os.Stderr, "metrics: ", log.Lmicroseconds))
+	m.StartPrint(DefautlMetricePrint, 2*time.Second)
 	time.Sleep(time.Second * 20)
 }

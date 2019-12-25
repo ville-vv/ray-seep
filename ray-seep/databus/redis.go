@@ -30,9 +30,8 @@ func (c *RedisClient) Close() error {
 }
 
 // 设置 Token
-func (c *RedisClient) SetUserToken(user string, id int64, token string) error {
-	fmt.Println(strconv.FormatInt(id, 10))
-	return c.rds.HSetNX(user, strconv.FormatInt(id, 10), token).Err()
+func (c *RedisClient) SetUserToken(connID int64, user string, token string) error {
+	return c.rds.HSetNX("login_token_"+user, strconv.FormatInt(connID, 10), token).Err()
 }
 
 // 更新到期时间
@@ -42,4 +41,8 @@ func (c *RedisClient) UpdateTokenTTl(user string, id int64) error {
 
 func (c *RedisClient) DelUserToken(user string, id int64) error {
 	return c.rds.HDel(user, strconv.FormatInt(id, 10)).Err()
+}
+
+func (c *RedisClient) GetUserToken(connID int64, user string) string {
+	return c.rds.HGet("login_token_"+user, strconv.FormatInt(connID, 10)).Val()
 }

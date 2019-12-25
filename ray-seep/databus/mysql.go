@@ -32,8 +32,8 @@ func (sel *MysqlClient) UserAuth(userId int64, appKey string, ul *model.UserLogi
 	}
 	for rows.Next() {
 		if err := rows.Scan(&ul.Secret); err != nil {
-			return nil
+			return err
 		}
 	}
-	return err
+	return nil
 }

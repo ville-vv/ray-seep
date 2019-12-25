@@ -97,7 +97,7 @@ func (p *Pod) LoginReq(req []byte) (interface{}, error) {
 	}
 
 	vlog.INFO("[%d] login request userId=%d ", p.connId, reqLogin.UserId)
-	ul, err := p.podHd.OnLogin(p.connId, reqLogin.UserId, reqLogin.AppKey, resp.Token)
+	ul, err := p.podHd.OnLogin(p.connId, reqLogin.UserId, reqLogin.Name, reqLogin.AppKey, resp.Token)
 	if err != nil {
 		vlog.ERROR("[%d] login store token error:%s", p.connId, err.Error())
 		return nil, err
@@ -116,6 +116,8 @@ func (p *Pod) CreateHostReq(req []byte) (rsp interface{}, err error) {
 		vlog.ERROR("")
 		return
 	}
+
+	p.podHd.OnLogin()
 
 	join := JoinItem{
 		Name:   p.httpAddr,

@@ -7,7 +7,7 @@ import (
 )
 
 type Monitor interface {
-	StartPrint(l metrics.Logger)
+	StartPrint(l metrics.Logger, freq time.Duration)
 	Inc(int64)
 	Dec(int64)
 	Gauge(int64)
@@ -16,7 +16,7 @@ type Monitor interface {
 }
 
 func NewMonitor(name string, ut ...string) Monitor {
-	return NewBaseMonitor(name)
+	return NewBaseMonitor(name, ut...)
 }
 
 type BaseMonitor struct {
@@ -85,15 +85,15 @@ func (m *BaseMonitor) Histograms(n int64) {
 	m.hst.Update(n)
 }
 
-func (m *BaseMonitor) StartPrint(l metrics.Logger) {
-	go metrics.Log(m.reg, 60*time.Minute, l)
+func (m *BaseMonitor) StartPrint(l metrics.Logger, freq time.Duration) {
+	go metrics.Log(m.reg, freq, l)
 }
 
 type MetricsPrint struct {
 	log vlog.ILogger
 }
 
-var DefautlMetricePrint = MetricsPrint{log: vlog.NewGoLogger(&vlog.LogCnf{
+var DefautlMetricePrint = &MetricsPrint{log: vlog.NewGoLogger(&vlog.LogCnf{
 	ProgramName:   "ray-seep-metrics",
 	OutPutFile:    []string{"./metrics.log"},
 	OutPutErrFile: nil,

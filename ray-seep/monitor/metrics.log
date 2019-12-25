@@ -1,0 +1,56 @@
+2019/12/25 13:50:33.85 monitor_test.go:49 ▶ INFO 001[0m DefautlMetricePrint
+2019/12/25 13:55:10.83 log.go:53 ▶ INFO 001[0m meter test_meter
+2019/12/25 13:55:10.83 log.go:54 ▶ INFO 002[0m   count:           99650
+2019/12/25 13:55:10.83 log.go:55 ▶ INFO 003[0m   1-min rate:          0.00
+2019/12/25 13:55:10.83 log.go:56 ▶ INFO 004[0m   5-min rate:          0.00
+2019/12/25 13:55:10.83 log.go:57 ▶ INFO 005[0m   15-min rate:         0.00
+2019/12/25 13:55:10.83 log.go:58 ▶ INFO 006[0m   mean rate:       49879.86
+2019/12/25 13:55:12.83 log.go:53 ▶ INFO 007[0m meter test_meter
+2019/12/25 13:55:12.83 log.go:54 ▶ INFO 008[0m   count:          192630
+2019/12/25 13:55:12.83 log.go:55 ▶ INFO 009[0m   1-min rate:          0.00
+2019/12/25 13:55:12.83 log.go:56 ▶ INFO 00a[0m   5-min rate:          0.00
+2019/12/25 13:55:12.83 log.go:57 ▶ INFO 00b[0m   15-min rate:         0.00
+2019/12/25 13:55:12.83 log.go:58 ▶ INFO 00c[0m   mean rate:       48228.60
+2019/12/25 13:55:14.83 log.go:53 ▶ INFO 00d[0m meter test_meter
+2019/12/25 13:55:14.83 log.go:54 ▶ INFO 00e[0m   count:          288425
+2019/12/25 13:55:14.83 log.go:55 ▶ INFO 00f[0m   1-min rate:      48071.80
+2019/12/25 13:55:14.83 log.go:56 ▶ INFO 010[0m   5-min rate:      48071.80
+2019/12/25 13:55:14.83 log.go:57 ▶ INFO 011[0m   15-min rate:     48071.80
+2019/12/25 13:55:14.83 log.go:58 ▶ INFO 012[0m   mean rate:       48131.42
+2019/12/25 13:55:16.83 log.go:53 ▶ INFO 013[0m meter test_meter
+2019/12/25 13:55:16.83 log.go:54 ▶ INFO 014[0m   count:          384583
+2019/12/25 13:55:16.83 log.go:55 ▶ INFO 015[0m   1-min rate:      48071.80
+2019/12/25 13:55:16.83 log.go:56 ▶ INFO 016[0m   5-min rate:      48071.80
+2019/12/25 13:55:16.83 log.go:57 ▶ INFO 017[0m   15-min rate:     48071.80
+2019/12/25 13:55:16.83 log.go:58 ▶ INFO 018[0m   mean rate:       48126.48
+2019/12/25 13:55:18.83 log.go:53 ▶ INFO 019[0m meter test_meter
+2019/12/25 13:55:18.83 log.go:54 ▶ INFO 01a[0m   count:          487181
+2019/12/25 13:55:18.83 log.go:55 ▶ INFO 01b[0m   1-min rate:      48175.15
+2019/12/25 13:55:18.83 log.go:56 ▶ INFO 01c[0m   5-min rate:      48093.16
+2019/12/25 13:55:18.83 log.go:57 ▶ INFO 01d[0m   15-min rate:     48078.96
+2019/12/25 13:55:18.83 log.go:58 ▶ INFO 01e[0m   mean rate:       48719.09
+2019/12/25 13:55:20.83 log.go:53 ▶ INFO 01f[0m meter test_meter
+2019/12/25 13:55:20.83 log.go:54 ▶ INFO 020[0m   count:          589064
+2019/12/25 13:55:20.83 log.go:55 ▶ INFO 021[0m   1-min rate:      48175.15
+2019/12/25 13:55:20.83 log.go:56 ▶ INFO 022[0m   5-min rate:      48093.16
+2019/12/25 13:55:20.83 log.go:57 ▶ INFO 023[0m   15-min rate:     48078.96
+2019/12/25 13:55:20.83 log.go:58 ▶ INFO 024[0m   mean rate:       49101.60
+2019/12/25 13:55:22.83 log.go:53 ▶ INFO 025[0m meter test_meter
+2019/12/25 13:55:22.83 log.go:54 ▶ INFO 026[0m   count:          685631
+2019/12/25 13:55:22.83 log.go:55 ▶ INFO 027[0m   1-min rate:      48175.15
+2019/12/25 13:55:22.83 log.go:56 ▶ INFO 028[0m   5-min rate:      48093.16
+2019/12/25 13:55:22.83 log.go:57 ▶ INFO 029[0m   15-min rate:     48078.96
+2019/12/25 13:55:22.83 log.go:58 ▶ INFO 02a[0m   mean rate:       48993.56
+2019/12/25 13:55:24.83 log.go:53 ▶ INFO 02b[0m meter test_meter
+2019/12/25 13:55:24.83 log.go:54 ▶ INFO 02c[0m   count:          785057
+2019/12/25 13:55:24.83 log.go:55 ▶ INFO 02d[0m   1-min rate:      48300.78
+2019/12/25 13:55:24.83 log.go:56 ▶ INFO 02e[0m   5-min rate:      48120.49
+2019/12/25 13:55:24.83 log.go:57 ▶ INFO 02f[0m   15-min rate:     48088.20
+2019/12/25 13:55:24.83 log.go:58 ▶ INFO 030[0m   mean rate:       49092.94
+2019/12/25 13:55:26.83 log.go:53 ▶ INFO 031[0m meter test_meter
+2019/12/25 13:55:26.83 log.go:54 ▶ INFO 032[0m   count:          885791
+2019/12/25 13:55:26.83 log.go:55 ▶ INFO 033[0m   1-min rate:      48300.78
+2019/12/25 13:55:26.83 log.go:56 ▶ INFO 034[0m   5-min rate:      48120.49
+2019/12/25 13:55:26.83 log.go:57 ▶ INFO 035[0m   15-min rate:     48088.20
+2019/12/25 13:55:26.83 log.go:58 ▶ INFO 036[0m   mean rate:       49214.35
+2019/12/25 13:55:28.83 log.go:53 ▶ INFO 037[0m meter test_meter
