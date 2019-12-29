@@ -39,13 +39,13 @@ type ProtoSrv struct {
 type ControlSrv struct {
 	Host            string `json:"host"`
 	Port            int64  `json:"port"`
-	ReadMsgTimeout  int64  `json:"read_msg_timeout"`   // 连接的超时时间毫秒
+	ReadMsgTimeout  int64  `json:"read_msg_timeout"`   // 连接的超时时间毫秒,如果在时间内没有收到任何消息就会断开
 	MaxUserNum      int    `json:"max_user_num"`       // 最大客户端连接数
-	UserMaxProxyNum int    `json:"user_max_proxy_num"` // 一个客户的最大代理数
+	UserMaxProxyNum int    `json:"user_max_proxy_num"` // 一个用户下面允许连接的最大代理pod服务数量
 }
 
 type DataBaseSrv struct {
-	OpenDb bool             `json:"open_db"`
+	OpenDb bool             `json:"open_db"` //是否打开Databases服务
 	Redis  *vredis.RedisCnf `json:"redis" toml:"Redis"`
 	Mysql  *vsql.MySqlCnf   `json:"mysql" toml:"Mysql"`
 }

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"ray-seep/ray-seep/common/rayhttp"
 	"text/template"
+	"time"
 )
 
 var htmlPageTemp = `
@@ -46,7 +47,9 @@ func main() {
 
 func HttpServer() {
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		//files := ""
+		fmt.Println(time.Now().String(), "access from remoter address : ", request.RemoteAddr)
+		fmt.Println(time.Now().String(), "access User-Agent : ", request.Header.Get("User-Agent"))
+
 		buf := bytes.NewBufferString("")
 		dep := 0
 		err := filepath.Walk("./", func(path string, f os.FileInfo, err error) error {
@@ -75,6 +78,7 @@ func HttpServer() {
 		}
 		tmpl.Execute(writer, map[string]string{"Context": buf.String()})
 	})
+	fmt.Println("本地web服务启动，请使用 http://localhost:12345 在浏览器中访问\r\n如果配套 RaySeep 使用请在浏览器中打开 ray-seep-cli 中输出的 http 地址")
 	http.ListenAndServe(":12345", nil)
 	fmt.Println("结束了？")
 }

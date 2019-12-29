@@ -6,17 +6,17 @@ package conf
 
 var clientDefaultConfig = `
 [Control]
-#Host="127.0.0.1"
-Host=""
+Host="193.112.47.13"
+#Host=""
 Port=4301
 Name="test"
-#UserId=190
-UserId=123
-Secret="4a35022cb0af2bc8471a1345d162575d"
-AppKey="b753c6ad848e19ddd36c529430d262d5"
+UserId=100
+Secret="example"
+AppKey="example"
 
 [Proxy]
-Host = ""
+# 这里只需要指定host不用指定port
+Host = "193.112.47.13"
 
 [Web]
 Address = ":12345"
@@ -45,7 +45,7 @@ UserMaxProxyNum = 10
 Proto="http"
 Host = ""
 Port = 4302
-Domain = "rayseep.example.com"
+Domain = "rayseep.villeboss.com"
 
 [Proxy]
 Host=""
@@ -55,7 +55,7 @@ Port=4303
 OpenDb=false
 
 [DataBase.Redis]
-Address = "127.0.0.1:6379"    
+Address = "127.0.0.1:6379"
 Password =""    
 UserName = ""     
 MaxIdles = 100    
@@ -75,8 +75,8 @@ Databases=["ray_seep"]
 [User]
 [User.test]
 UserName="test"
-UserId=123
-Secret="4a35022cb0af2bc8471a1345d162575d"
-AppKey="b753c6ad848e19ddd36c529430d262d5"
+UserId=100
+Secret="example"
+AppKey="example"
 HttpPort="4900"
 `

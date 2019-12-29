@@ -101,6 +101,7 @@ func (c *ClientControlHandler) CreateHostRsp(req *proto.Package) (err error) {
 	vlog.INFO("")
 	vlog.INFO("\t---------------------create host success-----------------------")
 	vlog.INFO("\t\t     user_id : %d ", c.userId)
+	vlog.INFO("\t\t   user_name : %s ", c.name)
 	//vlog.INFO("\t\t      secret : %s ", c.secret)
 	vlog.INFO("\t\t     app_key : %s ", c.appKey)
 	vlog.INFO("\t\t     conn_id : %d ", c.connId)

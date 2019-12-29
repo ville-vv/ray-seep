@@ -6,6 +6,7 @@ package http
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -46,7 +47,6 @@ func (s *Server) Scheme() string {
 // NewServer http 请求服务
 // repeat 用于 http 请求转发
 func NewServer(c *conf.ProtoSrv, pxyGainer repeat.NetConnGainer) *Server {
-	//addr := fmt.Sprintf("%s:%d", c.Host, "")
 	return &Server{addr: "", repeat: repeat.NewNetRepeater(pxyGainer)}
 }
 
@@ -95,6 +95,9 @@ func (s *Server) dealConn(c net.Conn) {
 	// 请求连接转为http协议
 	copyHttp, err := rayhttp.ToHttp(c)
 	if err != nil {
+		if err == io.EOF {
+			return
+		}
 		vlog.ERROR("tcp connect  to http request error %v", err.Error())
 		SayBackText(c, 400, []byte("Bad Request"))
 		return

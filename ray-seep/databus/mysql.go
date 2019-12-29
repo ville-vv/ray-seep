@@ -24,14 +24,16 @@ func (sel *MysqlClient) Close() error {
 	return sel.db.Close()
 }
 
-func (sel *MysqlClient) UserAuth(userId int64, appKey string, ul *model.UserLoginDao) error {
-	sqlStr := fmt.Sprintf("SELECT secret FROM user_account WHERE user_id='%d' and app_key='%s' LIMIT 1; ", userId, appKey)
+func (sel *MysqlClient) UserAuth(userId int64, userName, appKey string, ul *model.UserLoginDao) error {
+	sqlStr := fmt.Sprintf("SELECT ua.secret, up.protocol_port FROM user_accounts as ua "+
+		"JOIN user_protocols as up ON up.user_id=ua.user_id"+
+		" WHERE ua.user_id='%d' and ua.user_name='%s' and ua.app_key='%s' and up.protocol_name='http' LIMIT 1; ", userId, userName, appKey)
 	rows, err := sel.db.Query(sqlStr)
 	if err != nil {
 		return err
 	}
 	for rows.Next() {
-		if err := rows.Scan(&ul.Secret); err != nil {
+		if err := rows.Scan(&ul.Secret, &ul.HttpPort); err != nil {
 			return err
 		}
 	}

@@ -33,7 +33,7 @@ func (sel *UserConfig) UserAuth(userId int64, appKey string, ul *model.UserLogin
 	defer sel.lock.RUnlock()
 	user, ok := sel.user[userId]
 	if !ok {
-		return errs.ErrSecretIsInValid
+		return errs.ErrUserInfoValidFail
 	}
 	ul.Secret = user.Secret
 	ul.HttpPort = user.HttpPort

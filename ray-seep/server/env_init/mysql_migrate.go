@@ -12,11 +12,16 @@ var (
 CREATE TABLE IF NOT EXISTS user_accounts (
 seq int(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
 user_id int(10) NOT NULL UNIQUE COMMENT '用户ID',
+user_name varchar(128) NOT NULL COMMENT '用户名',
 secret varchar(128) NOT NULL UNIQUE,
 app_key varchar(128) NOT NULL UNIQUE,
 INDEX idx_user_account_seq (seq),
 INDEX idx_user_account_app_id (app_key)
 )ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
+insert into user_accounts(user_id, user_name, secret, app_key)
+values(100, 'test','example', 'example');
+insert into user_accounts(user_id, user_name, secret, app_key)
+values(101, 'rayseep','4a35022cb0af2bc8471a1345d162575d', 'b753c6ad848e19ddd36c529430d262d5');
 `
 	TableUserProtocol = `
 CREATE TABLE IF NOT EXISTS user_protocols(

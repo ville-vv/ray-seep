@@ -10,6 +10,7 @@ import (
 type BaseDao interface {
 	UserLogin(connId int64, userId int64, user string, appKey string, token string) (*model.UserLoginDao, error)
 	GetToken(connId int64, user string) string
+	DelToken(connId int64, user string, isDelKeys bool)
 	Close()
 }
 
@@ -45,15 +46,20 @@ func (sel *RaySeepServer) Close() {
 
 func (sel *RaySeepServer) UserLogin(connId int64, userId int64, user string, appKey string, token string) (*model.UserLoginDao, error) {
 	ul := &model.UserLoginDao{}
-	if err := sel.sqlDb.UserAuth(userId, appKey, ul); err != nil {
+	if err := sel.sqlDb.UserAuth(userId, user, appKey, ul); err != nil {
 		return nil, err
 	}
 	if ul.Secret == "" {
-		return nil, errs.ErrSecretIsInValid
+		return nil, errs.ErrUserInfoValidFail
 	}
 	return ul, sel.rdsDb.SetUserToken(connId, user, token)
 }
 
 func (sel *RaySeepServer) GetToken(connId int64, user string) string {
 	return sel.rdsDb.GetUserToken(connId, user)
+}
+
+func (sel *RaySeepServer) DelToken(connId int64, user string, isDelKeys bool) {
+	_ = sel.rdsDb.DelUserToken(connId, user, isDelKeys)
+	return
 }

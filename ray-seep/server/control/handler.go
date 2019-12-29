@@ -25,7 +25,8 @@ func (sel *PodHandler) OnLogin(connId, userId int64, user string, appKey string,
 	return
 }
 
-func (sel *PodHandler) OnLogout(name string, id int64) error {
+func (sel *PodHandler) OnLogout(name string, id int64, isClean bool) error {
+	sel.db.DelToken(id, name, isClean)
 	return nil
 }
 

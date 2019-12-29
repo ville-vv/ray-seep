@@ -9,7 +9,6 @@ import (
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/databus"
 	"ray-seep/ray-seep/server/control"
-	"ray-seep/ray-seep/server/http"
 	"ray-seep/ray-seep/server/proxy"
 	"runtime/debug"
 	"vilgo/vlog"
@@ -24,7 +23,6 @@ type Server interface {
 type RaySeepServer struct {
 	cfg         *conf.Server
 	proxy       *proxy.ProxyServer
-	http        *http.Server
 	control     *control.NodeServer
 	start       []string
 	stopCh      chan int
@@ -33,15 +31,12 @@ type RaySeepServer struct {
 }
 
 func NewRaySeepServer(cfg *conf.Server) *RaySeepServer {
-
 	rds := databus.NewDao(cfg)
 	runner := control.NewRunner()
 	msgAdopter := control.NewMessageControl(cfg, control.NewPodHandler(rds), runner)
-
 	return &RaySeepServer{
 		cfg:         cfg,
 		stopCh:      make(chan int, 1),
-		http:        http.NewServer(cfg.Proto, msgAdopter),
 		proxy:       proxy.NewProxyServer(cfg.Pxy, msgAdopter),
 		control:     control.NewNodeServer(cfg.Ctl, msgAdopter),
 		db:          rds,
@@ -78,6 +73,5 @@ func (r *RaySeepServer) Stop() {
 	// 停止已启动的服务
 	r.control.Stop()
 	r.proxy.Stop()
-	r.http.Stop()
 	close(r.stopCh)
 }

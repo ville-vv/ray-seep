@@ -113,11 +113,12 @@ func (p *Pod) LoginReq(req []byte) (interface{}, error) {
 func (p *Pod) CreateHostReq(req []byte) (rsp interface{}, err error) {
 	reqObj := &proto.CreateHostReq{}
 	if err = jsoniter.Unmarshal(req, reqObj); err != nil {
-		vlog.ERROR("")
+		vlog.ERROR("create host request message json unmarshal fail", err)
 		return
 	}
 	// 创建主机需要检验是否已经登录了
 	if err = p.podHd.OnCreateHost(p.connId, p.name, reqObj.Token); err != nil {
+		vlog.ERROR("on create host fail", err)
 		return
 	}
 
@@ -167,11 +168,12 @@ func (p *Pod) LogoutReq(req []byte) (rsp interface{}, err error) {
 	if err = jsoniter.Unmarshal(req, &reqObj); err != nil {
 		return
 	}
-	vlog.DEBUG("[%s] 是否能被清理%v", p.httpAddr, reqObj["IsClean"])
-	if reqObj["IsClean"].(bool) == true {
+	IsClean := reqObj["IsClean"].(bool)
+	vlog.DEBUG("[%s] 是否能被清理%v", p.httpAddr, IsClean)
+	if IsClean == true {
 		p.runner.Leave() <- LeaveItem{
 			Name: p.httpAddr,
 		}
 	}
-	return nil, nil
+	return nil, p.podHd.OnLogout(p.name, p.connId, IsClean)
 }

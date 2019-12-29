@@ -39,3 +39,9 @@ func (sel *NotSqlDao) GetToken(connId int64, user string) string {
 	defer sel.lock.RUnlock()
 	return sel.tokens[fmt.Sprintf("login_token_%s_%d", user, connId)]
 }
+
+func (sel *NotSqlDao) DelToken(connId int64, user string, isDelKeys bool) {
+	sel.lock.Lock()
+	defer sel.lock.Unlock()
+	delete(sel.tokens, fmt.Sprintf("login_token_%s_%d", user, connId))
+}

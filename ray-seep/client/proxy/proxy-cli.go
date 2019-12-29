@@ -46,7 +46,7 @@ func (sel *ClientProxy) RunProxy(id int64, token string, httpDomain string, pxyA
 		defer cn.Close()
 		reqLength, respLength, err := sel.netRet.Transfer(httpDomain, cn)
 		if err != nil {
-			vlog.ERROR("%s", err.Error())
+			vlog.ERROR("forwarding data to local service failed %s", err.Error())
 			return
 		}
 		vlog.INFO("request size：[%d]. response size：[%d]", reqLength, respLength)

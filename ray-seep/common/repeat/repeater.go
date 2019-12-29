@@ -8,7 +8,6 @@ import (
 	"io"
 	"net"
 	"time"
-	"vilgo/vlog"
 )
 
 // ProxyGainer 代理连接获取器
@@ -28,8 +27,7 @@ func NewNetRepeater(pxyGainer NetConnGainer) *NetRepeater {
 func (sel *NetRepeater) Transfer(host string, c net.Conn) (int64, int64, error) {
 	pxyConn, err := sel.pxyGainer.GetNetConn(host)
 	if err != nil {
-		vlog.ERROR("get proxy connect failed：%s", err.Error())
-		return 0, 0, nil
+		return 0, 0, err
 	}
 	defer pxyConn.Close()
 	_ = pxyConn.SetDeadline(time.Time{})
