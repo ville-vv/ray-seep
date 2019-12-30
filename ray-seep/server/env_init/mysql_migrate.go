@@ -18,10 +18,6 @@ app_key varchar(128) NOT NULL UNIQUE,
 INDEX idx_user_account_seq (seq),
 INDEX idx_user_account_app_id (app_key)
 )ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
-insert into user_accounts(user_id, user_name, secret, app_key)
-values(100, 'test','example', 'example');
-insert into user_accounts(user_id, user_name, secret, app_key)
-values(101, 'rayseep','4a35022cb0af2bc8471a1345d162575d', 'b753c6ad848e19ddd36c529430d262d5');
 `
 	TableUserProtocol = `
 CREATE TABLE IF NOT EXISTS user_protocols(
@@ -36,6 +32,21 @@ INDEX idx_user_protocols_protocol_name (protocol_name)
 )ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
 `
 )
+
+var TablesInitDataSqls = []string{
+	`insert into user_accounts(user_id, user_name, secret, app_key)value
+(100, 'test','example', 'example') ON DUPLICATE KEY UPDATE user_name='test',secret='example', app_key='example';`,
+
+	`insert into user_accounts(user_id, user_name, secret, app_key)value
+(101, 'rayseep','4a35022cb0af2bc8471a1345d162575d', 'b753c6ad848e19ddd36c529430d262d5')
+ON DUPLICATE KEY UPDATE user_name='rayseep',secret='4a35022cb0af2bc8471a1345d162575d', app_key='b753c6ad848e19ddd36c529430d262d5';`,
+
+	`insert into user_protocols(user_id,protocol_name,protocol_port)values
+(100, 'http', '4900')ON DUPLICATE KEY UPDATE user_id=100, protocol_name='http', protocol_port='4900';`,
+
+	`insert into user_protocols(user_id,protocol_name,protocol_port)value
+(101, 'http', '4901')ON DUPLICATE KEY UPDATE user_id=101, protocol_name='http', protocol_port='4901';`,
+}
 
 func SnakeToCameString(s string) string {
 	data := make([]byte, 0, len(s)*2)
@@ -127,6 +138,10 @@ func (sel *MysqlMigrate) CreateTable(nms ...interface{}) error {
 		}
 	}
 	return nil
+}
+
+func (sel *MysqlMigrate) TableInitDataInsert(nms []string) error {
+	return sel.batchExec(nms)
 }
 
 func (sel *MysqlMigrate) batchExec(nms []string) error {

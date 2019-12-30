@@ -16,6 +16,12 @@ func InitDb(cfg *conf.Server) {
 		vlog.ERROR("create table error %s", err.Error())
 		return
 	}
+
+	if err := mig.TableInitDataInsert(TablesInitDataSqls); err != nil {
+		vlog.ERROR("init table data error %s", err.Error())
+		return
+	}
+
 	mig.Close()
 	vlog.INFO("数据库初始化成功")
 }

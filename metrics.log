@@ -574,3 +574,107 @@
 2019/12/30 14:21:40.78 log.go:58 ▶ INFO 148[0m   mean rate:           0.00
 2019/12/30 14:21:40.78 log.go:28 ▶ INFO 149[0m gauge http_gauge
 2019/12/30 14:21:40.78 log.go:29 ▶ INFO 14a[0m   value:               0
+2019/12/30 14:23:07.67 log.go:28 ▶ INFO 14b[0m gauge http_gauge
+2019/12/30 14:23:07.67 log.go:29 ▶ INFO 14c[0m   value:               0
+2019/12/30 14:23:07.67 log.go:53 ▶ INFO 14d[0m meter http_meter
+2019/12/30 14:23:07.67 log.go:54 ▶ INFO 14e[0m   count:               0
+2019/12/30 14:23:07.67 log.go:55 ▶ INFO 14f[0m   1-min rate:          0.00
+2019/12/30 14:23:07.67 log.go:56 ▶ INFO 150[0m   5-min rate:          0.00
+2019/12/30 14:23:07.67 log.go:57 ▶ INFO 151[0m   15-min rate:         0.00
+2019/12/30 14:23:07.67 log.go:58 ▶ INFO 152[0m   mean rate:           0.00
+2019/12/30 14:26:40.78 log.go:28 ▶ INFO 153[0m gauge http_gauge
+2019/12/30 14:26:40.78 log.go:29 ▶ INFO 154[0m   value:               0
+2019/12/30 14:26:40.78 log.go:53 ▶ INFO 155[0m meter http_meter
+2019/12/30 14:26:40.78 log.go:54 ▶ INFO 156[0m   count:               0
+2019/12/30 14:26:40.78 log.go:55 ▶ INFO 157[0m   1-min rate:          0.00
+2019/12/30 14:26:40.78 log.go:56 ▶ INFO 158[0m   5-min rate:          0.00
+2019/12/30 14:26:40.78 log.go:57 ▶ INFO 159[0m   15-min rate:         0.00
+2019/12/30 14:26:40.78 log.go:58 ▶ INFO 15a[0m   mean rate:           0.00
+2019/12/30 14:28:07.67 log.go:28 ▶ INFO 15b[0m gauge http_gauge
+2019/12/30 14:28:07.67 log.go:29 ▶ INFO 15c[0m   value:               0
+2019/12/30 14:28:07.67 log.go:53 ▶ INFO 15d[0m meter http_meter
+2019/12/30 14:28:07.67 log.go:54 ▶ INFO 15e[0m   count:               0
+2019/12/30 14:28:07.67 log.go:55 ▶ INFO 15f[0m   1-min rate:          0.00
+2019/12/30 14:28:07.67 log.go:56 ▶ INFO 160[0m   5-min rate:          0.00
+2019/12/30 14:28:07.67 log.go:57 ▶ INFO 161[0m   15-min rate:         0.00
+2019/12/30 14:28:07.67 log.go:58 ▶ INFO 162[0m   mean rate:           0.00
+2019/12/30 14:31:40.78 log.go:28 ▶ INFO 163[0m gauge http_gauge
+2019/12/30 14:31:40.78 log.go:29 ▶ INFO 164[0m   value:               0
+2019/12/30 14:31:40.78 log.go:53 ▶ INFO 165[0m meter http_meter
+2019/12/30 14:31:40.78 log.go:54 ▶ INFO 166[0m   count:               0
+2019/12/30 14:31:40.78 log.go:55 ▶ INFO 167[0m   1-min rate:          0.00
+2019/12/30 14:31:40.78 log.go:56 ▶ INFO 168[0m   5-min rate:          0.00
+2019/12/30 14:31:40.78 log.go:57 ▶ INFO 169[0m   15-min rate:         0.00
+2019/12/30 14:31:40.78 log.go:58 ▶ INFO 16a[0m   mean rate:           0.00
+2019/12/30 14:33:07.67 log.go:28 ▶ INFO 16b[0m gauge http_gauge
+2019/12/30 14:33:07.67 log.go:29 ▶ INFO 16c[0m   value:               0
+2019/12/30 14:33:07.67 log.go:53 ▶ INFO 16d[0m meter http_meter
+2019/12/30 14:33:07.67 log.go:54 ▶ INFO 16e[0m   count:               0
+2019/12/30 14:33:07.67 log.go:55 ▶ INFO 16f[0m   1-min rate:          0.00
+2019/12/30 14:33:07.67 log.go:56 ▶ INFO 170[0m   5-min rate:          0.00
+2019/12/30 14:33:07.67 log.go:57 ▶ INFO 171[0m   15-min rate:         0.00
+2019/12/30 14:33:07.67 log.go:58 ▶ INFO 172[0m   mean rate:           0.00
+2019/12/30 14:36:40.78 log.go:28 ▶ INFO 173[0m gauge http_gauge
+2019/12/30 14:36:40.78 log.go:29 ▶ INFO 174[0m   value:               0
+2019/12/30 14:36:40.78 log.go:53 ▶ INFO 175[0m meter http_meter
+2019/12/30 14:36:40.78 log.go:54 ▶ INFO 176[0m   count:               0
+2019/12/30 14:36:40.78 log.go:55 ▶ INFO 177[0m   1-min rate:          0.00
+2019/12/30 14:36:40.78 log.go:56 ▶ INFO 178[0m   5-min rate:          0.00
+2019/12/30 14:36:40.78 log.go:57 ▶ INFO 179[0m   15-min rate:         0.00
+2019/12/30 14:36:40.78 log.go:58 ▶ INFO 17a[0m   mean rate:           0.00
+2019/12/30 14:38:07.67 log.go:28 ▶ INFO 17b[0m gauge http_gauge
+2019/12/30 14:38:07.67 log.go:29 ▶ INFO 17c[0m   value:               0
+2019/12/30 14:38:07.67 log.go:53 ▶ INFO 17d[0m meter http_meter
+2019/12/30 14:38:07.67 log.go:54 ▶ INFO 17e[0m   count:               0
+2019/12/30 14:38:07.67 log.go:55 ▶ INFO 17f[0m   1-min rate:          0.00
+2019/12/30 14:38:07.67 log.go:56 ▶ INFO 180[0m   5-min rate:          0.00
+2019/12/30 14:38:07.67 log.go:57 ▶ INFO 181[0m   15-min rate:         0.00
+2019/12/30 14:38:07.67 log.go:58 ▶ INFO 182[0m   mean rate:           0.00
+2019/12/30 14:41:40.78 log.go:53 ▶ INFO 183[0m meter http_meter
+2019/12/30 14:41:40.78 log.go:54 ▶ INFO 184[0m   count:               0
+2019/12/30 14:41:40.78 log.go:55 ▶ INFO 185[0m   1-min rate:          0.00
+2019/12/30 14:41:40.78 log.go:56 ▶ INFO 186[0m   5-min rate:          0.00
+2019/12/30 14:41:40.78 log.go:57 ▶ INFO 187[0m   15-min rate:         0.00
+2019/12/30 14:41:40.78 log.go:58 ▶ INFO 188[0m   mean rate:           0.00
+2019/12/30 14:41:40.78 log.go:28 ▶ INFO 189[0m gauge http_gauge
+2019/12/30 14:41:40.78 log.go:29 ▶ INFO 18a[0m   value:               0
+2019/12/30 14:43:07.67 log.go:28 ▶ INFO 18b[0m gauge http_gauge
+2019/12/30 14:43:07.67 log.go:29 ▶ INFO 18c[0m   value:               0
+2019/12/30 14:43:07.67 log.go:53 ▶ INFO 18d[0m meter http_meter
+2019/12/30 14:43:07.67 log.go:54 ▶ INFO 18e[0m   count:               0
+2019/12/30 14:43:07.67 log.go:55 ▶ INFO 18f[0m   1-min rate:          0.00
+2019/12/30 14:43:07.67 log.go:56 ▶ INFO 190[0m   5-min rate:          0.00
+2019/12/30 14:43:07.67 log.go:57 ▶ INFO 191[0m   15-min rate:         0.00
+2019/12/30 14:43:07.67 log.go:58 ▶ INFO 192[0m   mean rate:           0.00
+2019/12/30 14:46:40.78 log.go:28 ▶ INFO 193[0m gauge http_gauge
+2019/12/30 14:46:40.78 log.go:29 ▶ INFO 194[0m   value:               0
+2019/12/30 14:46:40.78 log.go:53 ▶ INFO 195[0m meter http_meter
+2019/12/30 14:46:40.78 log.go:54 ▶ INFO 196[0m   count:               0
+2019/12/30 14:46:40.78 log.go:55 ▶ INFO 197[0m   1-min rate:          0.00
+2019/12/30 14:46:40.78 log.go:56 ▶ INFO 198[0m   5-min rate:          0.00
+2019/12/30 14:46:40.78 log.go:57 ▶ INFO 199[0m   15-min rate:         0.00
+2019/12/30 14:46:40.78 log.go:58 ▶ INFO 19a[0m   mean rate:           0.00
+2019/12/30 14:48:07.67 log.go:28 ▶ INFO 19b[0m gauge http_gauge
+2019/12/30 14:48:07.67 log.go:29 ▶ INFO 19c[0m   value:               0
+2019/12/30 14:48:07.67 log.go:53 ▶ INFO 19d[0m meter http_meter
+2019/12/30 14:48:07.67 log.go:54 ▶ INFO 19e[0m   count:               0
+2019/12/30 14:48:07.67 log.go:55 ▶ INFO 19f[0m   1-min rate:          0.00
+2019/12/30 14:48:07.67 log.go:56 ▶ INFO 1a0[0m   5-min rate:          0.00
+2019/12/30 14:48:07.67 log.go:57 ▶ INFO 1a1[0m   15-min rate:         0.00
+2019/12/30 14:48:07.67 log.go:58 ▶ INFO 1a2[0m   mean rate:           0.00
+2019/12/30 14:51:40.78 log.go:28 ▶ INFO 1a3[0m gauge http_gauge
+2019/12/30 14:51:40.78 log.go:29 ▶ INFO 1a4[0m   value:               0
+2019/12/30 14:51:40.78 log.go:53 ▶ INFO 1a5[0m meter http_meter
+2019/12/30 14:51:40.78 log.go:54 ▶ INFO 1a6[0m   count:               0
+2019/12/30 14:51:40.78 log.go:55 ▶ INFO 1a7[0m   1-min rate:          0.00
+2019/12/30 14:51:40.78 log.go:56 ▶ INFO 1a8[0m   5-min rate:          0.00
+2019/12/30 14:51:40.78 log.go:57 ▶ INFO 1a9[0m   15-min rate:         0.00
+2019/12/30 14:51:40.78 log.go:58 ▶ INFO 1aa[0m   mean rate:           0.00
+2019/12/30 14:53:07.67 log.go:28 ▶ INFO 1ab[0m gauge http_gauge
+2019/12/30 14:53:07.67 log.go:29 ▶ INFO 1ac[0m   value:               0
+2019/12/30 14:53:07.67 log.go:53 ▶ INFO 1ad[0m meter http_meter
+2019/12/30 14:53:07.67 log.go:54 ▶ INFO 1ae[0m   count:               0
+2019/12/30 14:53:07.67 log.go:55 ▶ INFO 1af[0m   1-min rate:          0.00
+2019/12/30 14:53:07.67 log.go:56 ▶ INFO 1b0[0m   5-min rate:          0.00
+2019/12/30 14:53:07.67 log.go:57 ▶ INFO 1b1[0m   15-min rate:         0.00
+2019/12/30 14:53:07.67 log.go:58 ▶ INFO 1b2[0m   mean rate:           0.00
