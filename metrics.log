@@ -678,3 +678,11 @@
 2019/12/30 14:53:07.67 log.go:56 ▶ INFO 1b0[0m   5-min rate:          0.00
 2019/12/30 14:53:07.67 log.go:57 ▶ INFO 1b1[0m   15-min rate:         0.00
 2019/12/30 14:53:07.67 log.go:58 ▶ INFO 1b2[0m   mean rate:           0.00
+2019/12/30 14:56:40.78 log.go:53 ▶ INFO 1b3[0m meter http_meter
+2019/12/30 14:56:40.78 log.go:54 ▶ INFO 1b4[0m   count:               0
+2019/12/30 14:56:40.78 log.go:55 ▶ INFO 1b5[0m   1-min rate:          0.00
+2019/12/30 14:56:40.78 log.go:56 ▶ INFO 1b6[0m   5-min rate:          0.00
+2019/12/30 14:56:40.78 log.go:57 ▶ INFO 1b7[0m   15-min rate:         0.00
+2019/12/30 14:56:40.78 log.go:58 ▶ INFO 1b8[0m   mean rate:           0.00
+2019/12/30 14:56:40.78 log.go:28 ▶ INFO 1b9[0m gauge http_gauge
+2019/12/30 14:56:40.78 log.go:29 ▶ INFO 1ba[0m   value:               0

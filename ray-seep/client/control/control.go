@@ -90,8 +90,6 @@ func (sel *ClientControl) offDial() {
 }
 
 func (sel *ClientControl) reconnect() {
-	vlog.DEBUG("reConnInternal %s", sel.reConnInternal)
-	vlog.DEBUG("reConnEndTime %s", sel.reConnEndTime)
 	tm := time.NewTicker(time.Second * time.Duration(sel.reConnInternal))
 	endTm := time.NewTicker(time.Second * time.Duration(sel.reConnEndTime))
 	for {
