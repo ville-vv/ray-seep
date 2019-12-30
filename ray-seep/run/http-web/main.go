@@ -7,10 +7,9 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"ray-seep/ray-seep/common/rayhttp"
-	"strings"
+	"ray-seep/ray-seep/run/http-web/static"
 	"text/template"
 	"time"
 )
@@ -46,38 +45,6 @@ var htmlPageTemp = `
 
 func main() {
 	HttpServer()
-}
-
-func PathExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
-}
-
-func GetCurrPath() string {
-	file, _ := exec.LookPath(os.Args[0])
-	path, _ := filepath.Abs(file)
-	splitstring := strings.Split(path, "\\")
-	size := len(splitstring)
-	splitstring = strings.Split(path, splitstring[size-1])
-	ret := strings.Replace(splitstring[0], "\\", "/", size-1)
-	return ret
-}
-
-func FileExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
 }
 
 // 获取所有文件名称
@@ -192,8 +159,8 @@ func (sel *RaySeepFileIndex) ServeHTTP(writer http.ResponseWriter, request *http
 
 func HttpServer() {
 
-	http.HandleFunc("/", GetLocalFileInfos)
-	//http.Handle("/", NewRaySeepFileIndex("/", "./"))
+	//http.HandleFunc("/", GetLocalFileInfos)
+	http.Handle("/", &static.FileSystem{})
 	fmt.Println("本地web服务启动，请使用 http://localhost:12345 在浏览器中访问\r\n如果配套 RaySeep 使用请在浏览器中打开 ray-seep-cli 中输出的 http 地址")
 	http.ListenAndServe(":12345", nil)
 	fmt.Println("结束了？")
