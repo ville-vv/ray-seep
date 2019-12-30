@@ -3,11 +3,14 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"ray-seep/ray-seep/common/rayhttp"
+	"strings"
 	"text/template"
 	"time"
 )
@@ -33,7 +36,7 @@ var htmlPageTemp = `
 	</div>
 	
 	<div style="background-color: #c6d5e9">
-	{{.Context}}
+		{{.Context}}
 	<div>
 </div>
 
@@ -45,39 +48,152 @@ func main() {
 	HttpServer()
 }
 
-func HttpServer() {
-	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		fmt.Println(time.Now().String(), "access from remoter address : ", request.RemoteAddr)
-		fmt.Println(time.Now().String(), "access User-Agent : ", request.Header.Get("User-Agent"))
+func PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
 
-		buf := bytes.NewBufferString("")
-		dep := 0
-		err := filepath.Walk("./", func(path string, f os.FileInfo, err error) error {
-			if f == nil && dep > 1 {
-				return err
-			}
-			dep += 1
-			if f.IsDir() {
-				//files = files + path + "\n"
-				buf.Write([]byte(path + "</br>"))
-				return nil
-			}
-			//files = files + path + "\n"
-			//writer.Write([]byte(path + "\n"))
-			buf.Write([]byte(path + "</br>"))
-			return nil
-		})
-		if err != nil {
-			writer.Write([]byte(err.Error()))
+func GetCurrPath() string {
+	file, _ := exec.LookPath(os.Args[0])
+	path, _ := filepath.Abs(file)
+	splitstring := strings.Split(path, "\\")
+	size := len(splitstring)
+	splitstring = strings.Split(path, splitstring[size-1])
+	ret := strings.Replace(splitstring[0], "\\", "/", size-1)
+	return ret
+}
+
+func FileExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
+// 获取所有文件名称
+func GetLocalAllFileName(writer http.ResponseWriter, request *http.Request) {
+	fmt.Println(time.Now().String(), "access from remoter address : ", request.RemoteAddr)
+	fmt.Println(time.Now().String(), "access User-Agent : ", request.Header.Get("User-Agent"))
+
+	buf := bytes.NewBufferString("")
+	dep := 0
+	err := filepath.Walk("./", func(path string, f os.FileInfo, err error) error {
+		if f == nil && dep > 1 {
+			return err
 		}
-		tmpl := template.New("test")
-		tmpl, err = tmpl.Parse(htmlPageTemp)
+		dep += 1
+
+		showPath := fmt.Sprintf("<a href=\"%s\">%s</a>", path, path)
+
+		if f.IsDir() {
+			//files = files + path + "\n"
+			buf.Write([]byte(showPath + "</br>"))
+			return nil
+		}
+		//files = files + path + "\n"
+		//writer.Write([]byte(path + "\n"))
+		buf.Write([]byte(showPath + "</br>"))
+		return nil
+	})
+	if err != nil {
+		writer.Write([]byte(err.Error()))
+	}
+	tmpl := template.New("test")
+	tmpl, err = tmpl.Parse(htmlPageTemp)
+	if err != nil {
+		writer.Write(buf.Bytes())
+		return
+	}
+	tmpl.Execute(writer, map[string]string{"Context": buf.String()})
+}
+
+func walk(root string, w io.Writer) error {
+	return filepath.Walk(root, func(path string, fi os.FileInfo, err error) error {
+		if fi == nil {
+			return filepath.SkipDir
+		}
 		if err != nil {
-			writer.Write(buf.Bytes())
+			return err
+		}
+		showPath := fmt.Sprintf("<a href=\"%s\">%s</a>", path, path)
+		w.Write([]byte(showPath + "</br>"))
+		if fi.IsDir() && path != root {
+			return filepath.SkipDir
+		}
+		return nil
+	})
+}
+
+// 获取目录下文件所有文件名称，不包含子目录
+func GetLocalFileInfos(writer http.ResponseWriter, request *http.Request) {
+	fmt.Println(time.Now().String(), "access from remoter address : ", request.RemoteAddr)
+	fmt.Println(time.Now().String(), "access User-Agent : ", request.Header.Get("User-Agent"))
+	buf := bytes.NewBufferString("")
+	fileName := filepath.Join("./", request.RequestURI)
+	fmt.Println("文件名称：", fileName)
+	fi, err := os.Stat(fileName)
+	if err != nil {
+		_, _ = writer.Write([]byte(err.Error()))
+		return
+	}
+	if !fi.IsDir() {
+		file, err := os.Open(fileName)
+		if err != nil {
+			_, _ = writer.Write([]byte(err.Error()))
+		}
+		io.Copy(writer, file)
+		return
+	} else {
+		walk(fileName, buf)
+		tmpl := template.New("test")
+		tmpl, err := tmpl.Parse(htmlPageTemp)
+		if err != nil {
+			_, _ = writer.Write([]byte(err.Error()))
 			return
 		}
 		tmpl.Execute(writer, map[string]string{"Context": buf.String()})
-	})
+	}
+}
+
+type RaySeepFileIndex struct {
+	http.Handler
+	http.ResponseWriter
+}
+
+func NewRaySeepFileIndex(prefix, path string) *RaySeepFileIndex {
+	return &RaySeepFileIndex{Handler: http.StripPrefix(prefix, http.FileServer(http.Dir(path)))}
+}
+
+func (sel *RaySeepFileIndex) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	fmt.Println(time.Now().String(), "access from remoter address : ", request.RemoteAddr)
+	fmt.Println(time.Now().String(), "access User-Agent : ", request.Header.Get("User-Agent"))
+	var err error
+	tmpl := template.New("test")
+	tmpl, err = tmpl.Parse(htmlPageTemp)
+	if err != nil {
+		writer.Write([]byte(""))
+		return
+	}
+	if err := tmpl.Execute(writer, map[string]string{"Context": ""}); err != nil {
+		_, _ = writer.Write([]byte(err.Error()))
+	}
+	sel.Handler.ServeHTTP(writer, request)
+}
+
+func HttpServer() {
+
+	http.HandleFunc("/", GetLocalFileInfos)
+	//http.Handle("/", NewRaySeepFileIndex("/", "./"))
 	fmt.Println("本地web服务启动，请使用 http://localhost:12345 在浏览器中访问\r\n如果配套 RaySeep 使用请在浏览器中打开 ray-seep-cli 中输出的 http 地址")
 	http.ListenAndServe(":12345", nil)
 	fmt.Println("结束了？")
