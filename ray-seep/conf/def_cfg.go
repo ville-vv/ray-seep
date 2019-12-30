@@ -6,17 +6,22 @@ package conf
 
 var clientDefaultConfig = `
 [Control]
-Host="193.112.47.13"
-#Host=""
+Host="127.0.0.1"
 Port=4301
 Name="test"
 UserId=100
 Secret="example"
 AppKey="example"
+#是否打开重连
+CanReconnect=true
+#重连结束时间/秒
+ReconnectEndTime=60
+#重连一次的间隔时间/秒
+ReconnectInternal=3
 
 [Proxy]
-# 这里只需要指定host不用指定port
-Host = "193.112.47.13"
+# 这里只需要指定host不用指定port, host暂时与Control配置共用
+#Host = "127.0.0.1"
 
 [Web]
 Address = ":12345"
@@ -45,7 +50,7 @@ UserMaxProxyNum = 10
 Proto="http"
 Host = ""
 Port = 4302
-Domain = "rayseep.villeboss.com"
+Domain = "rayseep.example.com"
 
 [Proxy]
 Host=""

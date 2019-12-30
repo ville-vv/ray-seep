@@ -51,7 +51,7 @@ func (sel *MessageControl) OnConnect(id int64, in, out chan proto.Package) (err 
 
 	loginRsp, err := pd.LoginReq(req.Body)
 	if err != nil {
-		vlog.ERROR("[%d] on connect deal message error:%s", id, err.Error())
+		//vlog.ERROR("[%d] on connect deal message error:%s", id, err.Error())
 		return
 	}
 

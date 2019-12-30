@@ -24,13 +24,16 @@ type ProxyCli struct {
 }
 
 type ControlCli struct {
-	Host     string `json:"host"`
-	Port     int64  `json:"port"`
-	Name     string `json:"name" toml:"Name"` // 子域名
-	UserId   int64  `json:"user_id"`
-	Secret   string `json:"secret" toml:"Secret"`
-	AppKey   string `json:"app_key" toml:"AppKey"`
-	HttpPort string `json:"http_port" toml:"HttpPort"`
+	Host              string `json:"host"`
+	Port              int64  `json:"port"`
+	Name              string `json:"name" toml:"Name"` // 子域名
+	UserId            int64  `json:"user_id"`
+	Secret            string `json:"secret" toml:"Secret"`
+	AppKey            string `json:"app_key" toml:"AppKey"`
+	HttpPort          string `json:"http_port" toml:"HttpPort"`
+	CanReconnect      bool   `json:"can_reconnect"`      // 是否能够重连
+	ReconnectEndTime  int64  `json:"reconnect_end_time"` // 重连结束时间
+	ReconnectInternal int64  `json:"reconnect_internal"` // 重连一次的间隔时间
 }
 
 // 初始化客户端配置

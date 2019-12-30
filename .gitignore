@@ -4,3 +4,4 @@ bin
 bin/
 docker_build
 docker_build/
+*.toml

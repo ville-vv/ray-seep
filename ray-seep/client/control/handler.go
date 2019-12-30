@@ -34,7 +34,7 @@ func NewClientControlHandler(cfg *conf.Client) *ClientControlHandler {
 		appKey:       cfg.Control.AppKey,
 		userId:       cfg.Control.UserId,
 		secret:       cfg.Control.Secret,
-		pxyHost:      cfg.Pxy.Host,
+		pxyHost:      cfg.Control.Host,
 	}
 }
 

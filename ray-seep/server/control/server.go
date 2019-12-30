@@ -66,8 +66,6 @@ func (sel *NodeServer) Start() error {
 
 // dealConn 处理连接
 func (sel *NodeServer) dealConn(c conn.Conn) {
-	//vlog.DEBUG("[%d] connecting ", c.Id())
-
 	defer func() {
 		if r := recover(); r != nil {
 			vlog.LogE("customer listener failed with error %v: %s", r, debug.Stack())
@@ -89,7 +87,7 @@ func (sel *NodeServer) dealConn(c conn.Conn) {
 
 	// 通知有用户连接
 	if err := sel.ish.OnConnect(c.Id(), recvMsg, sendMsg); err != nil {
-		vlog.ERROR("[%d] connect fail %s", c.Id(), err.Error())
+		vlog.DEBUG("[%d] connect fail %s", c.Id(), err.Error())
 		return
 	}
 	sel.mtr.Inc(1)

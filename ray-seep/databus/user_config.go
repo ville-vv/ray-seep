@@ -35,6 +35,9 @@ func (sel *UserConfig) UserAuth(userId int64, appKey string, ul *model.UserLogin
 	if !ok {
 		return errs.ErrUserInfoValidFail
 	}
+	if user.AppKey != appKey {
+		return errs.ErrUserInfoValidFail
+	}
 	ul.Secret = user.Secret
 	ul.HttpPort = user.HttpPort
 	return nil
