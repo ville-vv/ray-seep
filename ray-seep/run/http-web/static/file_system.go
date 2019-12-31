@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 )
 
@@ -21,13 +22,13 @@ var htmlPageTemp = `
 
 <div style="margin: 0px 100px 100px 100px">
 	<div style="">
-		<h1> Ray Seep(射线渗透) Test</h1>
-		<span> 你可以再文件中添加几个文件然后刷新网页看看有什么变化。</span>
-		<p>1、这个是一个部署在本地的内网web服务网站，此服务网站试用以体验 Ray Seep 工具的内网穿透能力。</p>
-		<p>2、转发次网站的数据技术是由 Ray-Seep 工具实现。</p>
-		<p>3、部署此工具可以学生共享外网服务器，在宿舍自己电脑学习开发web应用，并且可以在公网访问。</p>
-		<p>4、部署此工具可以提供企业，在本地开发软件，并可以与第三方公司联调本地HTTP API接口。</p>
-		<h4>这个网站的示例功能是显示当前运行环境目录的所有文件名称，以下是你当前软件目录下的文件：<h4>
+		<h1>简单文件服务器</h1>
+		<div style="font-weight: bolder;color:#00cb1a">
+			<span>你当前的Ip:&nbsp&nbsp&nbsp{{.RemoterIp}}</span></br>
+			<span>你当前的设备:&nbsp&nbsp&nbsp{{.User_Agent}}</span>
+		</div>
+		<p>如果没有文件，请添加文件到你的服务目录下</p>
+		<h4>目录文件：</h4>
 	</div>
 	<div style="background-color: #c6d5e9">
 		{{.Context}}
@@ -39,7 +40,7 @@ var htmlPageTemp = `
 `
 
 func UseTemplate(w io.Writer, tmpl string, data interface{}) error {
-	tp, err := template.New("tmpl").Parse(htmlPageTemp)
+	tp, err := template.New("tmpl").Parse(tmpl)
 	if err != nil {
 		return err
 	}
@@ -47,8 +48,15 @@ func UseTemplate(w io.Writer, tmpl string, data interface{}) error {
 }
 
 type FileSystem struct {
+	root string
 }
 
+func NewFileSystem(root string) *FileSystem {
+	if strings.Trim(root, " ") == "" {
+		root = "./"
+	}
+	return &FileSystem{root: filepath.Join("", root)}
+}
 func (f *FileSystem) displayContent(w io.Writer, path string) error {
 	file, err := os.Open(path)
 	if err != nil {
@@ -62,16 +70,21 @@ func (f *FileSystem) displayDir(w io.Writer, path string) error {
 	if err != nil {
 		return err
 	}
+	_, _ = w.Write([]byte(fmt.Sprintf("<div><a href=\"./\">./<a/></div>")))
+	if path != f.root {
+		_, _ = w.Write([]byte(fmt.Sprintf("<div><a href=\"../\">../<a/></div>")))
+	}
 	for _, file := range fileList {
-		one := fmt.Sprintf("<div><a href=\"%s/%s\">%s<a/></div>", path, file.Name(), file.Name())
-		_, _ = w.Write([]byte(one))
+		if path == file.Path() {
+			continue
+		}
+		_, _ = w.Write([]byte(fmt.Sprintf("<div><a href=\"%s/\">%s<a/></div>", file.Name(), file.Name())))
 	}
 	return nil
 }
-func (f *FileSystem) ServeHTTP(rsp http.ResponseWriter, req *http.Request) {
+func (f *FileSystem) DisplayFile(rsp http.ResponseWriter, req *http.Request) {
 	var err error
-	uriPath := filepath.Join("./", req.URL.Path)
-	fmt.Println("文件名称：", uriPath)
+	uriPath := filepath.Join(f.root, req.URL.Path)
 	isDir, err := IsDir(uriPath)
 	if err != nil {
 		_, _ = rsp.Write([]byte(err.Error()))
@@ -87,7 +100,12 @@ func (f *FileSystem) ServeHTTP(rsp http.ResponseWriter, req *http.Request) {
 	if err = f.displayDir(buf, uriPath); err != nil {
 		_, _ = rsp.Write([]byte(err.Error()))
 	}
-	if err = UseTemplate(rsp, htmlPageTemp, map[string]string{"Context": buf.String()}); err != nil {
+
+	if err = UseTemplate(rsp, htmlPageTemp, map[string]string{
+		"Context":    buf.String(),
+		"RemoterIp":  req.RemoteAddr,
+		"User_Agent": req.Header.Get("User-Agent"),
+	}); err != nil {
 		_, _ = rsp.Write([]byte(err.Error()))
 	}
 }

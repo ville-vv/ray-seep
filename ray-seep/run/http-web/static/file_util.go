@@ -8,17 +8,23 @@ import (
 
 type FileInfo interface {
 	Name() string
+	Path() string
 	Size() int64
 	Time() time.Time
 }
 type defFileInfo struct {
 	name  string
+	path  string
 	size  int64
 	cTime time.Time
 }
 
 func (d *defFileInfo) Name() string {
 	return d.name
+}
+
+func (d *defFileInfo) Path() string {
+	return d.path
 }
 
 func (d *defFileInfo) Size() int64 {
@@ -56,6 +62,7 @@ func pathWolk(root string, isLoop bool) ([]FileInfo, error) {
 			return err
 		}
 		list = append(list, &defFileInfo{
+			path:  path,
 			name:  fi.Name(),
 			size:  fi.Size(),
 			cTime: fi.ModTime(),
