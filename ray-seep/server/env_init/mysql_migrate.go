@@ -26,7 +26,7 @@ created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
 updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
 user_id int(10) NOT NULL COMMENT '',
 protocol_name varchar (20) NOT NULL COMMENT '',
-protocol_port int(10) NOT NULL UNIQUE COMMENT '' ,
+protocol_port int(10) UNIQUE NOT NULL UNIQUE COMMENT '' ,
 INDEX idx_user_protocols_user_id (user_id),
 INDEX idx_user_protocols_protocol_name (protocol_name)
 )ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;

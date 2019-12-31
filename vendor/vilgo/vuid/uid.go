@@ -20,8 +20,8 @@ func GenUUid() (id int64) {
 	return genWithId(1)
 }
 
-func GenUUidWithId(workId int64){
-	genWithId(workId)
+func GenUUidWithId(workId int64)(id int64){
+	return genWithId(workId)
 }
 
 // 指定一个自己的 work id 生成uuid, work 最大值为 1023

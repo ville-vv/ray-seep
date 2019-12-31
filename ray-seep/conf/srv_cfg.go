@@ -18,7 +18,7 @@ type Server struct {
 	Pxy      *ProxySrv        `json:"pxy" toml:"Proxy"`
 	Proto    *ProtoSrv        `json:"proto" toml:"Proto"`
 	DataBase *DataBaseSrv     `json:"database" toml:"DataBase"`
-	User     map[string]*User `json:"user" toml:"User"`
+	User     map[string]*User `json:"store" toml:"User"`
 }
 
 // ProxySrv 代理服务， 用户建立客户端连接后，需要建立代理的连接

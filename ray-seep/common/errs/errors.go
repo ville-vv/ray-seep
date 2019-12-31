@@ -21,8 +21,8 @@ const (
 	ErrNoCmdRouterNot        ErrCode = "router not found"
 	ErrClientControlNotExist ErrCode = "client control is not exist"
 	ErrProxyConnNotExist     ErrCode = "proxy connect is not exist"
-	ErrUserInfoValidFail     ErrCode = "user information validation error"
+	ErrUserInfoValidFail     ErrCode = "store information validation error"
 	ErrHttpPortIsInValid     ErrCode = "http port is invalid"
-	ErrNoThisUser            ErrCode = "no this user"
-	ErrNoLogin               ErrCode = "user have not login"
+	ErrNoThisUser            ErrCode = "no this store"
+	ErrNoLogin               ErrCode = "store have not login"
 )
