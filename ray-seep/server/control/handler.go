@@ -1,6 +1,8 @@
 package control
 
 import (
+	"fmt"
+	"net"
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/databus"
 	"ray-seep/ray-seep/model"
@@ -14,6 +16,19 @@ func NewPodHandler(db databus.BaseDao) *PodHandler {
 	return &PodHandler{db: db}
 }
 
+func (sel *PodHandler) randPort() (int, error) {
+	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	if err != nil {
+		return 0, err
+	}
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return 0, err
+	}
+	defer l.Close()
+	return l.Addr().(*net.TCPAddr).Port, nil
+}
+
 func (sel *PodHandler) OnLogin(connId, userId int64, user string, appKey string, token string) (loginDao *model.UserLoginDao, err error) {
 	loginDao, err = sel.db.UserLogin(connId, userId, user, appKey, token)
 	if err != nil {
@@ -21,6 +36,13 @@ func (sel *PodHandler) OnLogin(connId, userId int64, user string, appKey string,
 	}
 	if loginDao.HttpPort == "" {
 		return nil, errs.ErrHttpPortIsInValid
+	}
+	if user == "test" {
+		port, err := sel.randPort()
+		if err != nil {
+			return nil, err
+		}
+		loginDao.HttpPort = fmt.Sprintf("%d", port)
 	}
 	return
 }

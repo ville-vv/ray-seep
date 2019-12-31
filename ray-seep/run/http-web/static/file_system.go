@@ -24,7 +24,6 @@ var htmlPageTemp = `
 	<div style="">
 		<h1>简单文件服务器</h1>
 		<div style="font-weight: bolder;color:#00cb1a">
-			<span>你当前的Ip:&nbsp&nbsp&nbsp{{.RemoterIp}}</span></br>
 			<span>你当前的设备:&nbsp&nbsp&nbsp{{.User_Agent}}</span>
 		</div>
 		<p>如果没有文件，请添加文件到你的服务目录下</p>

@@ -13,7 +13,7 @@ UserId=100
 Secret="example"
 AppKey="example"
 #是否打开重连
-CanReconnect=true
+CanReconnect=false
 #重连结束时间/秒
 ReconnectEndTime=60
 #重连一次的间隔时间/秒
