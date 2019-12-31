@@ -22,7 +22,7 @@ all: build
 test:
 	go test  -cover ./...
 
-build: clean build-server build-client
+build: clean build-server build-client build-web-tool
 
 build-server:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $(SERVER_UNIX_BINARY)  $(PROJECTNAME)/run/server/main.go
@@ -33,7 +33,7 @@ build-client:
 	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o $(CLIENT_MAC_BINARY)  $(PROJECTNAME)/run/client/main.go
 	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o $(CLIENT_WIN_BINARY)  $(PROJECTNAME)/run/client/main.go
 
-build-client:
+build-web-tool:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $(HTTP_WEB_UNIX_BINARY)  $(PROJECTNAME)/run/http-web/main.go
 	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o $(HTTP_WEB_MAC_BINARY)  $(PROJECTNAME)/run/http-web/main.go
 	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o $(HTTP_WEB_WIN_BINARY)  $(PROJECTNAME)/run/http-web/main.go
