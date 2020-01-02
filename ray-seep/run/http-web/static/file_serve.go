@@ -28,5 +28,5 @@ func (f *FileServer) Start(addr string) {
 }
 
 func (f *FileServer) ServeHTTP(rsp http.ResponseWriter, req *http.Request) {
-	f.fSys.DisplayFile(rsp, req)
+	f.fSys.Display(rsp, req)
 }

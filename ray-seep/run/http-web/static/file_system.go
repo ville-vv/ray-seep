@@ -56,32 +56,40 @@ func NewFileSystem(root string) *FileSystem {
 	}
 	return &FileSystem{root: filepath.Join("", root)}
 }
-func (f *FileSystem) displayContent(w io.Writer, path string) error {
-	file, err := os.Open(path)
+func (f *FileSystem) writeFile(w io.Writer, fileName string) error {
+	file, err := os.Open(fileName)
 	if err != nil {
 		return err
 	}
 	_, err = io.Copy(w, file)
 	return err
 }
-func (f *FileSystem) displayDir(w io.Writer, path string) error {
+func (f *FileSystem) displayFile(fileName string, w http.ResponseWriter, req *http.Request) error {
+	return f.writeFile(w, fileName)
+}
+func (f *FileSystem) displayDir(path string, rsp http.ResponseWriter, req *http.Request) error {
+	buf := bytes.NewBufferString("")
 	fileList, err := PathEasyWolk(path)
 	if err != nil {
 		return err
 	}
-	_, _ = w.Write([]byte(fmt.Sprintf("<div><a href=\"./\">./<a/></div>")))
+	_, _ = buf.Write([]byte(fmt.Sprintf("<div><a href=\"./\">./<a/></div>")))
 	if path != f.root {
-		_, _ = w.Write([]byte(fmt.Sprintf("<div><a href=\"../\">../<a/></div>")))
+		_, _ = buf.Write([]byte(fmt.Sprintf("<div><a href=\"../\">../<a/></div>")))
 	}
 	for _, file := range fileList {
 		if path == file.Path() {
 			continue
 		}
-		_, _ = w.Write([]byte(fmt.Sprintf("<div><a href=\"%s/\">%s<a/></div>", file.Name(), file.Name())))
+		_, _ = buf.Write([]byte(fmt.Sprintf("<div><a href=\"%s/\">%s<a/></div>", file.Name(), file.Name())))
 	}
-	return nil
+	return UseTemplate(rsp, htmlPageTemp, map[string]string{
+		"Context":    buf.String(),
+		"RemoterIp":  req.RemoteAddr,
+		"User_Agent": req.Header.Get("User-Agent"),
+	})
 }
-func (f *FileSystem) DisplayFile(rsp http.ResponseWriter, req *http.Request) {
+func (f *FileSystem) Display(rsp http.ResponseWriter, req *http.Request) {
 	var err error
 	uriPath := filepath.Join(f.root, req.URL.Path)
 	isDir, err := IsDir(uriPath)
@@ -90,21 +98,12 @@ func (f *FileSystem) DisplayFile(rsp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if !isDir {
-		if err = f.displayContent(rsp, uriPath); err != nil {
+		if err = f.displayFile(uriPath, rsp, req); err != nil {
 			_, _ = rsp.Write([]byte(err.Error()))
 		}
 		return
 	}
-	buf := bytes.NewBufferString("")
-	if err = f.displayDir(buf, uriPath); err != nil {
-		_, _ = rsp.Write([]byte(err.Error()))
-	}
-
-	if err = UseTemplate(rsp, htmlPageTemp, map[string]string{
-		"Context":    buf.String(),
-		"RemoterIp":  req.RemoteAddr,
-		"User_Agent": req.Header.Get("User-Agent"),
-	}); err != nil {
+	if err = f.displayDir(uriPath, rsp, req); err != nil {
 		_, _ = rsp.Write([]byte(err.Error()))
 	}
 }
