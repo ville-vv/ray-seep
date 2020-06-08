@@ -81,7 +81,7 @@ func NewWithObj(cmd int32, body interface{}) *Package {
 	return &Package{Cmd: cmd, Body: dt}
 }
 
-// UnPack 解包
+// unPack 解包
 func UnPack(data []byte, pkg *Package) (err error) {
 	frame := Frame{}
 	if err = frame.UnPack(data); err != nil {
@@ -95,7 +95,7 @@ func UnPack(data []byte, pkg *Package) (err error) {
 	return
 }
 
-// Pack 打包
+// pack 打包
 func Pack(pkg *Package) (data []byte, err error) {
 	frame := Frame{}
 	frame.Body, err = jsoniter.Marshal(pkg)

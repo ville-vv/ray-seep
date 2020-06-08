@@ -5,8 +5,8 @@
 package conf
 
 import (
+	"github.com/vilsongwei/vilgo/vfile"
 	"testing"
-	"vilgo/vfile"
 )
 
 func TestInitServer(t *testing.T) {

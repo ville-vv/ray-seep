@@ -14,7 +14,7 @@ import (
 	"ray-seep/ray-seep/proto"
 	"ray-seep/ray-seep/server/http"
 	"ray-seep/ray-seep/server/online"
-	"vilgo/vlog"
+	"github.com/vilsongwei/vilgo/vlog"
 )
 
 type PodRouterFun func([]byte) (interface{}, error)

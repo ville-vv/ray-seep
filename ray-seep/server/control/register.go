@@ -12,7 +12,7 @@ import (
 	"ray-seep/ray-seep/server/online"
 	"sync"
 	"time"
-	"vilgo/vlog"
+	"github.com/vilsongwei/vilgo/vlog"
 )
 
 type MessagePusher interface {

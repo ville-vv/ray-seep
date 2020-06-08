@@ -60,7 +60,7 @@ func (r *RouteControl) OnConnect(sender proto.Sender) error {
 }
 
 func (r *RouteControl) OnMessage(req *proto.Package) error {
-	//vlog.INFO("收到服务器的信息：cmd[%d]", req.Cmd)
+	//vlog.INFO("收到服务器的信息：cmd[%d]", req.head)
 	return r.route.route(req, r)
 }
 

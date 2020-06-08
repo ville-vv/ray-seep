@@ -16,7 +16,7 @@ import (
 	"ray-seep/ray-seep/monitor"
 	"runtime/debug"
 	"time"
-	"vilgo/vlog"
+	"github.com/vilsongwei/vilgo/vlog"
 )
 
 // Repeater 是一个中继器，用于转发 conn 的数据

@@ -5,8 +5,8 @@
 package conn
 
 import (
+	"github.com/vilsongwei/vilgo/vuid"
 	"net"
-	"vilgo/vuid"
 )
 
 type Conn interface {

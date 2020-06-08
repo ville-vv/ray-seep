@@ -8,7 +8,7 @@ import (
 	"ray-seep/ray-seep/proto"
 	"runtime/debug"
 	"time"
-	"vilgo/vlog"
+	"github.com/vilsongwei/vilgo/vlog"
 )
 
 type IRegister interface {

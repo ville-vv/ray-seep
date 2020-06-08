@@ -6,7 +6,7 @@ import (
 	"ray-seep/ray-seep/common/repeat"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
-	"vilgo/vlog"
+	"github.com/vilsongwei/vilgo/vlog"
 )
 
 type ClientProxy struct {

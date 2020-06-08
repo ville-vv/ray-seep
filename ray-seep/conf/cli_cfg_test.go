@@ -6,8 +6,9 @@ package conf
 
 import (
 	"fmt"
+	"github.com/vilsongwei/vilgo/vfile"
+
 	"testing"
-	"vilgo/vfile"
 )
 
 func TestInitClient(t *testing.T) {

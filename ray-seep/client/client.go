@@ -12,7 +12,7 @@ import (
 	"ray-seep/ray-seep/client/control"
 	"ray-seep/ray-seep/conf"
 	"syscall"
-	"vilgo/vlog"
+	"github.com/vilsongwei/vilgo/vlog"
 )
 
 var (

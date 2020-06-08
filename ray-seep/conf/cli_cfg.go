@@ -5,8 +5,8 @@
 package conf
 
 import (
+	"github.com/vilsongwei/vilgo/vcnf"
 	"os"
-	"vilgo/vcnf"
 )
 
 type Client struct {

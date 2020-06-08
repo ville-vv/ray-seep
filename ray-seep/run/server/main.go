@@ -7,6 +7,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/vilsongwei/vilgo/vlog"
 	"os"
 	"os/signal"
 	"ray-seep/ray-seep/common/util"
@@ -15,7 +16,6 @@ import (
 	"ray-seep/ray-seep/server/env_init"
 	"syscall"
 	"time"
-	"vilgo/vlog"
 )
 
 var (

@@ -11,7 +11,7 @@ import (
 	"ray-seep/ray-seep/server/control"
 	"ray-seep/ray-seep/server/proxy"
 	"runtime/debug"
-	"vilgo/vlog"
+	"github.com/vilsongwei/vilgo/vlog"
 )
 
 type Server interface {

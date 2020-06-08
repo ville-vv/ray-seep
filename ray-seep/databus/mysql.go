@@ -3,8 +3,8 @@ package databus
 import (
 	"database/sql"
 	"fmt"
+	"github.com/vilsongwei/vilgo/vsql"
 	"ray-seep/ray-seep/model"
-	"vilgo/vsql"
 )
 
 type MysqlClient struct {

@@ -7,7 +7,7 @@ package server
 import (
 	"ray-seep/ray-seep/conf"
 	"testing"
-	"vilgo/vlog"
+	"github.com/vilsongwei/vilgo/vlog"
 )
 
 func TestStart(t *testing.T) {

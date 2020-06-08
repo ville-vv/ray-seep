@@ -2,7 +2,7 @@ package online
 
 import (
 	"sync"
-	"vilgo/vlog"
+	"github.com/vilsongwei/vilgo/vlog"
 )
 
 // 登录管理

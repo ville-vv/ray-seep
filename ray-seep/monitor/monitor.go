@@ -3,7 +3,7 @@ package monitor
 import (
 	"github.com/rcrowley/go-metrics"
 	"time"
-	"vilgo/vlog"
+	"github.com/vilsongwei/vilgo/vlog"
 )
 
 type Monitor interface {

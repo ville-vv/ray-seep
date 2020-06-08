@@ -45,7 +45,7 @@ func TestPack(t *testing.T) {
 		return
 	}
 	if orgPkg.Cmd != dtPkg.Cmd {
-		t.Error("unpack err Cmd not right")
+		t.Error("unpack err head not right")
 		return
 	}
 }

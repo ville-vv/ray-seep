@@ -1,8 +1,4 @@
-// @File     : manager
-// @Author   : Ville
-// @Time     : 19-9-24 上午9:41
-// manager
-package proto
+package msg
 
 import (
 	"encoding/binary"
@@ -140,7 +136,7 @@ func (c *sender) AsyncSendMsg(wait *sync.WaitGroup, mch <-chan Package, t time.D
 }
 
 // 消息运输器，包含一个接收器和一个发送器
-type MsgTransfer interface {
+type Transfer interface {
 	Receiver
 	Sender
 }
@@ -156,7 +152,7 @@ type msgTransfer struct {
 	isSendStart  bool
 }
 
-func NewMsgTransfer(c conn.Conn) MsgTransfer {
+func NewMsgTransfer(c conn.Conn) Transfer {
 	return &msgTransfer{
 		Receiver:     &receiver{r: c},
 		Sender:       &sender{w: c},
