@@ -30,8 +30,6 @@ type ProxySrv struct {
 // HttpSrv 服务程序对外的 http 服务信息
 type ProtoSrv struct {
 	Proto string `json:"proto"`
-	//Host   string `json:"host"`
-	//Port   int64  `json:"port"`
 	Domain string `json:"domain"` //服务的域名
 }
 

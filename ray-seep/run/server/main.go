@@ -56,7 +56,6 @@ func argsParse() {
 }
 
 func main() {
-	_ = util.WritePid("process_id")
 	argsParse()
 	cfg := conf.InitServer(configPath)
 	vlog.DefaultLogger()
@@ -67,6 +66,7 @@ func main() {
 	printServerInfo(cfg)
 	srv := server.NewRaySeepServer(cfg)
 	go srv.Start()
+	_ = util.WritePid("process_id")
 	// 获取系统信号
 	sig := make(chan os.Signal)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
