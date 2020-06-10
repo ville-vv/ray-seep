@@ -5,12 +5,15 @@
 package util
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/md5"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	mrand "math/rand"
@@ -69,4 +72,19 @@ func WritePid(path string) error {
 	}
 	f.Sync()
 	return nil
+}
+
+func Int32ToBytes(n int32) []byte {
+	bytesBuffer := bytes.NewBuffer([]byte{})
+	_ = binary.Write(bytesBuffer, binary.BigEndian, &n)
+	return bytesBuffer.Bytes()
+}
+
+func BytesToInt32(bts []byte) (int32, error) {
+	if len(bts) != 4 {
+		return 0, errors.New("bytes length must is 4")
+	}
+	var tmp int32
+	bytesBuffer := bytes.NewBuffer(bts)
+	return tmp, binary.Read(bytesBuffer, binary.BigEndian, &tmp)
 }

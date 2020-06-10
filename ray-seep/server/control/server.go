@@ -75,6 +75,7 @@ func (sel *NodeServer) dealConn(c conn.Conn) {
 	// 刚刚建立连接需要设置超时时间
 	_ = c.SetReadDeadline(time.Now().Add(time.Duration(sel.timeout) * time.Millisecond))
 	msgMng := proto.NewMsgTransfer(c)
+
 	recvMsg := make(chan proto.Package, 10)
 	sendMsg := make(chan proto.Package, 10)
 	cancel := make(chan interface{})

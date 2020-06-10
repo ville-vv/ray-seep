@@ -1,6 +1,10 @@
+// 一个启动器，用于启动外部加入的服务，外部服务需实现接口 IRunner
+// 加入服务使用 Join 函数， 销毁使用 Leave 函数
+
 package control
 
 import (
+	"github.com/vilsongwei/vilgo/vlog"
 	"sync"
 )
 
@@ -45,18 +49,20 @@ func (sel *Runner) Leave() chan<- LeaveItem {
 
 func (sel *Runner) Start() error {
 	w := sync.WaitGroup{}
-	w.Add(2)
+	w.Add(1)
 	go func() {
 		w.Done()
-		for v := range sel.leave {
-			sel.delItem(&v)
-		}
-	}()
-
-	go func() {
-		w.Done()
-		for v := range sel.join {
-			sel.addItem(&v)
+		select {
+		case l, ok := <-sel.leave:
+			if !ok {
+				return
+			}
+			sel.delItem(&l)
+		case j, ok := <-sel.join:
+			if !ok {
+				return
+			}
+			sel.addItem(&j)
 		}
 	}()
 	w.Wait()

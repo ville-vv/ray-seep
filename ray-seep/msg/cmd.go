@@ -5,6 +5,10 @@
 package msg
 
 const (
+	maxBytesCachePool = 1024 * 1024 // 接收消息的最大缓存 1M
+)
+
+const (
 	CmdError          int32 = 999999
 	CmdPing           int32 = 100000
 	CmdPong           int32 = 100001

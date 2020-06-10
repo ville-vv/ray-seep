@@ -5,13 +5,13 @@
 package server
 
 import (
+	"github.com/vilsongwei/vilgo/vlog"
 	"os"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/databus"
-	"ray-seep/ray-seep/server/control"
 	"ray-seep/ray-seep/server/proxy"
+	"ray-seep/ray-seep/server_v2/control"
 	"runtime/debug"
-	"github.com/vilsongwei/vilgo/vlog"
 )
 
 type Server interface {
@@ -23,7 +23,7 @@ type Server interface {
 type RaySeepServer struct {
 	cfg         *conf.Server
 	proxy       *proxy.ProxyServer
-	control     *control.NodeServer
+	control     *control.ControlServer
 	start       []string
 	stopCh      chan int
 	db          databus.BaseDao

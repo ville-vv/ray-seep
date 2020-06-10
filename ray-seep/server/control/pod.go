@@ -7,6 +7,7 @@ package control
 import (
 	"fmt"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/vilsongwei/vilgo/vlog"
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/common/repeat"
 	"ray-seep/ray-seep/common/util"
@@ -14,7 +15,6 @@ import (
 	"ray-seep/ray-seep/proto"
 	"ray-seep/ray-seep/server/http"
 	"ray-seep/ray-seep/server/online"
-	"github.com/vilsongwei/vilgo/vlog"
 )
 
 type PodRouterFun func([]byte) (interface{}, error)

@@ -1,14 +1,10 @@
-// 代理服务，在客户端与服务端建立了 control 服务后， 客户端还需要与服务端建立一个数据中专中心的服务
-
 package proxy
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/vilsongwei/vilgo/vlog"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/conf"
-	"ray-seep/ray-seep/proto"
 	"runtime/debug"
 	"time"
 )
@@ -61,30 +57,11 @@ func (s *ProxyServer) dealConn(cn conn.Conn) {
 			return
 		}
 	}()
-	_ = cn.SetDeadline(time.Now().Add(time.Second * 15))
-	tr := proto.NewMsgTransfer(cn)
-	var regProxy proto.Package
-	if err := tr.RecvMsg(&regProxy); err != nil {
-		vlog.ERROR("receive message error %s", err.Error())
-		_ = cn.Close()
-		return
-	}
-	if regProxy.Cmd != proto.CmdRunProxyReq {
-		vlog.ERROR("proxy cmd is error %d", regProxy.Cmd)
-		_ = cn.Close()
-		return
-	}
-	regData := proto.RunProxyReq{}
-	if err := json.Unmarshal(regProxy.Body, &regData); err != nil {
-		vlog.ERROR("parse register proxy request data fail %s , data is %s ", err.Error(), string(regProxy.Body))
-		_ = cn.Close()
-		return
-	}
 	_ = cn.SetDeadline(time.Time{})
 	// 把代理连接都注册到注册器里面
-	if err := s.register.Register(regData.Name, regData.Cid, cn); err != nil {
-		vlog.ERROR("%s proxy is registered fail %s", cn.RemoteAddr().String(), err.Error())
-		_ = cn.Close()
-		return
-	}
+	//if err := s.register.Register(regData.Name, regData.Cid, cn); err != nil {
+	//	vlog.ERROR("%s proxy is registered fail %s", cn.RemoteAddr().String(), err.Error())
+	//	_ = cn.Close()
+	//	return
+	//}
 }

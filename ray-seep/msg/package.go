@@ -5,6 +5,7 @@ import (
 	"errors"
 	jsoniter "github.com/json-iterator/go"
 	"hash/crc32"
+	"ray-seep/ray-seep/common/util"
 )
 
 // 协议版本
@@ -52,31 +53,15 @@ func (f *frame) unPack(data []byte) error {
 }
 
 type Package struct {
-	Cmd  int32       `json:"cmd"`
-	Body interface{} `json:"body"`
+	Cmd  int32  `json:"cmd"`
+	Body []byte `json:"body"`
 }
 
-// 解包接口
-type UnPacker interface {
-	UnPack(data []byte, pkg *Package) (err error)
-}
-
-// 打包接口
-type Packer interface {
-	Pack(pkg *Package) (data []byte, err error)
-}
-
-// 消息包管理器
-type PackerManager interface {
-	UnPacker
-	Packer
-}
-
-type defaultPackerManager struct {
+type packerManagerJson struct {
 }
 
 // unPack 解包
-func (*defaultPackerManager) UnPack(data []byte, pkg *Package) (err error) {
+func (*packerManagerJson) UnPack(data []byte, pkg *Package) (err error) {
 	frame := newFrame()
 	if err = frame.unPack(data); err != nil {
 		return
@@ -90,7 +75,7 @@ func (*defaultPackerManager) UnPack(data []byte, pkg *Package) (err error) {
 }
 
 // pack 打包
-func (*defaultPackerManager) Pack(pkg *Package) (data []byte, err error) {
+func (*packerManagerJson) Pack(pkg *Package) (data []byte, err error) {
 	frame := newFrame()
 	frame.Body, err = jsoniter.Marshal(pkg)
 	if err != nil {
@@ -99,26 +84,30 @@ func (*defaultPackerManager) Pack(pkg *Package) (data []byte, err error) {
 	return frame.pack(), nil
 }
 
+type packerManager01 struct {
+}
+
 // unPack 解包
-func UnPack(data []byte, pkg *Package) (err error) {
+func (*packerManager01) UnPack(data []byte, pkg *Package) (err error) {
 	frame := newFrame()
 	if err = frame.unPack(data); err != nil {
 		return
 	}
-	if len(frame.Body) > 0 {
-		if err = jsoniter.Unmarshal(frame.Body, pkg); err != nil {
-			return
-		}
+	pkg.Cmd, err = util.BytesToInt32(frame.Body[:4])
+	if err != nil {
+		return
 	}
+	pkg.Body = make([]byte, 0, len(frame.Body)-4)
+	pkg.Body = append(pkg.Body, frame.Body[4:]...)
 	return
 }
 
 // pack 打包
-func Pack(pkg *Package) (data []byte, err error) {
+func (*packerManager01) Pack(pkg *Package) (data []byte, err error) {
 	frame := newFrame()
-	frame.Body, err = jsoniter.Marshal(pkg)
-	if err != nil {
-		return nil, err
-	}
+	cmd := util.Int32ToBytes(pkg.Cmd)
+	frame.Body = make([]byte, 0, len(cmd)+len(pkg.Body))
+	frame.Body = append(frame.Body, cmd...)
+	frame.Body = append(frame.Body, pkg.Body...)
 	return frame.pack(), nil
 }
