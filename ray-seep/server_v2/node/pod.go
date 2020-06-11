@@ -2,15 +2,12 @@
 // @Author   : Ville
 // @Time     : 19-9-26 下午4:40
 // node
-package control
+package node
 
 import (
-	jsoniter "github.com/json-iterator/go"
-	"github.com/vilsongwei/vilgo/vlog"
 	"ray-seep/ray-seep/common/util"
 	"ray-seep/ray-seep/msg"
 	"ray-seep/ray-seep/proto"
-	"ray-seep/ray-seep/server/http"
 )
 
 type PodRouterFun func([]byte) (interface{}, error)
@@ -49,29 +46,29 @@ func (p *Pod) LoginReq(req []byte) (interface{}, error) {
 }
 
 func (p *Pod) CreateHostReq(req []byte) (rsp interface{}, err error) {
-	reqObj := &proto.CreateHostReq{}
-	if err = jsoniter.Unmarshal(req, reqObj); err != nil {
-		vlog.ERROR("create host request message json unmarshal fail", err)
-		return
-	}
-	// 创建主机需要检验是否已经登录了
-	if err = p.podHd.OnCreateHost(p.connId, p.name, reqObj.Token); err != nil {
-		vlog.ERROR("on create host fail", err)
-		return
-	}
-
-	join := JoinItem{
-		Name:   p.httpAddr,
-		ConnId: p.connId,
-		Run:    http.NewServerWithAddr(":"+p.httpPort, p.gainer),
-		Err:    make(chan error),
-	}
-
-	p.runner.Join() <- join
-	if err = <-join.Err; err != nil {
-		vlog.ERROR("[%d] http join error %s", p.connId, err.Error())
-		return
-	}
+	//reqObj := &proto.CreateHostReq{}
+	//if err = jsoniter.Unmarshal(req, reqObj); err != nil {
+	//	vlog.ERROR("create host request message json unmarshal fail", err)
+	//	return
+	//}
+	//// 创建主机需要检验是否已经登录了
+	//if err = p.podHd.OnCreateHost(p.connId, p.name, reqObj.Token); err != nil {
+	//	vlog.ERROR("on create host fail", err)
+	//	return
+	//}
+	//
+	//join := JoinItem{
+	//	Name:   p.httpAddr,
+	//	ConnId: p.connId,
+	//	Run:    http.NewServerWithAddr(":"+p.httpPort, p.gainer),
+	//	Err:    make(chan error),
+	//}
+	//
+	//p.runner.Join() <- join
+	//if err = <-join.Err; err != nil {
+	//	vlog.ERROR("[%d] http join error %s", p.connId, err.Error())
+	//	return
+	//}
 
 	rspObj := proto.CreateHostRsp{}
 	return rspObj, nil
@@ -82,7 +79,9 @@ func (p *Pod) NoticeRunProxy() {
 }
 
 func (p *Pod) RunProxyReq(req []byte) (rsp interface{}, err error) {
+	return nil, nil
 }
 
 func (p *Pod) LogoutReq(req []byte) (rsp interface{}, err error) {
+	return nil, nil
 }

@@ -27,7 +27,7 @@ var (
 
 func printServerInfo(cfg *conf.Server) {
 	fmt.Printf(" ==================================================================\n")
-	fmt.Printf("\t control server address is [%s:%d]\n", cfg.Ctl.Host, cfg.Ctl.Port)
+	fmt.Printf("\t node server address is [%s:%d]\n", cfg.Ctl.Host, cfg.Ctl.Port)
 	fmt.Printf("\t   proxy server address is [%s:%d]\n", cfg.Pxy.Host, cfg.Pxy.Port)
 	fmt.Printf(" ==================================================================\n")
 }

@@ -34,7 +34,7 @@ type NodeServer struct {
 func (sel *NodeServer) Stop() {}
 
 func (sel *NodeServer) Scheme() string {
-	return "control server"
+	return "node server"
 }
 
 func NewNodeServer(ctlCnf *conf.ControlSrv, handler ServerMsgHandler) *NodeServer {
@@ -55,7 +55,7 @@ func NewNodeServer(ctlCnf *conf.ControlSrv, handler ServerMsgHandler) *NodeServe
 func (sel *NodeServer) Start() error {
 	lis, err := conn.Listen(sel.addr)
 	if err != nil {
-		vlog.ERROR("control listen error %v", err)
+		vlog.ERROR("node listen error %v", err)
 		return err
 	}
 	for c := range lis.Conn {

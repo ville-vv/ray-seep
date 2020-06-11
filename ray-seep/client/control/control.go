@@ -2,13 +2,13 @@ package control
 
 import (
 	"fmt"
+	"github.com/vilsongwei/vilgo/vlog"
 	"net"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
 	"sync"
 	"time"
-	"github.com/vilsongwei/vilgo/vlog"
 )
 
 type Router interface {
@@ -65,7 +65,7 @@ func (sel *ClientControl) Start() {
 	go sel.onDial()
 	c, err := net.Dial("tcp", sel.addr)
 	if err != nil {
-		vlog.LogE("connect control server fail %v", err)
+		vlog.LogE("connect node server fail %v", err)
 		return
 	}
 	sel.onCh <- c
@@ -76,7 +76,7 @@ func (sel *ClientControl) onDial() {
 	for v := range sel.onCh {
 		go sel.dealConn(v)
 	}
-	vlog.WARN("client control exit")
+	vlog.WARN("client node exit")
 }
 
 // 检测有断开链接

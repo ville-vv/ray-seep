@@ -19,7 +19,7 @@ const (
 	ErrWaitProxyRunTimeout   ErrCode = "wait proxy run timeout"
 	ErrConnPoolIsFull        ErrCode = "proxy pool is full"
 	ErrNoCmdRouterNot        ErrCode = "router not found"
-	ErrClientControlNotExist ErrCode = "client control is not exist"
+	ErrClientControlNotExist ErrCode = "client node is not exist"
 	ErrProxyConnNotExist     ErrCode = "proxy connect is not exist"
 	ErrUserInfoValidFail     ErrCode = "store information validation error"
 	ErrHttpPortIsInValid     ErrCode = "http port is invalid"

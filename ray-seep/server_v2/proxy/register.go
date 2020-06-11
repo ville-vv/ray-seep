@@ -2,35 +2,40 @@
 // @Author   : Ville
 // @Time     : 19-10-12 下午3:32
 // proxy
-package control
+package proxy
 
 import (
+	"github.com/vilsongwei/vilgo/vlog"
 	"net"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/proto"
-	"ray-seep/ray-seep/server/online"
 	"sync"
 	"time"
-	"github.com/vilsongwei/vilgo/vlog"
 )
 
 type MessagePusher interface {
 	PushMsg(id int64, p *proto.Package) error
 }
 
+type registerItem struct {
+	Name string
+	Id   int64
+	conn.Pool
+}
+
 // RegisterCenter 注册中心，记录用户启动的本地服务id与用户使用的域名映射
 // 记录用户启动的服务的代理池
 type RegisterCenter struct {
 	lock     sync.RWMutex
-	pxyPools map[string]*online.ProxyPool // 记录用户本地服务的代理 tcp 链接，使用 cid 获取链接
+	pxyPools map[string]*registerItem // 记录用户本地服务的代理 tcp 链接，使用 cid 获取链接
 	pushMsg  MessagePusher
 	caches   int
 }
 
 func NewRegisterCenter(caches int, ph MessagePusher) *RegisterCenter {
 	return &RegisterCenter{
-		pxyPools: make(map[string]*online.ProxyPool),
+		pxyPools: make(map[string]*registerItem),
 		pushMsg:  ph,
 		caches:   caches, // 一个节点需能缓存的数量
 	}
@@ -52,7 +57,7 @@ func (sel *RegisterCenter) addProxy(name string, id int64, cc conn.Conn) error {
 	if p, ok := sel.pxyPools[name]; ok {
 		return p.Push(id, cc)
 	}
-	pl := online.NewProxyPool(name, conn.NewPool(sel.caches))
+	pl := &registerItem{Name: name, Id: id, Pool: conn.NewPoolV2(sel.caches)}
 	if err := pl.Push(id, cc); err != nil {
 		return err
 	}
@@ -88,8 +93,8 @@ func (sel *RegisterCenter) GetNetConn(name string) (net.Conn, error) {
 	return cn, err
 }
 
-func (sel *RegisterCenter) getAndRunProxy(name string, pl *online.ProxyPool) (net.Conn, error) {
-	id := pl.GetId()
+func (sel *RegisterCenter) getAndRunProxy(name string, pl *registerItem) (net.Conn, error) {
+	id := pl.Id
 	if err := sel.noticeRunProxy(name, id); err != nil {
 		vlog.ERROR("[%s][%d] push notice run proxy message error %s", name, id, err.Error())
 		return nil, errs.ErrNoticeProxyRunErr

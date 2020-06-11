@@ -1,7 +1,7 @@
 // 一个启动器，用于启动外部加入的服务，外部服务需实现接口 IRunner
 // 加入服务使用 Join 函数， 销毁使用 Leave 函数
 
-package control
+package node
 
 import (
 	"github.com/vilsongwei/vilgo/vlog"

@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"io"
 	"ray-seep/ray-seep/common/conn"
-	"sync"
-	"time"
 )
 
 type receiver struct {
@@ -72,26 +70,13 @@ type Transfer interface {
 
 // 消息管理
 type msgTransfer struct {
-	Receiver
-	Sender
-	readTimeout  time.Duration
-	writeTimeout time.Duration
-	bytePool     sync.Pool
-	isRecvStart  bool
-	isSendStart  bool
+	*receiver
+	*sender
 }
 
 func NewMsgTransfer(c conn.Conn) Transfer {
 	return &msgTransfer{
-		Receiver:     &receiver{r: c},
-		Sender:       &sender{w: c},
-		readTimeout:  time.Second * 10,
-		writeTimeout: time.Second * 10,
-		bytePool: sync.Pool{
-			New: func() interface{} {
-				b := make([]byte, maxBytesCachePool)
-				return &b
-			},
-		},
+		receiver: &receiver{r: c},
+		sender:   &sender{w: c},
 	}
 }

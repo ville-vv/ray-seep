@@ -5,15 +5,15 @@
 package server
 
 import (
+	"github.com/vilsongwei/vilgo/vlog"
 	"ray-seep/ray-seep/conf"
 	"testing"
-	"github.com/vilsongwei/vilgo/vlog"
 )
 
 func TestStart(t *testing.T) {
 	//vlog.DefaultLogger()
-	//control := NewControlServer()
-	//control.Start()
+	//node := NewControlServer()
+	//node.Start()
 }
 
 type MockServer struct {

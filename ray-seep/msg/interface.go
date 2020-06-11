@@ -34,7 +34,7 @@ type ResponseSender interface {
 }
 
 type Request struct {
-	ctx  context.Context
+	Ctx  context.Context
 	Body *Package
 }
 

@@ -15,7 +15,7 @@ import (
 type Server struct {
 	Log      *vlog.LogCnf     `json:"log"`
 	Ctl      *ControlSrv      `json:"ctl" toml:"Control"`
-	Pxy      *ProxySrv        `json:"pxy" toml:"Proxy"`
+	Pxy      *ControlSrv      `json:"pxy" toml:"Proxy"`
 	Proto    *ProtoSrv        `json:"proto" toml:"Proto"`
 	DataBase *DataBaseSrv     `json:"database" toml:"DataBase"`
 	User     map[string]*User `json:"store" toml:"User"`

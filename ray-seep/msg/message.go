@@ -8,13 +8,13 @@ import (
 )
 
 type MessageCenter struct {
-	recvCh chan Package     // 接收消息 chan
-	sendCh chan Package     // 发送消息 chan
-	cancel chan interface{} //
-	c      conn.Conn        //
-	router RouterFunc       // 消息路由器
-	msgTr  Transfer         // 消息运输器， 用于发送和接收消息
-	pkgMng PackerManager    // 消息包管理器 用于打包和解包消息
+	recvCh chan Package  // 接收消息 chan
+	sendCh chan Package  // 发送消息 chan
+	stop   chan int      //
+	c      conn.Conn     //
+	router RouterFunc    // 消息路由器
+	msgTr  Transfer      // 消息运输器， 用于发送和接收消息
+	pkgMng PackerManager // 消息包管理器 用于打包和解包消息
 }
 
 func NewMessageCenter(c conn.Conn) *MessageCenter {
@@ -22,7 +22,7 @@ func NewMessageCenter(c conn.Conn) *MessageCenter {
 		c:      c,
 		recvCh: make(chan Package, 100),
 		sendCh: make(chan Package, 100),
-		cancel: make(chan interface{}),
+		stop:   make(chan int),
 		msgTr:  NewMsgTransfer(c),
 		pkgMng: &packerManager01{},
 	}
@@ -36,26 +36,21 @@ func (m *MessageCenter) SetRouter(router RouterFunc) {
 
 func (m *MessageCenter) Run() {
 	wg := sync.WaitGroup{}
-	wg.Add(2)
-	m.AsyncRecvMsg(&wg)
-	m.AsyncSendMsg(&wg, time.Minute)
+	wg.Add(1)
+	go func() {
+		wg.Done()
+		m.SendMsg(time.Minute)
+	}()
 	wg.Wait()
+	m.RecvMsg()
+	m.close()
 }
 
-func (m *MessageCenter) Cancel() <-chan interface{} {
-	return m.cancel
-}
-
-func (m *MessageCenter) Close() {
-	close(m.cancel)
-	close(m.recvCh)
+func (m *MessageCenter) close() {
 	close(m.sendCh)
+	close(m.recvCh)
+	close(m.stop)
 }
-
-// 使用 chan 接收消息
-//func (m *MessageCenter) RecvCh() <-chan Package {
-//	return m.recvCh
-//}
 
 // 使用 chan 推送消息
 func (m *MessageCenter) SendCh() chan<- Package {
@@ -64,24 +59,25 @@ func (m *MessageCenter) SendCh() chan<- Package {
 
 // 启动一个异步接收消息的协程，消息会发送到 router 处理
 // 如果要使用它，需要调用 SetRouter 设置处理数据的 router
-func (m *MessageCenter) AsyncRecvMsg(wait *sync.WaitGroup) {
-	go func() {
-		wait.Done()
-		ctx, cel := context.WithCancel(context.Background())
-		for {
-			pg := new(Package)
-			if err := m.recvMsg(pg); err != nil {
-				m.cancel <- err
-				cel()
-				return
-			}
-			//m.recvCh <- *pg
-			if err := m.router(&Request{ctx: ctx, Body: pg}, m); err != nil {
-				return
-			}
+func (m *MessageCenter) RecvMsg() {
+	ctx, cel := context.WithCancel(context.Background())
+	for {
+		select {
+		case <-m.stop:
+			cel()
+			return
+		default:
 		}
-	}()
-	return
+		pg := new(Package)
+		if err := m.recvMsg(pg); err != nil {
+			cel()
+			return
+		}
+		if err := m.router(&Request{Ctx: ctx, Body: pg}, m); err != nil {
+			cel()
+			return
+		}
+	}
 }
 
 // 接收消息，会阻塞流程直到收到消息才向下走
@@ -103,21 +99,18 @@ func (m *MessageCenter) Recv(pg *Package) error {
 }
 
 // AsyncSendMsg 开启一个协程 使用 chan 发送定义好格式的消息
-func (m *MessageCenter) AsyncSendMsg(wait *sync.WaitGroup, t time.Duration) {
-	go func() {
-		wait.Done()
-		for {
-			select {
-			case mch, ok := <-m.sendCh:
-				if !ok {
-					return
-				}
-				if err := m.sendMsg(&mch); err != nil {
-					return
-				}
+func (m *MessageCenter) SendMsg(t time.Duration) {
+	for {
+		select {
+		case mch, ok := <-m.sendCh:
+			if !ok {
+				return
+			}
+			if err := m.sendMsg(&mch); err != nil {
+				continue
 			}
 		}
-	}()
+	}
 }
 
 // 发送想消息
