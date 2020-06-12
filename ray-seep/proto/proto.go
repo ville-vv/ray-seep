@@ -4,6 +4,11 @@
 // pkg
 package proto
 
+type ErrorNotice struct {
+	Code   string `json:"code"`
+	ErrMsg string `json:"err_msg"`
+}
+
 type LoginReq struct {
 	UserId int64  `json:"user_id"`
 	Name   string `json:"name"`

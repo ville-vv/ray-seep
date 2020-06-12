@@ -12,8 +12,8 @@ import (
 	"os/signal"
 	"ray-seep/ray-seep/common/util"
 	"ray-seep/ray-seep/conf"
-	"ray-seep/ray-seep/server"
 	"ray-seep/ray-seep/server/env_init"
+	"ray-seep/ray-seep/server_v2"
 	"syscall"
 	"time"
 )
@@ -64,7 +64,7 @@ func main() {
 		vlog.SetLogger(vlog.NewGoLogger(cfg.Log))
 	}
 	printServerInfo(cfg)
-	srv := server.NewRaySeepServer(cfg)
+	srv := server_v2.NewRaySeepServer(cfg)
 	go srv.Start()
 	_ = util.WritePid("process_id")
 	// 获取系统信号

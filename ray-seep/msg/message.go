@@ -2,29 +2,32 @@ package msg
 
 import (
 	"context"
+	"github.com/vilsongwei/vilgo/vlog"
 	"ray-seep/ray-seep/common/conn"
 	"sync"
 	"time"
 )
 
 type MessageCenter struct {
-	recvCh chan Package  // 接收消息 chan
-	sendCh chan Package  // 发送消息 chan
-	stop   chan int      //
-	c      conn.Conn     //
-	router RouterFunc    // 消息路由器
-	msgTr  Transfer      // 消息运输器， 用于发送和接收消息
-	pkgMng PackerManager // 消息包管理器 用于打包和解包消息
+	recvCh      chan Package  // 接收消息 chan
+	sendCh      chan Package  // 发送消息 chan
+	stop        chan int      //
+	c           conn.Conn     //
+	router      RouterFunc    // 消息路由器
+	msgTr       Transfer      // 消息运输器， 用于发送和接收消息
+	pkgMng      PackerManager // 消息包管理器 用于打包和解包消息
+	readTimeOut int64
 }
 
 func NewMessageCenter(c conn.Conn) *MessageCenter {
 	return &MessageCenter{
-		c:      c,
-		recvCh: make(chan Package, 100),
-		sendCh: make(chan Package, 100),
-		stop:   make(chan int),
-		msgTr:  NewMsgTransfer(c),
-		pkgMng: &packerManager01{},
+		readTimeOut: 5000,
+		c:           c,
+		recvCh:      make(chan Package, 100),
+		sendCh:      make(chan Package, 100),
+		stop:        make(chan int),
+		msgTr:       NewMsgTransfer(c),
+		pkgMng:      &packerManagerJson{},
 	}
 }
 
@@ -69,14 +72,13 @@ func (m *MessageCenter) RecvMsg() {
 		default:
 		}
 		pg := new(Package)
+		_ = m.c.SetReadDeadline(time.Now().Add(time.Duration(m.readTimeOut) * time.Millisecond))
 		if err := m.recvMsg(pg); err != nil {
 			cel()
+			vlog.INFO("断开链接")
 			return
 		}
-		if err := m.router(&Request{Ctx: ctx, Body: pg}, m); err != nil {
-			cel()
-			return
-		}
+		m.router(&Request{Ctx: ctx, Body: pg})
 	}
 }
 

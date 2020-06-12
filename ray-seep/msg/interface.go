@@ -38,4 +38,4 @@ type Request struct {
 	Body *Package
 }
 
-type RouterFunc func(req *Request, wt ResponseSender) error
+type RouterFunc func(req *Request)

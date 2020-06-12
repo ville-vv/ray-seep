@@ -9,6 +9,7 @@ import (
 	"os"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/databus"
+	"ray-seep/ray-seep/server_v2/hostsrv"
 	"ray-seep/ray-seep/server_v2/node"
 	"ray-seep/ray-seep/server_v2/proxy"
 	"runtime/debug"
@@ -27,16 +28,16 @@ type RaySeepServer struct {
 	start       []string
 	stopCh      chan int
 	db          databus.BaseDao
-	proxyRunner *node.Runner
+	proxyRunner *hostsrv.Runner
 }
 
 func NewRaySeepServer(cfg *conf.Server) *RaySeepServer {
 	rds := databus.NewDao(cfg)
-	runner := node.NewRunner()
+	runner := hostsrv.NewRunner()
 	return &RaySeepServer{
 		cfg:         cfg,
 		stopCh:      make(chan int, 1),
-		nodeServer:  NewControlServer(cfg.Ctl, &node.ConnectCenter{}),
+		nodeServer:  NewControlServer(cfg.Ctl, node.NewConnectCenter(cfg, runner)),
 		pxyServer:   NewControlServer(cfg.Pxy, &proxy.PxyManager{}),
 		db:          rds,
 		proxyRunner: runner,
@@ -61,7 +62,7 @@ func (r *RaySeepServer) toGo(name string, f func() error) {
 func (r *RaySeepServer) Start() {
 	r.toGo(r.nodeServer.Scheme(), r.nodeServer.Start)
 	r.toGo(r.pxyServer.Scheme(), r.pxyServer.Start)
-	r.toGo("runner", r.proxyRunner.Start)
+	r.toGo("hostsrv", r.proxyRunner.Start)
 	vlog.INFO("server have started success")
 	<-r.stopCh
 	vlog.INFO("server have stop success")

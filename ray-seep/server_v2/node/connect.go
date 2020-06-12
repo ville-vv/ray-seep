@@ -5,18 +5,28 @@ import (
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/msg"
-	"ray-seep/ray-seep/server_v2/proxy"
+	"ray-seep/ray-seep/server_v2/hostsrv"
 	"sync"
 )
 
 type ConnectCenter struct {
-	mu       sync.Mutex
-	pods     map[int64]*Pod
-	podHd    *PodHandler
-	cNum     int
-	cfg      *conf.Server
-	register *proxy.RegisterCenter
-	runner   *Runner
+	mu     sync.Mutex
+	pods   map[int64]*Pod
+	podHd  *PodHandler
+	cNum   int
+	cfg    *conf.Server
+	runner *hostsrv.Runner
+}
+
+func NewConnectCenter(cfg *conf.Server, runner *hostsrv.Runner) *ConnectCenter {
+	return &ConnectCenter{
+		mu:     sync.Mutex{},
+		pods:   make(map[int64]*Pod),
+		podHd:  nil,
+		cNum:   0,
+		cfg:    cfg,
+		runner: runner,
+	}
 }
 
 func (c *ConnectCenter) OnConnect(cancel chan interface{}, cn conn.Conn) error {
