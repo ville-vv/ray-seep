@@ -9,14 +9,10 @@ import (
 	"net"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/errs"
-	"ray-seep/ray-seep/proto"
+	"ray-seep/ray-seep/server_v2/ifc"
 	"sync"
 	"time"
 )
-
-type MessagePusher interface {
-	PushMsg(id int64, p *proto.Package) error
-}
 
 type registerItem struct {
 	Name string
@@ -29,16 +25,19 @@ type registerItem struct {
 type RegisterCenter struct {
 	lock     sync.RWMutex
 	pxyPools map[string]*registerItem // 记录用户本地服务的代理 tcp 链接，使用 cid 获取链接
-	pushMsg  MessagePusher
+	ntc      ifc.NoticeGetter
 	caches   int
 }
 
-func NewRegisterCenter(caches int, ph MessagePusher) *RegisterCenter {
+func NewRegisterCenter(caches int) *RegisterCenter {
 	return &RegisterCenter{
 		pxyPools: make(map[string]*registerItem),
-		pushMsg:  ph,
 		caches:   caches, // 一个节点需能缓存的数量
 	}
+}
+
+func (sel *RegisterCenter) SetNoticeGetter(ph ifc.NoticeGetter) {
+	sel.ntc = ph
 }
 
 // 注册用户链接
@@ -48,7 +47,12 @@ func (sel *RegisterCenter) Register(name string, id int64, cc conn.Conn) error {
 		vlog.ERROR("[%s][%d]register proxy error %s", name, id, err.Error())
 		return err
 	}
-	return sel.pushMsg.PushMsg(id, &proto.Package{Cmd: proto.CmdRunProxyRsp, Body: []byte("{}")})
+	notice, err := sel.ntc.GetNotice(id)
+	if err != nil {
+		vlog.ERROR("[%s][%d]register proxy notice error %s", name, id, err.Error())
+		return err
+	}
+	return notice.NoticeRunProxyRsp([]byte("{}"))
 }
 
 func (sel *RegisterCenter) addProxy(name string, id int64, cc conn.Conn) error {
@@ -114,8 +118,12 @@ func (sel *RegisterCenter) getAndRunProxy(name string, pl *registerItem) (net.Co
 }
 
 func (sel *RegisterCenter) noticeRunProxy(name string, id int64) error {
-	notice := &proto.Package{Cmd: proto.CmdNoticeRunProxy, Body: []byte("{}")}
-	return sel.pushMsg.PushMsg(id, notice)
+	notice, err := sel.ntc.GetNotice(id)
+	if err != nil {
+		vlog.ERROR("[%s][%d]notice run proxy error %s", name, id, err.Error())
+		return err
+	}
+	return notice.NoticeRunProxy([]byte("{}"))
 }
 
 // LogOff 注销用户的代理

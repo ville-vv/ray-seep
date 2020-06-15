@@ -5,18 +5,19 @@ import (
 	"errors"
 	"github.com/vilsongwei/vilgo/vlog"
 	"ray-seep/ray-seep/common/conn"
+	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/msg"
 	"ray-seep/ray-seep/proto"
+	"ray-seep/ray-seep/server_v2/ifc"
 )
 
-type MessageHandler interface {
-	RunProxyReq(req []byte) (interface{}, error)
-	RunProxyResp() error
+type PxyManager struct {
+	register ifc.Register
+	router   msg.RouterFunc
 }
 
-type PxyManager struct {
-	register *RegisterCenter
-	router   msg.RouterFunc
+func NewPxyManager(cft *conf.ControlSrv, reg ifc.Register) *PxyManager {
+	return &PxyManager{register: reg}
 }
 
 func (p *PxyManager) OnConnect(cancel chan interface{}, cn conn.Conn) error {

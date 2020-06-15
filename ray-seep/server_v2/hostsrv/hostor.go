@@ -2,12 +2,14 @@ package hostsrv
 
 import (
 	"ray-seep/ray-seep/common/repeat"
+	"ray-seep/ray-seep/msg"
 )
 
 type Option struct {
-	Id   int64  // ID号
-	Kind string // 类型
-	Addr string
+	Id     int64              // ID号
+	Kind   string             // 类型
+	SendCh chan<- msg.Package //
+	Addr   string
 }
 
 type HostServer interface {
@@ -20,12 +22,20 @@ type NetConnGainer interface {
 }
 
 type HostService struct {
-	runner  Runner
+	runner  *Runner
 	dstConn repeat.NetConnGainer
 }
 
-func NewHostService(runner Runner, dstConn repeat.NetConnGainer) *HostService {
-	return &HostService{runner: runner, dstConn: dstConn}
+func NewHostService(runner *Runner) *HostService {
+	return &HostService{runner: runner}
+}
+
+func (h *HostService) Start() error {
+	return h.runner.Start()
+}
+
+func (h *HostService) SetDstConn(dstConn repeat.NetConnGainer) {
+	h.dstConn = dstConn
 }
 
 func (h *HostService) Create(opt *Option) error {
@@ -39,6 +49,6 @@ func (h *HostService) Create(opt *Option) error {
 	return <-join.Err
 }
 
-func (*HostService) Destroy(opt *Option) {
+func (h *HostService) Destroy(opt *Option) {
 	return
 }

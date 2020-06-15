@@ -33,12 +33,21 @@ type RaySeepServer struct {
 
 func NewRaySeepServer(cfg *conf.Server) *RaySeepServer {
 	rds := databus.NewDao(cfg)
+
 	runner := hostsrv.NewRunner()
+	hsr := hostsrv.NewHostService(runner)
+	register := proxy.NewRegisterCenter(cfg.Pxy.UserMaxProxyNum)
+	cctSrv := node.NewConnectCenter(cfg, hsr)
+	pxySrv := proxy.NewPxyManager(cfg.Pxy, register)
+
+	hsr.SetDstConn(register)
+	register.SetNoticeGetter(cctSrv)
+
 	return &RaySeepServer{
 		cfg:         cfg,
 		stopCh:      make(chan int, 1),
-		nodeServer:  NewControlServer(cfg.Ctl, node.NewConnectCenter(cfg, runner)),
-		pxyServer:   NewControlServer(cfg.Pxy, &proxy.PxyManager{}),
+		nodeServer:  NewControlServer(cfg.Ctl, cctSrv),
+		pxyServer:   NewControlServer(cfg.Pxy, pxySrv),
 		db:          rds,
 		proxyRunner: runner,
 	}

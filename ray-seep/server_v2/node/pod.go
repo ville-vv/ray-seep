@@ -27,10 +27,11 @@ type Pod struct {
 	httpAddr string
 }
 
-func NewPod(id int64, sender msg.ResponseSender) *Pod {
+func NewPod(id int64, sender msg.ResponseSender, hsr hostsrv.HostServer) *Pod {
 	p := &Pod{
 		connId: id,
 		sender: sender,
+		hsr:    hsr,
 	}
 	return p
 }
@@ -46,6 +47,11 @@ func (p *Pod) PushInJson(cmd int32, obj interface{}) (err error) {
 		return err
 	}
 	p.sender.SendCh() <- msg.Package{Cmd: cmd, Body: body}
+	return
+}
+
+func (p *Pod) PushInByte(cmd int32, data []byte) (err error) {
+	p.sender.SendCh() <- msg.Package{Cmd: cmd, Body: data[:]}
 	return
 }
 
@@ -94,9 +100,10 @@ func (p *Pod) CreateHostReq(cmd int32, body []byte) (err error) {
 	//}
 
 	if err := p.hsr.Create(&hostsrv.Option{
-		Id:   0,
-		Kind: "",
-		Addr: "",
+		Id:     0,
+		Kind:   "",
+		Addr:   "",
+		SendCh: p.sender.SendCh(),
 	}); err != nil {
 		return err
 	}
@@ -105,10 +112,14 @@ func (p *Pod) CreateHostReq(cmd int32, body []byte) (err error) {
 }
 
 // NoticeRunProxy 通知用户启动代理服务服务
-func (p *Pod) NoticeRunProxy() {
+func (p *Pod) NoticeRunProxy(data []byte) error {
 	if err := p.PushInJson(proto.CmdNoticeRunProxy, nil); err != nil {
 		vlog.ERROR("[%d] notice run proxy error %s", p.connId, err.Error())
 	}
+	return nil
+}
+func (p *Pod) NoticeRunProxyRsp(data []byte) error {
+	return nil
 }
 
 func (p *Pod) LogoutReq(req []byte) (rsp interface{}, err error) {
