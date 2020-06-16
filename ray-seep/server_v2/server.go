@@ -28,16 +28,14 @@ type RaySeepServer struct {
 	start       []string
 	stopCh      chan int
 	db          databus.BaseDao
-	proxyRunner *hostsrv.Runner
+	proxyRunner hostsrv.HostServer
 }
 
 func NewRaySeepServer(cfg *conf.Server) *RaySeepServer {
 	rds := databus.NewDao(cfg)
-
-	runner := hostsrv.NewRunner()
-	hsr := hostsrv.NewHostService(runner)
+	hsr := hostsrv.NewHostService()
 	register := proxy.NewRegisterCenter(cfg.Pxy.UserMaxProxyNum)
-	cctSrv := node.NewConnectCenter(cfg, hsr)
+	cctSrv := node.NewConnectCenter(cfg, hsr, node.NewPodHandler(rds))
 	pxySrv := proxy.NewPxyManager(cfg.Pxy, register)
 
 	hsr.SetDstConn(register)
@@ -49,7 +47,7 @@ func NewRaySeepServer(cfg *conf.Server) *RaySeepServer {
 		nodeServer:  NewControlServer(cfg.Ctl, cctSrv),
 		pxyServer:   NewControlServer(cfg.Pxy, pxySrv),
 		db:          rds,
-		proxyRunner: runner,
+		proxyRunner: hsr,
 	}
 }
 
@@ -81,6 +79,7 @@ func (r *RaySeepServer) Stop() {
 	r.db.Close()
 	r.nodeServer.Stop()
 	r.pxyServer.Stop()
+	r.proxyRunner.Stop()
 	// 停止已启动的服务
 	close(r.stopCh)
 }

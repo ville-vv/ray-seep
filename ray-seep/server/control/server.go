@@ -37,7 +37,7 @@ func (sel *NodeServer) Scheme() string {
 	return "node server"
 }
 
-func NewNodeServer(ctlCnf *conf.ControlSrv, handler ServerMsgHandler) *NodeServer {
+func NewNodeServer(ctlCnf *conf.SubServer, handler ServerMsgHandler) *NodeServer {
 	timeout := ctlCnf.ReadMsgTimeout
 	addr := fmt.Sprintf("%s:%d", ctlCnf.Host, ctlCnf.Port)
 	if timeout == 0 {

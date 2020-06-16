@@ -42,7 +42,7 @@ func (s *Server) Scheme() string {
 
 // NewServer http 请求服务
 // repeat 用于 http 请求转发
-func NewServer(c *conf.ProtoSrv, pxyGainer repeat.NetConnGainer) *Server {
+func NewServer(c *conf.SubServer, pxyGainer repeat.NetConnGainer) *Server {
 	return &Server{addr: "", repeat: repeat.NewNetRepeater(pxyGainer)}
 }
 
@@ -52,7 +52,6 @@ func NewServerWithAddr(addr string, pxyGainer repeat.NetConnGainer) *Server {
 
 // Start 启动http服务
 func (s *Server) Start() error {
-	s.mtr.StartPrint(monitor.DefautlMetricePrint, time.Second*60*5)
 	lin, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		vlog.ERROR("http listen error %v", err)
@@ -70,7 +69,6 @@ func (s *Server) Start() error {
 				}
 				return
 			}
-			s.mtr.Meter(1)
 			go s.dealConn(c)
 		}
 	}()

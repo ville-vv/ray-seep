@@ -4,6 +4,7 @@
 package hostsrv
 
 import (
+	"fmt"
 	"github.com/vilsongwei/vilgo/vlog"
 	"sync"
 )
@@ -22,7 +23,7 @@ type JoinItem struct {
 
 type LeaveItem struct {
 	Name   string
-	ConnId string
+	ConnId int64
 }
 
 type Runner struct {
@@ -49,20 +50,19 @@ func (sel *Runner) Leave() chan<- LeaveItem {
 
 func (sel *Runner) Start() error {
 	w := sync.WaitGroup{}
-	w.Add(1)
+	w.Add(2)
 	go func() {
 		w.Done()
-		select {
-		case l, ok := <-sel.leave:
-			if !ok {
-				return
-			}
-			sel.delItem(&l)
-		case j, ok := <-sel.join:
-			if !ok {
-				return
-			}
-			sel.addItem(&j)
+		for v := range sel.leave {
+			sel.delItem(&v)
+		}
+	}()
+
+	go func() {
+		w.Done()
+		for v := range sel.join {
+			fmt.Println("asdfsd")
+			sel.addItem(&v)
 		}
 	}()
 	w.Wait()
@@ -89,7 +89,7 @@ func (sel *Runner) addItem(item *JoinItem) {
 
 func (sel *Runner) delItem(item *LeaveItem) {
 	if pxy, ok := sel.items[item.Name]; ok {
-		vlog.DEBUG("清理服务：%s", item.Name)
+		vlog.INFO("清理服务：%s", item.Name)
 		pxy.Stop()
 		delete(sel.items, item.Name)
 	}

@@ -20,11 +20,11 @@ type ConnectCenter struct {
 	hsr   hostsrv.HostServer
 }
 
-func NewConnectCenter(cfg *conf.Server, runner hostsrv.HostServer) *ConnectCenter {
+func NewConnectCenter(cfg *conf.Server, runner hostsrv.HostServer, podHd *PodHandler) *ConnectCenter {
 	return &ConnectCenter{
 		mu:    sync.Mutex{},
 		pods:  make(map[int64]*Pod),
-		podHd: nil,
+		podHd: podHd,
 		cNum:  0,
 		cfg:   cfg,
 		hsr:   runner,
@@ -34,7 +34,7 @@ func NewConnectCenter(cfg *conf.Server, runner hostsrv.HostServer) *ConnectCente
 func (c *ConnectCenter) OnConnect(cancel chan interface{}, cn conn.Conn) error {
 	id := cn.Id()
 	msgCtr := msg.NewMessageCenter(cn)
-	pod := NewPod(id, msgCtr, c.hsr)
+	pod := NewPod(id, c.cfg, msgCtr, c.hsr, c.podHd)
 	msgCtr.SetRouter(pod.OnMessage)
 	if err := c.addPod(id, pod); err != nil {
 		return err
@@ -48,7 +48,8 @@ func (c *ConnectCenter) OnDisConnect(id int64) {
 	// 认证成功加入到管理服务中
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if _, ok := c.pods[id]; ok {
+	if pd, ok := c.pods[id]; ok {
+		_ = pd.LogoutReq(nil)
 		delete(c.pods, id)
 		c.cNum--
 	}

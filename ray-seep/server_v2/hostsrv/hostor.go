@@ -2,19 +2,13 @@ package hostsrv
 
 import (
 	"ray-seep/ray-seep/common/repeat"
-	"ray-seep/ray-seep/msg"
 )
 
-type Option struct {
-	Id     int64              // ID号
-	Kind   string             // 类型
-	SendCh chan<- msg.Package //
-	Addr   string
-}
-
 type HostServer interface {
-	Create(opt *Option) error
-	Destroy(opt *Option)
+	Start() error
+	Stop()
+	Create(id int64, kind, addr string) error
+	Destroy(id int64, addr string)
 }
 
 type NetConnGainer interface {
@@ -26,29 +20,38 @@ type HostService struct {
 	dstConn repeat.NetConnGainer
 }
 
-func NewHostService(runner *Runner) *HostService {
-	return &HostService{runner: runner}
+func NewHostService() *HostService {
+	return &HostService{runner: NewRunner()}
 }
 
 func (h *HostService) Start() error {
 	return h.runner.Start()
 }
 
+func (h *HostService) Stop() {
+	h.runner.Close()
+}
+
 func (h *HostService) SetDstConn(dstConn repeat.NetConnGainer) {
 	h.dstConn = dstConn
 }
 
-func (h *HostService) Create(opt *Option) error {
+func (h *HostService) Create(id int64, kind, addr string) error {
 	join := JoinItem{
-		Name:   opt.Addr,
-		ConnId: opt.Id,
+		Name:   addr,
+		ConnId: id,
 		Err:    make(chan error),
 	}
-	join.Run = NewServerWithAddr(opt.Addr, h.dstConn)
+	join.Run = NewServerWithAddr(addr, h.dstConn)
 	h.runner.Join() <- join
-	return <-join.Err
+	err := <-join.Err
+	return err
 }
 
-func (h *HostService) Destroy(opt *Option) {
+func (h *HostService) Destroy(id int64, addr string) {
+	h.runner.Leave() <- LeaveItem{
+		Name:   addr,
+		ConnId: id,
+	}
 	return
 }

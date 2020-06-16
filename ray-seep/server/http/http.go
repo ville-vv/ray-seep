@@ -6,6 +6,7 @@ package http
 
 import (
 	"bytes"
+	"github.com/vilsongwei/vilgo/vlog"
 	"io"
 	"io/ioutil"
 	"net"
@@ -16,7 +17,6 @@ import (
 	"ray-seep/ray-seep/monitor"
 	"runtime/debug"
 	"time"
-	"github.com/vilsongwei/vilgo/vlog"
 )
 
 // Repeater 是一个中继器，用于转发 conn 的数据
@@ -46,7 +46,7 @@ func (s *Server) Scheme() string {
 
 // NewServer http 请求服务
 // repeat 用于 http 请求转发
-func NewServer(c *conf.ProtoSrv, pxyGainer repeat.NetConnGainer) *Server {
+func NewServer(c *conf.SubServer, pxyGainer repeat.NetConnGainer) *Server {
 	return &Server{addr: "", repeat: repeat.NewNetRepeater(pxyGainer)}
 }
 

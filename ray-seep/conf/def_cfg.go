@@ -30,6 +30,10 @@ Address = ":12345"
 //--------------------------------------------------------------------
 
 var serverDefaultConfig = `
+
+Host=""
+Domain = "rayseep.example.com"
+
 [Log]
 ProgramName="ray_seep"
 OutPutFile=["stdout"]
@@ -37,7 +41,6 @@ OutPutErrFile=[""]
 Level="DEBUG"
 
 [Control]
-Host = ""
 Port = 4301
 # 连接的超时时间 单位/毫秒
 ReadMsgTimeout=10000
@@ -46,15 +49,14 @@ MaxUserNum = 5
 # 一个客户端最大的代理数
 UserMaxProxyNum = 10
 
-[Proto]
-Proto="http"
-Host = ""
-Port = 4302
-Domain = "rayseep.example.com"
-
 [Proxy]
-Host=""
-Port=4303
+Port = 4303
+# 连接的超时时间 单位/毫秒
+ReadMsgTimeout=10000
+#最大客户端连接数
+MaxUserNum = 5
+# 一个客户端最大的代理数
+UserMaxProxyNum = 10
 
 [DataBase]
 OpenDb=false

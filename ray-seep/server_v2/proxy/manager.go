@@ -16,7 +16,7 @@ type PxyManager struct {
 	router   msg.RouterFunc
 }
 
-func NewPxyManager(cft *conf.ControlSrv, reg ifc.Register) *PxyManager {
+func NewPxyManager(cft *conf.SubServer, reg ifc.Register) *PxyManager {
 	return &PxyManager{register: reg}
 }
 

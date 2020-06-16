@@ -28,7 +28,7 @@ func (sel *ControlServer) Scheme() string {
 	return sel.scheme
 }
 
-func NewControlServer(src *conf.ControlSrv, handler ServerHandler) *ControlServer {
+func NewControlServer(src *conf.SubServer, handler ServerHandler) *ControlServer {
 	ctlCnf := src
 	timeout := ctlCnf.ReadMsgTimeout
 	addr := fmt.Sprintf("%s:%d", ctlCnf.Host, ctlCnf.Port)
