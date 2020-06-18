@@ -6,11 +6,11 @@ package proto
 
 import (
 	"encoding/binary"
+	"github.com/vilsongwei/vilgo/vlog"
 	"io"
 	"ray-seep/ray-seep/common/conn"
 	"sync"
 	"time"
-	"vilgo/vlog"
 )
 
 const (

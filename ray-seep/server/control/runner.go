@@ -1,8 +1,8 @@
 package control
 
 import (
+	"github.com/vilsongwei/vilgo/vlog"
 	"sync"
-	"vilgo/vlog"
 )
 
 type IRunner interface {

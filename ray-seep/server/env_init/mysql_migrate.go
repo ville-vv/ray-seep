@@ -3,8 +3,8 @@ package env_init
 import (
 	"database/sql"
 	"fmt"
+	"github.com/vilsongwei/vilgo/vsql"
 	"strings"
-	"vilgo/vsql"
 )
 
 var (

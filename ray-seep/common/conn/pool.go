@@ -5,11 +5,11 @@
 package conn
 
 import (
+	"github.com/vilsongwei/vilgo/vlog"
 	"ray-seep/ray-seep/common/errs"
 	"sync"
 	"sync/atomic"
 	"time"
-	"vilgo/vlog"
 )
 
 type Pool interface {

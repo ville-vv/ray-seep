@@ -2,13 +2,13 @@ package control
 
 import (
 	"fmt"
+	"github.com/vilsongwei/vilgo/vlog"
 	"net"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
 	"sync"
 	"time"
-	"vilgo/vlog"
 )
 
 type Router interface {

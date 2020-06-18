@@ -6,6 +6,7 @@ package control
 
 import (
 	"fmt"
+	"github.com/vilsongwei/vilgo/vlog"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/monitor"
@@ -13,7 +14,6 @@ import (
 	"runtime/debug"
 	"sync"
 	"time"
-	"vilgo/vlog"
 )
 
 type ServerMsgHandler interface {

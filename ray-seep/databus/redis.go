@@ -3,9 +3,9 @@ package databus
 import (
 	"fmt"
 	"github.com/go-redis/redis"
+	"github.com/vilsongwei/vilgo/vredis"
 	"strconv"
 	"time"
-	"vilgo/vredis"
 )
 
 type RedisClient struct {

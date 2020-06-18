@@ -7,13 +7,13 @@ package control
 import (
 	"fmt"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/vilsongwei/vilgo/vlog"
 	"net"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
 	"sync"
-	"vilgo/vlog"
 )
 
 type MessageControl struct {

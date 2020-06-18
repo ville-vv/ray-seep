@@ -3,11 +3,11 @@ package control
 import (
 	"fmt"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/vilsongwei/vilgo/vlog"
 	"ray-seep/ray-seep/client/proxy"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
 	"time"
-	"vilgo/vlog"
 )
 
 type ClientControlHandler struct {

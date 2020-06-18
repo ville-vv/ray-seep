@@ -6,6 +6,7 @@ package http
 
 import (
 	"bytes"
+	"github.com/vilsongwei/vilgo/vlog"
 	"io"
 	"io/ioutil"
 	"net"
@@ -16,7 +17,6 @@ import (
 	"ray-seep/ray-seep/monitor"
 	"runtime/debug"
 	"time"
-	"vilgo/vlog"
 )
 
 // Repeater 是一个中继器，用于转发 conn 的数据

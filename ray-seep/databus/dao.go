@@ -1,10 +1,10 @@
 package databus
 
 import (
+	"github.com/vilsongwei/vilgo/vlog"
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/model"
-	"vilgo/vlog"
 )
 
 type BaseDao interface {

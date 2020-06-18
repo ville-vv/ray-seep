@@ -2,8 +2,8 @@ package monitor
 
 import (
 	"github.com/rcrowley/go-metrics"
+	"github.com/vilsongwei/vilgo/vlog"
 	"time"
-	"vilgo/vlog"
 )
 
 type Monitor interface {

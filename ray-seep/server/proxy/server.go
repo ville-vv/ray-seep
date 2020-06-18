@@ -3,12 +3,12 @@ package proxy
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/vilsongwei/vilgo/vlog"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
 	"runtime/debug"
 	"time"
-	"vilgo/vlog"
 )
 
 type IRegister interface {
@@ -85,4 +85,5 @@ func (s *ProxyServer) dealConn(cn conn.Conn) {
 		_ = cn.Close()
 		return
 	}
+	vlog.INFO("proxy disconn")
 }
