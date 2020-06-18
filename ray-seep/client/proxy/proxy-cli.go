@@ -1,12 +1,12 @@
 package proxy
 
 import (
+	"github.com/vilsongwei/vilgo/vlog"
 	"net"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/repeat"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/proto"
-	"github.com/vilsongwei/vilgo/vlog"
 )
 
 type ClientProxy struct {

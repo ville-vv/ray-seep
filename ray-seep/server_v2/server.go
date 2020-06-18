@@ -35,10 +35,10 @@ func NewRaySeepServer(cfg *conf.Server) *RaySeepServer {
 	rds := databus.NewDao(cfg)
 	hsr := hostsrv.NewHostService()
 	register := proxy.NewRegisterCenter(cfg.Pxy.UserMaxProxyNum)
-	cctSrv := node.NewConnectCenter(cfg, hsr, node.NewPodHandler(rds))
-	pxySrv := proxy.NewPxyManager(cfg.Pxy, register)
-
 	hsr.SetDstConn(register)
+
+	pxySrv := proxy.NewPxyManager(cfg.Pxy, register)
+	cctSrv := node.NewConnectCenter(cfg, hsr, node.NewPodHandler(rds))
 	register.SetNoticeGetter(cctSrv)
 
 	return &RaySeepServer{

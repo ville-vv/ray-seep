@@ -116,7 +116,7 @@ func (c *ClientControlHandler) CreateHostRsp(req *proto.Package) (err error) {
 
 // NoticeRunProxy 通知创建代理
 func (c *ClientControlHandler) NoticeRunProxy(req *proto.Package) error {
-	//vlog.INFO("收到 [NoticeRunProxy]head:%d Body:%s", req.head, string(req.Body))
+	vlog.INFO("收到 [NoticeRunProxy]head:%d Body:%s", req.Cmd, string(req.Body))
 	return c.RunProxyReq()
 }
 

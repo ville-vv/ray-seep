@@ -56,21 +56,27 @@ func (sel *RegisterCenter) Register(name string, id int64, cc conn.Conn) error {
 }
 
 func (sel *RegisterCenter) addProxy(name string, id int64, cc conn.Conn) error {
+	vlog.INFO("客户服务新增:%s", name)
 	sel.lock.Lock()
 	defer sel.lock.Unlock()
+	vlog.INFO("客户服务新增333:%s", name)
 	if p, ok := sel.pxyPools[name]; ok {
+		//sel.lock.Unlock()
 		return p.Push(id, cc)
 	}
 	pl := &registerItem{Name: name, Id: id, Pool: conn.NewPoolV2(sel.caches)}
 	if err := pl.Push(id, cc); err != nil {
+		//sel.lock.Unlock()
 		return err
 	}
 	sel.pxyPools[name] = pl
-	// vlog.INFO("[%s][%d]当前代理数量%d", name, id, pl.Size())
+	//sel.lock.Unlock()
+	vlog.INFO("[%s][%d]当前代理数量%d", name, id, pl.Size())
 	return nil
 }
 
 func (sel *RegisterCenter) delProxy(name string, cid int64) (clean bool) {
+	vlog.INFO("关闭代理")
 	if pl, ok := sel.pxyPools[name]; ok {
 		pl.Drop(cid)
 		if pl.Size() == 0 {

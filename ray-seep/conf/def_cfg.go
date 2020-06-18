@@ -56,7 +56,7 @@ ReadMsgTimeout=10000
 #最大客户端连接数
 MaxUserNum = 5
 # 一个客户端最大的代理数
-UserMaxProxyNum = 10
+UserMaxProxyNum = 20
 
 [DataBase]
 OpenDb=false

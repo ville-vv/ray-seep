@@ -39,7 +39,7 @@ func (p *PxyManager) OnConnect(cancel chan interface{}, cn conn.Conn) error {
 		vlog.ERROR("parse register proxy request data fail %s , data is %s ", err.Error(), string(req.Body))
 		return err
 	}
-
+	vlog.INFO("收到代理请求：")
 	if err := p.register.Register(regData.Name, regData.Cid, cn); err != nil {
 		_ = msgCtr.Send(&msg.Package{Cmd: msg.CmdError, Body: []byte("")})
 		return err
@@ -48,5 +48,6 @@ func (p *PxyManager) OnConnect(cancel chan interface{}, cn conn.Conn) error {
 }
 
 func (p *PxyManager) OnDisConnect(id int64) {
+	vlog.INFO("proxy OnDisConnect")
 	return
 }
