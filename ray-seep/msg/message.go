@@ -3,6 +3,7 @@ package msg
 import (
 	"context"
 	"github.com/vilsongwei/vilgo/vlog"
+	"io"
 	"ray-seep/ray-seep/common/conn"
 	"sync"
 	"time"
@@ -23,11 +24,11 @@ func NewMessageCenter(c conn.Conn) *MessageCenter {
 	return &MessageCenter{
 		readTimeOut: 5000,
 		c:           c,
-		recvCh:      make(chan Package, 100),
-		sendCh:      make(chan Package, 100),
+		recvCh:      make(chan Package, 10000),
+		sendCh:      make(chan Package, 10000),
 		stop:        make(chan int),
 		msgTr:       NewMsgTransfer(c),
-		pkgMng:      &packerManagerJson{},
+		pkgMng:      &packerManager01{},
 	}
 }
 
@@ -37,7 +38,8 @@ func (m *MessageCenter) SetRouter(router RouterFunc) {
 	return
 }
 
-func (m *MessageCenter) Run() {
+func (m *MessageCenter) Run(router RouterFunc) {
+	m.router = router
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
@@ -75,10 +77,18 @@ func (m *MessageCenter) RecvMsg() {
 		_ = m.c.SetReadDeadline(time.Now().Add(time.Duration(m.readTimeOut) * time.Millisecond))
 		if err := m.recvMsg(pg); err != nil {
 			cel()
-			vlog.INFO("断开链接")
+			if err != io.EOF {
+				vlog.ERROR("break off connect: %s", err.Error())
+			} else {
+				vlog.WARN("break off connect")
+			}
 			return
 		}
-		m.router(&Request{Ctx: ctx, Body: pg})
+		if err := m.router(&Request{Ctx: ctx, Body: pg}); err != nil {
+			// 这里 不等一会，错误消息就发送不出去
+			time.Sleep(time.Millisecond)
+			return
+		}
 	}
 }
 

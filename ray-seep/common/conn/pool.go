@@ -5,11 +5,11 @@
 package conn
 
 import (
+	"github.com/vilsongwei/vilgo/vlog"
 	"ray-seep/ray-seep/common/errs"
 	"sync"
 	"sync/atomic"
 	"time"
-	"github.com/vilsongwei/vilgo/vlog"
 )
 
 type Pool interface {
@@ -46,7 +46,6 @@ func NewPool(cacheNum int) Pool {
 		expCh:       make(chan int64, 10000),
 		maxCacheNum: cacheNum,
 	}
-
 	return p
 }
 

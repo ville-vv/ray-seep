@@ -8,7 +8,7 @@ import (
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/msg"
 	"ray-seep/ray-seep/proto"
-	"ray-seep/ray-seep/server_v2/ifc"
+	"ray-seep/ray-seep/server/ifc"
 )
 
 type PxyManager struct {
@@ -39,15 +39,15 @@ func (p *PxyManager) OnConnect(cancel chan interface{}, cn conn.Conn) error {
 		vlog.ERROR("parse register proxy request data fail %s , data is %s ", err.Error(), string(req.Body))
 		return err
 	}
-	vlog.INFO("收到代理请求：")
+	//vlog.DEBUG("收到代理请求：")
 	if err := p.register.Register(regData.Name, regData.Cid, cn); err != nil {
-		_ = msgCtr.Send(&msg.Package{Cmd: msg.CmdError, Body: []byte("")})
+		_ = msgCtr.Send(&msg.Package{Cmd: msg.CmdError, Body: []byte(err.Error())})
 		return err
 	}
 	return nil
 }
 
 func (p *PxyManager) OnDisConnect(id int64) {
-	vlog.INFO("proxy OnDisConnect")
+	// vlog.INFO("proxy OnDisConnect")
 	return
 }

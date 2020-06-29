@@ -1,8 +1,4 @@
-// @File     : http
-// @Author   : Ville
-// @Time     : 19-9-25 下午4:33
-// http
-package http
+package hostsrv
 
 import (
 	"bytes"
@@ -13,8 +9,6 @@ import (
 	"net/http"
 	"ray-seep/ray-seep/common/rayhttp"
 	"ray-seep/ray-seep/common/repeat"
-	"ray-seep/ray-seep/conf"
-	"ray-seep/ray-seep/monitor"
 	"runtime/debug"
 	"time"
 )
@@ -25,38 +19,37 @@ type Repeater interface {
 	Transfer(host string, c net.Conn) (int64, int64, error)
 }
 
-type Server struct {
-	mtr    monitor.Monitor
-	lis    net.Listener
-	isStop bool
-	addr   string
-	repeat Repeater // 请求中续器
+type httpRunner struct {
+	clientId int64
+	lis      net.Listener
+	isStop   bool
+	addr     string
+	repeat   Repeater // 请求中续器
 }
 
-func (s *Server) Stop() {
+func (s *httpRunner) Id() int64 {
+	return s.clientId
+}
+
+func (s *httpRunner) Stop() {
 	s.isStop = true
 	if s.lis != nil {
 		_ = s.lis.Close()
 	}
 }
 
-func (s *Server) Scheme() string {
+func (s *httpRunner) Scheme() string {
 	return "http server"
 }
 
 // NewServer http 请求服务
 // repeat 用于 http 请求转发
-func NewServer(c *conf.SubServer, pxyGainer repeat.NetConnGainer) *Server {
-	return &Server{addr: "", repeat: repeat.NewNetRepeater(pxyGainer)}
-}
-
-func NewServerWithAddr(addr string, pxyGainer repeat.NetConnGainer) *Server {
-	return &Server{addr: addr, repeat: repeat.NewNetRepeater(pxyGainer), mtr: monitor.NewMonitor("http", "gauge", "meter")}
+func newHttpRunner(id int64, addr string, pxyGainer repeat.NetConnGainer) *httpRunner {
+	return &httpRunner{clientId: id, addr: addr, repeat: repeat.NewNetRepeater(pxyGainer)}
 }
 
 // Start 启动http服务
-func (s *Server) Start() error {
-	s.mtr.StartPrint(monitor.DefautlMetricePrint, time.Second*60*5)
+func (s *httpRunner) Start() error {
 	lin, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		vlog.ERROR("http listen error %v", err)
@@ -74,7 +67,6 @@ func (s *Server) Start() error {
 				}
 				return
 			}
-			s.mtr.Meter(1)
 			go s.dealConn(c)
 		}
 	}()
@@ -82,7 +74,7 @@ func (s *Server) Start() error {
 }
 
 // dealConn 处理 http 请求链接
-func (s *Server) dealConn(c net.Conn) {
+func (s *httpRunner) dealConn(c net.Conn) {
 	defer func() {
 		if err := recover(); err != nil {
 			debug.PrintStack()
@@ -112,8 +104,6 @@ func (s *Server) dealConn(c net.Conn) {
 		return
 	}
 	vlog.INFO("request size：[%d]. response size：[%d]", reqLength, respLength)
-	// 返回数据流量
-	s.mtr.Gauge(respLength)
 }
 
 func SayBackText(c net.Conn, status int, body []byte) {

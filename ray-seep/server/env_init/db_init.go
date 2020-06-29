@@ -1,8 +1,8 @@
 package env_init
 
 import (
-	"ray-seep/ray-seep/conf"
 	"github.com/vilsongwei/vilgo/vlog"
+	"ray-seep/ray-seep/conf"
 )
 
 func InitDb(cfg *conf.Server) {

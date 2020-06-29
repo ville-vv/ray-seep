@@ -30,6 +30,9 @@ func (sel *PodHandler) randPort() (int, error) {
 }
 
 func (sel *PodHandler) OnLogin(connId, userId int64, user string, appKey string, token string) (loginDao *model.UserLoginDao, err error) {
+	if sel.db.GetToken(connId, user) != "" && user != "test" {
+		return nil, errs.ErrUserHaveLogin
+	}
 	loginDao, err = sel.db.UserLogin(connId, userId, user, appKey, token)
 	if err != nil {
 		return

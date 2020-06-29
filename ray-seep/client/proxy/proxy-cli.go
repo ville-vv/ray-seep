@@ -1,11 +1,13 @@
 package proxy
 
 import (
+	jsoniter "github.com/json-iterator/go"
 	"github.com/vilsongwei/vilgo/vlog"
 	"net"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/repeat"
 	"ray-seep/ray-seep/conf"
+	"ray-seep/ray-seep/msg"
 	"ray-seep/ray-seep/proto"
 )
 
@@ -22,7 +24,6 @@ type ClientProxy struct {
 
 func NewClientProxy(stopCh chan int, cfg *conf.Client) *ClientProxy {
 	return &ClientProxy{
-		addr:   cfg.Pxy.Host,
 		stopCh: stopCh,
 		netRet: repeat.NewNetRepeater(NewTunnel(cfg.Web.Address)),
 	}
@@ -42,6 +43,7 @@ func (sel *ClientProxy) RunProxy(id int64, token string, httpDomain string, pxyA
 		cn, err := sel.dial()
 		if err != nil {
 			vlog.ERROR("connect to proxy server error %s", err.Error())
+			return
 		}
 		defer cn.Close()
 		reqLength, respLength, err := sel.netRet.Transfer(httpDomain, cn)
@@ -56,19 +58,18 @@ func (sel *ClientProxy) RunProxy(id int64, token string, httpDomain string, pxyA
 
 func (sel *ClientProxy) dial() (net.Conn, error) {
 	cn, err := net.Dial("tcp", sel.addr)
-	msgMng := proto.NewMsgTransfer(conn.TurnConn(cn))
 	if err != nil {
 		vlog.ERROR("connect your local server fail：%s", sel.addr)
 		return nil, err
 	}
-	runProxyReq := &proto.RunProxyReq{
+	msgMng := msg.MessagePusher{ResponseSender: msg.NewMessageCenter(conn.TurnConn(cn))}
+	data, _ := jsoniter.Marshal(&proto.RunProxyReq{
 		Cid:   sel.cid,
 		Token: sel.token,
 		Name:  sel.name,
-	}
-	err = msgMng.SendMsg(proto.NewPackage(proto.CmdRunProxyReq, runProxyReq))
-	if err != nil {
-		return nil, err
-	}
-	return cn, nil
+	})
+	return cn, msgMng.Send(&msg.Package{
+		Cmd:  proto.CmdRunProxyReq,
+		Body: data,
+	})
 }

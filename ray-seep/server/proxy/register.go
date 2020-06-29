@@ -1,6 +1,6 @@
 // @File     : register
 // @Author   : Ville
-// @Time     : 19-10-12 下午3:32
+// @Time     : 2020-06-12 下午3:32
 // proxy
 package proxy
 
@@ -9,7 +9,7 @@ import (
 	"net"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/common/errs"
-	"ray-seep/ray-seep/server_v2/ifc"
+	"ray-seep/ray-seep/server/ifc"
 	"sync"
 	"time"
 )
@@ -56,30 +56,27 @@ func (sel *RegisterCenter) Register(name string, id int64, cc conn.Conn) error {
 }
 
 func (sel *RegisterCenter) addProxy(name string, id int64, cc conn.Conn) error {
-	vlog.INFO("客户服务新增:%s", name)
 	sel.lock.Lock()
 	defer sel.lock.Unlock()
-	vlog.INFO("客户服务新增333:%s", name)
 	if p, ok := sel.pxyPools[name]; ok {
-		//sel.lock.Unlock()
 		return p.Push(id, cc)
 	}
 	pl := &registerItem{Name: name, Id: id, Pool: conn.NewPoolV2(sel.caches)}
 	if err := pl.Push(id, cc); err != nil {
-		//sel.lock.Unlock()
 		return err
 	}
 	sel.pxyPools[name] = pl
-	//sel.lock.Unlock()
-	vlog.INFO("[%s][%d]当前代理数量%d", name, id, pl.Size())
+	//vlog.DEBUG("add an new proxy server [number:%d]：%s-%d", len(sel.pxyPools), name, id)
 	return nil
 }
 
 func (sel *RegisterCenter) delProxy(name string, cid int64) (clean bool) {
-	vlog.INFO("关闭代理")
+	sel.lock.Lock()
+	defer sel.lock.Unlock()
 	if pl, ok := sel.pxyPools[name]; ok {
-		pl.Drop(cid)
-		if pl.Size() == 0 {
+		if pl.Id == cid {
+			vlog.DEBUG("delete proxy [%s][%d]", name, cid)
+			pl.Drop(cid)
 			pl.Close()
 			delete(sel.pxyPools, name)
 			clean = true
@@ -133,6 +130,7 @@ func (sel *RegisterCenter) noticeRunProxy(name string, id int64) error {
 }
 
 // LogOff 注销用户的代理
-func (sel *RegisterCenter) LogOff(name string, id int64) (clean bool) {
-	return sel.delProxy(name, id)
+func (sel *RegisterCenter) Logout(name string, id int64) {
+	sel.delProxy(name, id)
+	return
 }

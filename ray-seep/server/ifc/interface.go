@@ -11,9 +11,13 @@ type NoticeGetter interface {
 	GetNotice(id int64) (MessageNotice, error)
 }
 
+type ExitDevice interface {
+	Logout(name string, id int64)
+}
+
 type Register interface {
 	// 注册
 	Register(name string, id int64, cc conn.Conn) error
 	// 注销
-	LogOff(name string, id int64) (clean bool)
+	Logout(name string, id int64)
 }

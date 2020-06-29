@@ -10,7 +10,6 @@ import (
 )
 
 type Client struct {
-	Pxy     *ProxyCli     `json:"proxy" toml:"Proxy"`
 	Control *ControlCli   `json:"node" toml:"Control"`
 	Web     *WebServerCli `json:"web" toml:"Web"`
 }

@@ -6,14 +6,15 @@ import (
 	"net"
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/conf"
+	"ray-seep/ray-seep/msg"
 	"ray-seep/ray-seep/proto"
 	"sync"
 	"time"
 )
 
 type Router interface {
-	OnConnect(sender proto.Sender) error
-	OnMessage(req *proto.Package) error
+	OnConnect(sender msg.ResponseSender) error
+	OnMessage(req *msg.Request) error
 	OnDisconnect(id int64)
 }
 
@@ -25,7 +26,7 @@ type ClientControl struct {
 	reConnEndTime  int64 // 重连持续时间（断开多久就不再重连了）
 	reConnInternal int64 // 重连间隔时间（多久重连一次）
 	hd             Router
-	msgMng         proto.MsgTransfer
+	msgMng         *msg.MessageCenter
 	offCh          chan int
 	onCh           chan net.Conn
 	stopCh         chan int
@@ -111,7 +112,7 @@ func (sel *ClientControl) reconnect() {
 
 func (sel *ClientControl) dealConn(c net.Conn) {
 	defer c.Close()
-	sel.msgMng = proto.NewMsgTransfer(conn.TurnConn(c))
+	sel.msgMng = msg.NewMessageCenter(conn.TurnConn(c))
 	if err := sel.hd.OnConnect(sel.msgMng); err != nil {
 		vlog.ERROR("server connect error:%s", err.Error())
 		return
@@ -125,32 +126,14 @@ func (sel *ClientControl) dealConn(c net.Conn) {
 	}()
 	var wg sync.WaitGroup
 	wg.Add(1)
-	sel.msgMng.AsyncRecvMsg(&wg, recvCh, cancel)
+	sel.msgMng.Run(sel.hd.OnMessage)
 	wg.Wait()
-	needReConn := false
-	for {
-		select {
-		case ms := <-recvCh:
-			if err := sel.hd.OnMessage(&ms); err != nil {
-				needReConn = false
-				return
-			}
-		case err := <-cancel:
-			vlog.ERROR("disconnect：%v", err)
-			needReConn = true
-		}
-		// 只有打开了断线重连才能发送重连消息
-		if needReConn && sel.isReconnect {
-			sel.offCh <- 1
-			return
-		}
-	}
 }
 
 func (sel *ClientControl) PushEvent(cmd int32, dt []byte) error {
-	return sel.pushEvent(&proto.Package{Cmd: cmd, Body: dt})
+	return sel.pushEvent(&msg.Package{Cmd: cmd, Body: dt})
 }
 
-func (sel *ClientControl) pushEvent(p *proto.Package) error {
-	return sel.msgMng.SendMsg(p)
+func (sel *ClientControl) pushEvent(p *msg.Package) error {
+	return sel.msgMng.Send(p)
 }

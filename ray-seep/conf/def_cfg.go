@@ -19,10 +19,6 @@ ReconnectEndTime=60
 #重连一次的间隔时间/秒
 ReconnectInternal=3
 
-[Proxy]
-# 这里只需要指定host不用指定port, host暂时与Control配置共用
-#Host = "127.0.0.1"
-
 [Web]
 Address = ":12345"
 `
@@ -50,13 +46,13 @@ MaxUserNum = 5
 UserMaxProxyNum = 10
 
 [Proxy]
-Port = 4303
+Port = 43034
 # 连接的超时时间 单位/毫秒
 ReadMsgTimeout=10000
 #最大客户端连接数
 MaxUserNum = 5
 # 一个客户端最大的代理数
-UserMaxProxyNum = 20
+UserMaxProxyNum = 5
 
 [DataBase]
 OpenDb=false

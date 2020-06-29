@@ -1,6 +1,7 @@
 package hostsrv
 
 import (
+	"fmt"
 	"ray-seep/ray-seep/common/repeat"
 )
 
@@ -11,17 +12,13 @@ type HostServer interface {
 	Destroy(id int64, addr string)
 }
 
-type NetConnGainer interface {
-	GainConn()
-}
-
 type HostService struct {
-	runner  *Runner
+	runner  *RunnerMng
 	dstConn repeat.NetConnGainer
 }
 
 func NewHostService() *HostService {
-	return &HostService{runner: NewRunner()}
+	return &HostService{runner: NewRunnerMng()}
 }
 
 func (h *HostService) Start() error {
@@ -37,14 +34,18 @@ func (h *HostService) SetDstConn(dstConn repeat.NetConnGainer) {
 }
 
 func (h *HostService) Create(id int64, kind, addr string) error {
+	run, err := RunnerFactory(id, kind, addr, h.dstConn)
+	if err != nil {
+		return err
+	}
 	join := JoinItem{
 		Name:   addr,
 		ConnId: id,
 		Err:    make(chan error),
+		Run:    run,
 	}
-	join.Run = NewServerWithAddr(addr, h.dstConn)
 	h.runner.Join() <- join
-	err := <-join.Err
+	err = <-join.Err
 	return err
 }
 
@@ -54,4 +55,15 @@ func (h *HostService) Destroy(id int64, addr string) {
 		ConnId: id,
 	}
 	return
+}
+
+// 对外代理类型工厂， kind 可以为 http, tcp, ssh, 等等
+func RunnerFactory(id int64, kind, addr string, pxyGainer repeat.NetConnGainer) (IRunner, error) {
+	// 可以根据 kind 不同类型启动 不同的服务
+	switch kind {
+	case "http":
+		return newHttpRunner(id, addr, pxyGainer), nil
+	default:
+		return nil, fmt.Errorf("server kind of %s not support", kind)
+	}
 }

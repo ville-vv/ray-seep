@@ -6,6 +6,7 @@ import (
 	"github.com/vilsongwei/vilgo/vlog"
 	"ray-seep/ray-seep/client/proxy"
 	"ray-seep/ray-seep/conf"
+	"ray-seep/ray-seep/msg"
 	"ray-seep/ray-seep/proto"
 	"time"
 )
@@ -53,8 +54,8 @@ func (c *ClientControlHandler) Ping() {
 	return
 }
 
-func (c *ClientControlHandler) Pong(req *proto.Package) (err error) {
-	//vlog.INFO("server message  pong [%d]", req.head)
+func (c *ClientControlHandler) Pong(req *msg.Package) (err error) {
+	// vlog.INFO("server message  pong [%d]", req.Cmd)
 	return
 }
 
@@ -70,7 +71,7 @@ func (c *ClientControlHandler) Login(push ResponsePush) (err error) {
 	return c.push.PushEvent(proto.CmdLoginReq, dt)
 }
 
-func (c *ClientControlHandler) LoginRsp(req *proto.Package) (err error) {
+func (c *ClientControlHandler) LoginRsp(req *msg.Package) (err error) {
 	rsp := &proto.LoginRsp{}
 	if err := jsoniter.Unmarshal(req.Body, rsp); err != nil {
 		return err
@@ -92,7 +93,7 @@ func (c *ClientControlHandler) CreateHostReq() error {
 }
 
 // CreateHostRsp 创建服务主机返回
-func (c *ClientControlHandler) CreateHostRsp(req *proto.Package) (err error) {
+func (c *ClientControlHandler) CreateHostRsp(req *msg.Package) (err error) {
 	ctInfo := &proto.CreateHostRsp{}
 	if err = jsoniter.Unmarshal(req.Body, ctInfo); err != nil {
 		vlog.ERROR("create host response json un parse error %s", err.Error())
@@ -115,7 +116,7 @@ func (c *ClientControlHandler) CreateHostRsp(req *proto.Package) (err error) {
 }
 
 // NoticeRunProxy 通知创建代理
-func (c *ClientControlHandler) NoticeRunProxy(req *proto.Package) error {
+func (c *ClientControlHandler) NoticeRunProxy(req *msg.Package) error {
 	vlog.INFO("收到 [NoticeRunProxy]head:%d Body:%s", req.Cmd, string(req.Body))
 	return c.RunProxyReq()
 }
@@ -124,12 +125,17 @@ func (c *ClientControlHandler) RunProxyReq() (err error) {
 	return c.cliPxy.RunProxy(c.connId, c.token, c.httpDomain, fmt.Sprintf("%s:%d", c.pxyHost, c.pxyPort))
 }
 
-func (c *ClientControlHandler) RunProxyRsp(req *proto.Package) (err error) {
+func (c *ClientControlHandler) RunProxyRsp(req *msg.Package) (err error) {
 	//vlog.INFO("收到 [RunProxyRsp]head:%d Body:%s", req.head, string(req.Body))
 	return nil
 }
 
-func (c *ClientControlHandler) LogoutRsp(req *proto.Package) (err error) {
+func (c *ClientControlHandler) LogoutRsp(req *msg.Package) (err error) {
 	vlog.INFO("disconnect cid:%d", c.connId)
+	return nil
+}
+
+func (c *ClientControlHandler) NoticeError(req *msg.Package) (err error) {
+	vlog.INFO("收到错误消息：%s", string(req.Body))
 	return nil
 }

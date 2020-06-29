@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/vilsongwei/vilgo/vredis"
-	"strconv"
 	"time"
 )
 
@@ -31,7 +30,7 @@ func (c *RedisClient) Close() error {
 
 // 设置 Token
 func (c *RedisClient) SetUserToken(connID int64, user string, token string) error {
-	return c.rds.HSetNX("login_token_"+user, strconv.FormatInt(connID, 10), token).Err()
+	return c.rds.HSetNX("login_token_", user, token).Err()
 }
 
 // 更新到期时间
@@ -40,12 +39,9 @@ func (c *RedisClient) UpdateTokenTTl(user string, id int64) error {
 }
 
 func (c *RedisClient) DelUserToken(connID int64, user string, isDelKeys bool) error {
-	if isDelKeys {
-		return c.rds.Del("login_token_" + user).Err()
-	}
-	return c.rds.HDel("login_token_"+user, strconv.FormatInt(connID, 10)).Err()
+	return c.rds.HDel("login_token_", user).Err()
 }
 
 func (c *RedisClient) GetUserToken(connID int64, user string) string {
-	return c.rds.HGet("login_token_"+user, strconv.FormatInt(connID, 10)).Val()
+	return c.rds.HGet("login_token_", user).Val()
 }

@@ -4,12 +4,12 @@
 package hostsrv
 
 import (
-	"fmt"
 	"github.com/vilsongwei/vilgo/vlog"
 	"sync"
 )
 
 type IRunner interface {
+	Id() int64
 	Start() error
 	Stop()
 }
@@ -26,50 +26,53 @@ type LeaveItem struct {
 	ConnId int64
 }
 
-type Runner struct {
+type RunnerMng struct {
 	join  chan JoinItem
 	leave chan LeaveItem
 	items map[string]IRunner
 }
 
-func NewRunner() *Runner {
-	return &Runner{
+func NewRunnerMng() *RunnerMng {
+	return &RunnerMng{
 		join:  make(chan JoinItem, 100),
 		leave: make(chan LeaveItem, 100),
 		items: make(map[string]IRunner),
 	}
 }
 
-func (sel *Runner) Join() chan<- JoinItem {
+func (sel *RunnerMng) Join() chan<- JoinItem {
 	return sel.join
 }
 
-func (sel *Runner) Leave() chan<- LeaveItem {
+func (sel *RunnerMng) Leave() chan<- LeaveItem {
 	return sel.leave
 }
 
-func (sel *Runner) Start() error {
+func (sel *RunnerMng) Start() error {
 	w := sync.WaitGroup{}
-	w.Add(2)
+	w.Add(1)
 	go func() {
 		w.Done()
-		for v := range sel.leave {
-			sel.delItem(&v)
-		}
-	}()
-
-	go func() {
-		w.Done()
-		for v := range sel.join {
-			fmt.Println("asdfsd")
-			sel.addItem(&v)
+		for {
+			select {
+			case jv, ok := <-sel.join:
+				if !ok {
+					return
+				}
+				sel.addItem(&jv)
+			case lv, ok := <-sel.leave:
+				if !ok {
+					return
+				}
+				sel.delItem(&lv)
+			}
 		}
 	}()
 	w.Wait()
 	return nil
 }
 
-func (sel *Runner) addItem(item *JoinItem) {
+func (sel *RunnerMng) addItem(item *JoinItem) {
 	if _, ok := sel.items[item.Name]; ok {
 		item.Err <- nil
 		return
@@ -80,22 +83,24 @@ func (sel *Runner) addItem(item *JoinItem) {
 	}()
 	err := <-errCh
 	if err == nil {
-		vlog.DEBUG("启动服务：%s", item.Name)
+		// vlog.DEBUG("启动服务：%s", item.Name)
 		sel.items[item.Name] = item.Run
 	}
 	item.Err <- err
 	return
 }
 
-func (sel *Runner) delItem(item *LeaveItem) {
+func (sel *RunnerMng) delItem(item *LeaveItem) {
 	if pxy, ok := sel.items[item.Name]; ok {
-		vlog.INFO("清理服务：%s", item.Name)
-		pxy.Stop()
-		delete(sel.items, item.Name)
+		if pxy.Id() == item.ConnId {
+			vlog.DEBUG("delete the runner [%s]", item.Name)
+			pxy.Stop()
+			delete(sel.items, item.Name)
+		}
 	}
 }
 
-func (sel *Runner) Close() {
+func (sel *RunnerMng) Close() {
 	close(sel.join)
 	close(sel.leave)
 }

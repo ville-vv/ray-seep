@@ -1,6 +1,7 @@
 package conn
 
 import (
+	"github.com/vilsongwei/vilgo/vlog"
 	"ray-seep/ray-seep/common/errs"
 	"sync/atomic"
 )
@@ -21,7 +22,12 @@ func NewPoolV2(cacheNum int) Pool {
 }
 
 func (p *poolV2) Push(key int64, c Conn) error {
-	p.caches <- c
+	select {
+	case p.caches <- c:
+	default:
+		vlog.INFO("代理满了")
+		return nil
+	}
 	atomic.AddInt64(&p.cntCacheNum, 1)
 	return nil
 }

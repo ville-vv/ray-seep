@@ -2,6 +2,7 @@ package control
 
 import (
 	"ray-seep/ray-seep/common/errs"
+	"ray-seep/ray-seep/msg"
 	"ray-seep/ray-seep/proto"
 )
 
@@ -10,22 +11,23 @@ type ResponsePush interface {
 }
 
 type Handler interface {
-	Pong(req *proto.Package) error
+	Pong(req *msg.Package) error
 	Login(push ResponsePush) error
-	LoginRsp(req *proto.Package) error
-	CreateHostRsp(req *proto.Package) (err error)
-	RunProxyRsp(req *proto.Package) error
-	NoticeRunProxy(req *proto.Package) error
-	LogoutRsp(req *proto.Package) error
+	LoginRsp(req *msg.Package) error
+	CreateHostRsp(req *msg.Package) (err error)
+	RunProxyRsp(req *msg.Package) error
+	NoticeRunProxy(req *msg.Package) error
+	LogoutRsp(req *msg.Package) error
+	NoticeError(req *msg.Package) (err error)
 }
 
-type HandlerFun func(req *proto.Package) (err error)
+type HandlerFun func(req *msg.Package) (err error)
 
 type router struct {
 	hds map[int32]HandlerFun
 }
 
-func (r *router) route(req *proto.Package, push ResponsePush) error {
+func (r *router) route(req *msg.Package, push ResponsePush) error {
 	hd, ok := r.hds[req.Cmd]
 	if !ok {
 		return errs.ErrNoCmdRouterNot
@@ -40,7 +42,7 @@ func (r *router) Add(cmd int32, fun HandlerFun) {
 type RouteControl struct {
 	route    *router
 	hd       Handler
-	sender   proto.Sender
+	sender   msg.ResponseSender
 	remoteId int64
 	token    string
 }
@@ -54,18 +56,18 @@ func NewRouteControl(hd Handler) *RouteControl {
 	return r
 }
 
-func (r *RouteControl) OnConnect(sender proto.Sender) error {
+func (r *RouteControl) OnConnect(sender msg.ResponseSender) error {
 	r.sender = sender
 	return r.hd.Login(r)
 }
 
-func (r *RouteControl) OnMessage(req *proto.Package) error {
+func (r *RouteControl) OnMessage(req *msg.Request) error {
 	//vlog.INFO("收到服务器的信息：cmd[%d]", req.head)
-	return r.route.route(req, r)
+	return r.route.route(req.Body, r)
 }
 
 func (r *RouteControl) OnDisconnect(localId int64) {
-	_ = r.hd.LogoutRsp(&proto.Package{Cmd: proto.CmdLogoutReq, Body: []byte{}})
+	_ = r.hd.LogoutRsp(&msg.Package{Cmd: proto.CmdLogoutReq, Body: []byte{}})
 	return
 }
 
@@ -80,6 +82,8 @@ func (r *RouteControl) initRouter() {
 
 	r.route.Add(proto.CmdNoticeRunProxy, r.hd.NoticeRunProxy)
 
+	r.route.Add(proto.CmdError, r.hd.NoticeError)
+
 }
 
 //
@@ -89,5 +93,5 @@ func (r *RouteControl) PushEvent(cmd int32, dt []byte) error {
 
 //
 func (r *RouteControl) pushEvent(cmd int32, dt []byte) error {
-	return r.sender.SendMsg(&proto.Package{Cmd: cmd, Body: dt})
+	return r.sender.Send(&msg.Package{Cmd: cmd, Body: dt})
 }

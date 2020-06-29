@@ -29,7 +29,7 @@ func (sel *NotSqlDao) UserLogin(connId int64, userId int64, user string, appKey 
 		return nil, err
 	}
 	sel.lock.Lock()
-	sel.tokens[fmt.Sprintf("login_token_%s_%d", user, connId)] = token
+	sel.tokens[fmt.Sprintf("login_token_%s_", user)] = token
 	sel.lock.Unlock()
 	return ul, nil
 }
@@ -37,11 +37,11 @@ func (sel *NotSqlDao) UserLogin(connId int64, userId int64, user string, appKey 
 func (sel *NotSqlDao) GetToken(connId int64, user string) string {
 	sel.lock.RLock()
 	defer sel.lock.RUnlock()
-	return sel.tokens[fmt.Sprintf("login_token_%s_%d", user, connId)]
+	return sel.tokens[fmt.Sprintf("login_token_%s_", user)]
 }
 
 func (sel *NotSqlDao) DelToken(connId int64, user string, isDelKeys bool) {
 	sel.lock.Lock()
 	defer sel.lock.Unlock()
-	delete(sel.tokens, fmt.Sprintf("login_token_%s_%d", user, connId))
+	delete(sel.tokens, fmt.Sprintf("login_token_%s_", user))
 }

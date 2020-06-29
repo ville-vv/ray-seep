@@ -76,7 +76,8 @@ func (c *receiver) AsyncRecvMsg(wait *sync.WaitGroup, mCh chan<- Package, cancel
 		for {
 			var m Package
 			if err := c.RecvMsg(&m); err != nil {
-				cancel <- err
+				vlog.INFO("%v", err)
+				//cancel <- err
 				return
 			}
 			mCh <- m

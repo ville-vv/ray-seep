@@ -12,15 +12,21 @@ import (
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/msg"
 	"ray-seep/ray-seep/proto"
-	"ray-seep/ray-seep/server_v2/hostsrv"
+	"ray-seep/ray-seep/server/hostsrv"
 )
 
 type PodRouterFun func([]byte) (interface{}, error)
 
+type EventPusher interface {
+	msg.ResponseSender
+	PushInJson(cmd int32, obj interface{}) (err error)
+	PushInByte(cmd int32, data []byte) (err error)
+}
+
 // Pod 是一个 代理服务 的管理器连接，包括代理和控制连接
 type Pod struct {
 	srvCfg   *conf.Server
-	sender   msg.ResponseSender
+	sender   msg.MessagePusher
 	hsr      hostsrv.HostServer
 	podHd    *PodHandler
 	connId   int64 // 连接ID号
@@ -34,7 +40,7 @@ type Pod struct {
 func NewPod(id int64, srv *conf.Server, sender msg.ResponseSender, hsr hostsrv.HostServer, podHd *PodHandler) *Pod {
 	p := &Pod{
 		connId: id,
-		sender: sender,
+		sender: msg.MessagePusher{ResponseSender: sender},
 		hsr:    hsr,
 		podHd:  podHd,
 		srvCfg: srv,
@@ -46,26 +52,30 @@ func (p *Pod) ConnId() int64 {
 	return p.connId
 }
 
+func (p *Pod) Name() string {
+	return p.name
+}
+
+func (p *Pod) HttpAddr() string {
+	return p.httpAddr
+}
+
 // PushMsg 用来主动推送消息
 func (p *Pod) PushInJson(cmd int32, obj interface{}) (err error) {
-	body, err := jsoniter.Marshal(obj)
-	if err != nil {
-		return err
-	}
-	vlog.INFO("发送消息%d：%s", cmd, string(body))
-	p.sender.SendCh() <- msg.Package{Cmd: cmd, Body: body}
-	return
+	return p.sender.PushInJson(cmd, obj)
 }
 
 func (p *Pod) PushInByte(cmd int32, data []byte) (err error) {
-	p.sender.SendCh() <- msg.Package{Cmd: cmd, Body: data[:]}
-	return
+	//p.sender.SendCh() <- msg.Package{Cmd: cmd, Body: data[:]}
+	return p.sender.PushInByte(cmd, data)
 }
 
 // OnMessage 有消息接收就会发送到这里来
-func (p *Pod) OnMessage(req *msg.Request) {
+func (p *Pod) OnMessage(req *msg.Request) error {
 	var err error
 	switch req.Body.Cmd {
+	case msg.CmdPing:
+		err = p.Ping()
 	case msg.CmdLoginReq:
 		err = p.LoginReq(req.Body.Cmd, req.Body.Body)
 	case msg.CmdCreateHostReq:
@@ -75,7 +85,12 @@ func (p *Pod) OnMessage(req *msg.Request) {
 		vlog.ERROR("on message error %s", err.Error())
 		_ = p.PushInJson(msg.CmdError, &proto.ErrorNotice{ErrMsg: err.Error()})
 	}
-	return
+	return err
+}
+
+func (p *Pod) Ping() error {
+	//vlog.INFO("ping ...... ")
+	return p.PushInJson(msg.CmdPong, nil)
 }
 
 func (p *Pod) LoginReq(cmd int32, body []byte) (err error) {
@@ -101,6 +116,7 @@ func (p *Pod) LoginReq(cmd int32, body []byte) (err error) {
 	p.httpAddr = fmt.Sprintf("%s:%s", p.srvCfg.Domain, ul.HttpPort)
 
 	vlog.INFO("[%d] login token =%s name=%s addr:%s", connId, p.appKey, reqLogin.Name, p.httpAddr)
+	//return errors.New("出现错误")
 	return p.PushInJson(msg.CmdLoginRsp, resp)
 }
 
@@ -139,14 +155,13 @@ func (p *Pod) NoticeRunProxy(data []byte) error {
 
 func (p *Pod) NoticeRunProxyRsp(data []byte) error {
 	// 通知客户端，启动一个代理链接的回应
-	if err := p.PushInByte(proto.CmdNoticeRunProxy, data); err != nil {
+	if err := p.PushInByte(proto.CmdRunProxyRsp, data); err != nil {
 		vlog.ERROR("[%d] notice run proxy error %s", p.connId, err.Error())
 	}
 	return nil
 }
 
 func (p *Pod) LogoutReq(req []byte) (err error) {
-	vlog.INFO("停止服务")
 	p.hsr.Destroy(p.connId, fmt.Sprintf(":%s", p.httpPort))
 	return nil
 }
