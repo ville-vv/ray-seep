@@ -65,10 +65,10 @@ func (f *FileSystem) writeFile(w io.Writer, fileName string) error {
 	return err
 }
 func (f *FileSystem) displayFile(fileName string, w http.ResponseWriter, req *http.Request) error {
-	strs := strings.Split(fileName, "/")
-	w.Header().Add("Content-Type", "application/octet-stream")
-	w.Header().Add("Content-Disposition", "attachment; filename=\""+strs[len(strs)-1]+"\"")
-	return f.writeFile(w, fileName)
+	//strs := strings.Split(fileName, "/")
+	//w.Header().Add("Content-Type", "application/octet-stream")
+	//w.Header().Add("Content-Disposition", "attachment; filename=\""+strs[len(strs)-1]+"\"")
+	return f.writeFile(NewFileResponse(w, fileName), fileName)
 }
 func (f *FileSystem) displayDir(path string, rsp http.ResponseWriter, req *http.Request) error {
 	buf := bytes.NewBufferString("")
@@ -109,4 +109,27 @@ func (f *FileSystem) Display(rsp http.ResponseWriter, req *http.Request) {
 	if err = f.displayDir(uriPath, rsp, req); err != nil {
 		_, _ = rsp.Write([]byte(err.Error()))
 	}
+}
+
+type FileResponse struct {
+	fileName string
+	wt       http.ResponseWriter
+	isFirst  bool
+}
+
+func NewFileResponse(wt http.ResponseWriter, fileName string) *FileResponse {
+	strList := strings.Split(fileName, "/")
+	fileName = strList[len(strList)-1]
+	return &FileResponse{wt: wt, fileName: fileName}
+}
+
+func (sel *FileResponse) Write(p []byte) (n int, err error) {
+	if !sel.isFirst && len(p) > 10 {
+		sel.isFirst = true
+		if !ShowWeb(p[:10]) {
+			sel.wt.Header().Add("Content-Type", "application/octet-stream")
+			sel.wt.Header().Add("Content-Disposition", "attachment; filename=\""+sel.fileName+"\"")
+		}
+	}
+	return sel.wt.Write(p)
 }

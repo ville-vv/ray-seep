@@ -60,13 +60,16 @@ func init() {
 	fileTypeMap.Store("504b0304140006000800", "docx")       //docx文件
 	fileTypeMap.Store("d0cf11e0a1b11ae10000", "wps")        //WPS文字wps、表格et、演示dps都是一样的
 	fileTypeMap.Store("6431303a637265617465", "torrent")
-	fileTypeMap.Store("6D6F6F76", "mov")         //Quicktime (mov)
-	fileTypeMap.Store("FF575043", "wpd")         //WordPerfect (wpd)
-	fileTypeMap.Store("CFAD12FEC5FD746F", "dbx") //Outlook Express (dbx)
-	fileTypeMap.Store("2142444E", "pst")         //Outlook (pst)
-	fileTypeMap.Store("AC9EBD8F", "qdf")         //Quicken (qdf)
-	fileTypeMap.Store("E3828596", "pwl")         //Windows Password (pwl)
-	fileTypeMap.Store("2E7261FD", "ram")         //Real Audio (ram)
+	fileTypeMap.Store("6D6F6F76", "mov")                //Quicktime (mov)
+	fileTypeMap.Store("FF575043", "wpd")                //WordPerfect (wpd)
+	fileTypeMap.Store("CFAD12FEC5FD746F", "dbx")        //Outlook Express (dbx)
+	fileTypeMap.Store("2142444E", "pst")                //Outlook (pst)
+	fileTypeMap.Store("AC9EBD8F", "qdf")                //Quicken (qdf)
+	fileTypeMap.Store("E3828596", "pwl")                //Windows Password (pwl)
+	fileTypeMap.Store("2E7261FD", "ram")                //Real Audio (ram)
+	fileTypeMap.Store("7061636b616765207374", "go")     //go文件
+	fileTypeMap.Store("7f454c46020101000000", "binary") //linux的可执行文件
+	fileTypeMap.Store("cffaedfe070000010300", "binary") //mac 的可执行文件
 }
 
 // 获取前面结果字节的二进制
@@ -92,7 +95,6 @@ func bytesToHexString(src []byte) string {
 func GetFileType(fSrc []byte) string {
 	var fileType string
 	fileCode := bytesToHexString(fSrc)
-
 	fileTypeMap.Range(func(key, value interface{}) bool {
 		k := key.(string)
 		v := value.(string)
@@ -104,4 +106,12 @@ func GetFileType(fSrc []byte) string {
 		return true
 	})
 	return fileType
+}
+
+func ShowWeb(fSrc []byte) bool {
+	switch GetFileType(fSrc) {
+	case "binary", "exe", "gz", "zip", "rar":
+		return false
+	}
+	return true
 }
