@@ -8,9 +8,10 @@ import (
 )
 
 type BaseDao interface {
-	UserLogin(connId int64, userId int64, user string, appKey string, token string) (*model.UserLoginDao, error)
+	UserLogin(connId int64, userId int64, user string, appKey string) (*model.UserLoginDao, error)
+	SaveToken(connID int64, user string, token string) error
 	GetToken(connId int64, user string) string
-	DelToken(connId int64, user string, isDelKeys bool)
+	DelToken(connId int64, user string)
 	Close()
 }
 
@@ -44,7 +45,7 @@ func (sel *RaySeepServerDao) Close() {
 	}
 }
 
-func (sel *RaySeepServerDao) UserLogin(connId int64, userId int64, user string, appKey string, token string) (*model.UserLoginDao, error) {
+func (sel *RaySeepServerDao) UserLogin(connId int64, userId int64, user string, appKey string) (*model.UserLoginDao, error) {
 	ul := &model.UserLoginDao{}
 	if err := sel.sqlDb.UserAuth(userId, user, appKey, ul); err != nil {
 		return nil, err
@@ -52,14 +53,18 @@ func (sel *RaySeepServerDao) UserLogin(connId int64, userId int64, user string, 
 	if ul.Secret == "" {
 		return nil, errs.ErrUserInfoValidFail
 	}
-	return ul, sel.rdsDb.SetUserToken(connId, user, token)
+	return ul, nil
+}
+
+func (sel *RaySeepServerDao) SaveToken(connID int64, user string, token string) error {
+	return sel.rdsDb.SetUserToken(connID, user, token)
 }
 
 func (sel *RaySeepServerDao) GetToken(connId int64, user string) string {
 	return sel.rdsDb.GetUserToken(connId, user)
 }
 
-func (sel *RaySeepServerDao) DelToken(connId int64, user string, isDelKeys bool) {
-	_ = sel.rdsDb.DelUserToken(connId, user, isDelKeys)
+func (sel *RaySeepServerDao) DelToken(connId int64, user string) {
+	_ = sel.rdsDb.DelUserToken(connId, user)
 	return
 }

@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 	"ray-seep/ray-seep/common/util"
-	"ray-seep/ray-seep/run/admin/store"
+	"ray-seep/run/admin/store"
 	"time"
 )
 

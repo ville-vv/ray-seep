@@ -3,7 +3,6 @@ package control
 import (
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/msg"
-	"ray-seep/ray-seep/proto"
 )
 
 type ResponsePush interface {
@@ -67,22 +66,22 @@ func (r *RouteControl) OnMessage(req *msg.Request) error {
 }
 
 func (r *RouteControl) OnDisconnect(localId int64) {
-	_ = r.hd.LogoutRsp(&msg.Package{Cmd: proto.CmdLogoutReq, Body: []byte{}})
+	_ = r.hd.LogoutRsp(&msg.Package{Cmd: msg.CmdLogoutReq, Body: []byte{}})
 	return
 }
 
 func (r *RouteControl) initRouter() {
-	r.route.Add(proto.CmdPong, r.hd.Pong)
+	r.route.Add(msg.CmdPong, r.hd.Pong)
 	// 登录返回
-	r.route.Add(proto.CmdLoginRsp, r.hd.LoginRsp)
+	r.route.Add(msg.CmdLoginRsp, r.hd.LoginRsp)
 	//
-	r.route.Add(proto.CmdCreateHostRsp, r.hd.CreateHostRsp)
+	r.route.Add(msg.CmdCreateHostRsp, r.hd.CreateHostRsp)
 	//
-	r.route.Add(proto.CmdRunProxyRsp, r.hd.RunProxyRsp)
+	r.route.Add(msg.CmdRunProxyRsp, r.hd.RunProxyRsp)
 
-	r.route.Add(proto.CmdNoticeRunProxy, r.hd.NoticeRunProxy)
+	r.route.Add(msg.CmdNoticeRunProxy, r.hd.NoticeRunProxy)
 
-	r.route.Add(proto.CmdError, r.hd.NoticeError)
+	r.route.Add(msg.CmdError, r.hd.NoticeError)
 
 }
 

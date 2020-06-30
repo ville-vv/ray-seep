@@ -69,7 +69,7 @@ func (sel *ClientProxy) dial() (net.Conn, error) {
 		Name:  sel.name,
 	})
 	return cn, msgMng.Send(&msg.Package{
-		Cmd:  proto.CmdRunProxyReq,
+		Cmd:  msg.CmdRunProxyReq,
 		Body: data,
 	})
 }

@@ -14,14 +14,14 @@ import (
 type ConnectCenter struct {
 	mu    sync.Mutex
 	pods  map[int64]*Pod
-	podHd *PodHandler
+	podHd ifc.PodHandler
 	cNum  int
 	cfg   *conf.Server
 	hsr   hostsrv.HostServer
 	exit  ifc.ExitDevice
 }
 
-func NewConnectCenter(cfg *conf.Server, runner hostsrv.HostServer, podHd *PodHandler, exit ifc.ExitDevice) *ConnectCenter {
+func NewConnectCenter(cfg *conf.Server, runner hostsrv.HostServer, podHd ifc.PodHandler, exit ifc.ExitDevice) *ConnectCenter {
 	return &ConnectCenter{
 		mu:    sync.Mutex{},
 		pods:  make(map[int64]*Pod),

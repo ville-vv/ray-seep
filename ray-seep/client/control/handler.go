@@ -45,7 +45,7 @@ func (c *ClientControlHandler) Ping() {
 		for {
 			select {
 			case <-tm.C:
-				if err := c.push.PushEvent(proto.CmdPing, nil); err != nil {
+				if err := c.push.PushEvent(msg.CmdPing, nil); err != nil {
 					return
 				}
 			}
@@ -68,7 +68,7 @@ func (c *ClientControlHandler) Login(push ResponsePush) (err error) {
 		return err
 	}
 	c.push = push
-	return c.push.PushEvent(proto.CmdLoginReq, dt)
+	return c.push.PushEvent(msg.CmdLoginReq, dt)
 }
 
 func (c *ClientControlHandler) LoginRsp(req *msg.Package) (err error) {
@@ -89,7 +89,7 @@ func (c *ClientControlHandler) CreateHostReq() error {
 	if err != nil {
 		return err
 	}
-	return c.push.PushEvent(proto.CmdCreateHostReq, reqData)
+	return c.push.PushEvent(msg.CmdCreateHostReq, reqData)
 }
 
 // CreateHostRsp 创建服务主机返回

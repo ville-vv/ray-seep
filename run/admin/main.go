@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"ray-seep/ray-seep/run/admin/input"
-	"ray-seep/ray-seep/run/admin/store"
+	"ray-seep/run/admin/input"
+	"ray-seep/run/admin/store"
 )
 
 func main() {

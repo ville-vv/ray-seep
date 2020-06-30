@@ -38,7 +38,7 @@ func (c *RedisClient) UpdateTokenTTl(user string, id int64) error {
 	return c.rds.Expire(fmt.Sprintf("%s_%d_token", user, id), time.Second*60).Err()
 }
 
-func (c *RedisClient) DelUserToken(connID int64, user string, isDelKeys bool) error {
+func (c *RedisClient) DelUserToken(connID int64, user string) error {
 	return c.rds.HDel("login_token_", user).Err()
 }
 

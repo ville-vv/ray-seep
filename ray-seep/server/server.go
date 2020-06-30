@@ -12,6 +12,7 @@ import (
 	"ray-seep/ray-seep/server/hostsrv"
 	"ray-seep/ray-seep/server/node"
 	"ray-seep/ray-seep/server/proxy"
+	"ray-seep/ray-seep/server/user"
 	"runtime/debug"
 )
 
@@ -38,7 +39,7 @@ func NewRaySeepServer(cfg *conf.Server) *RaySeepServer {
 	hsr.SetDstConn(register)
 
 	pxySrv := proxy.NewPxyManager(cfg.Pxy, register)
-	cctSrv := node.NewConnectCenter(cfg, hsr, node.NewPodHandler(rds), register)
+	cctSrv := node.NewConnectCenter(cfg, hsr, user.NewHandler(rds), register)
 	register.SetNoticeGetter(cctSrv)
 
 	return &RaySeepServer{

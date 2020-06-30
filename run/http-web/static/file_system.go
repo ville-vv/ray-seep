@@ -65,6 +65,9 @@ func (f *FileSystem) writeFile(w io.Writer, fileName string) error {
 	return err
 }
 func (f *FileSystem) displayFile(fileName string, w http.ResponseWriter, req *http.Request) error {
+	strs := strings.Split(fileName, "/")
+	w.Header().Add("Content-Type", "application/octet-stream")
+	w.Header().Add("Content-Disposition", "attachment; filename=\""+strs[len(strs)-1]+"\"")
 	return f.writeFile(w, fileName)
 }
 func (f *FileSystem) displayDir(path string, rsp http.ResponseWriter, req *http.Request) error {

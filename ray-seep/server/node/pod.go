@@ -8,11 +8,11 @@ import (
 	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/vilsongwei/vilgo/vlog"
-	"ray-seep/ray-seep/common/util"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/msg"
 	"ray-seep/ray-seep/proto"
 	"ray-seep/ray-seep/server/hostsrv"
+	"ray-seep/ray-seep/server/ifc"
 )
 
 type PodRouterFun func([]byte) (interface{}, error)
@@ -28,16 +28,14 @@ type Pod struct {
 	srvCfg   *conf.Server
 	sender   msg.MessagePusher
 	hsr      hostsrv.HostServer
-	podHd    *PodHandler
+	podHd    ifc.PodHandler
 	connId   int64 // 连接ID号
-	appKey   string
-	name     string
-	secret   string
+	userName string
 	httpPort string
 	httpAddr string
 }
 
-func NewPod(id int64, srv *conf.Server, sender msg.ResponseSender, hsr hostsrv.HostServer, podHd *PodHandler) *Pod {
+func NewPod(id int64, srv *conf.Server, sender msg.ResponseSender, hsr hostsrv.HostServer, podHd ifc.PodHandler) *Pod {
 	p := &Pod{
 		connId: id,
 		sender: msg.MessagePusher{ResponseSender: sender},
@@ -50,10 +48,6 @@ func NewPod(id int64, srv *conf.Server, sender msg.ResponseSender, hsr hostsrv.H
 
 func (p *Pod) ConnId() int64 {
 	return p.connId
-}
-
-func (p *Pod) Name() string {
-	return p.name
 }
 
 func (p *Pod) HttpAddr() string {
@@ -93,31 +87,29 @@ func (p *Pod) Ping() error {
 	return p.PushInJson(msg.CmdPong, nil)
 }
 
+// 客户端的登录请求操作
 func (p *Pod) LoginReq(cmd int32, body []byte) (err error) {
 	connId := p.connId
 	reqLogin := proto.LoginReq{}
-	resp := &proto.LoginRsp{Id: connId, Token: util.RandToken()}
 	if err := jsoniter.Unmarshal(body, &reqLogin); err != nil {
 		vlog.ERROR("[%d] login Unmarshal error:%s", connId, err.Error())
 		return err
 	}
 
 	vlog.INFO("[%d] login request userId=%d ", p.connId, reqLogin.UserId)
-	ul, err := p.podHd.OnLogin(p.connId, reqLogin.UserId, reqLogin.Name, reqLogin.AppKey, resp.Token)
+	token, srvPort, err := p.podHd.OnLogin(p.connId, reqLogin.UserId, reqLogin.Name, reqLogin.AppKey)
 	if err != nil {
 		vlog.ERROR("[%d] login store token error:%s", p.connId, err.Error())
 		return err
 	}
 	// 登录操作处理
-	p.appKey = reqLogin.AppKey
-	p.name = reqLogin.Name
-	p.secret = ul.Secret
-	p.httpPort = ul.HttpPort
-	p.httpAddr = fmt.Sprintf("%s:%s", p.srvCfg.Domain, ul.HttpPort)
+	p.userName = reqLogin.Name
+	p.httpPort = srvPort
+	p.httpAddr = p.srvCfg.Domain + ":" + srvPort
 
-	vlog.INFO("[%d] login token =%s name=%s addr:%s", connId, p.appKey, reqLogin.Name, p.httpAddr)
+	vlog.INFO("[%d] login token =%s name=%s addr:%s", connId, reqLogin.AppKey, reqLogin.Name, p.httpAddr)
 	//return errors.New("出现错误")
-	return p.PushInJson(msg.CmdLoginRsp, resp)
+	return p.PushInJson(msg.CmdLoginRsp, &proto.LoginRsp{Id: connId, Token: token})
 }
 
 func (p *Pod) CreateHostReq(cmd int32, body []byte) (err error) {
@@ -147,7 +139,7 @@ func (p *Pod) CreateHostReq(cmd int32, body []byte) (err error) {
 
 // NoticeRunProxy 通知用户启动代理服务服务
 func (p *Pod) NoticeRunProxy(data []byte) error {
-	if err := p.PushInByte(proto.CmdNoticeRunProxy, data); err != nil {
+	if err := p.PushInByte(msg.CmdNoticeRunProxy, data); err != nil {
 		vlog.ERROR("[%d] notice run proxy error %s", p.connId, err.Error())
 	}
 	return nil
@@ -155,7 +147,7 @@ func (p *Pod) NoticeRunProxy(data []byte) error {
 
 func (p *Pod) NoticeRunProxyRsp(data []byte) error {
 	// 通知客户端，启动一个代理链接的回应
-	if err := p.PushInByte(proto.CmdRunProxyRsp, data); err != nil {
+	if err := p.PushInByte(msg.CmdRunProxyRsp, data); err != nil {
 		vlog.ERROR("[%d] notice run proxy error %s", p.connId, err.Error())
 	}
 	return nil
@@ -163,5 +155,5 @@ func (p *Pod) NoticeRunProxyRsp(data []byte) error {
 
 func (p *Pod) LogoutReq(req []byte) (err error) {
 	p.hsr.Destroy(p.connId, fmt.Sprintf(":%s", p.httpPort))
-	return nil
+	return p.podHd.OnLogout(p.userName, p.connId)
 }

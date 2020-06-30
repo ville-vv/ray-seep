@@ -7,7 +7,6 @@ import (
 	"ray-seep/ray-seep/common/conn"
 	"ray-seep/ray-seep/conf"
 	"ray-seep/ray-seep/msg"
-	"ray-seep/ray-seep/proto"
 	"sync"
 	"time"
 )
@@ -117,7 +116,7 @@ func (sel *ClientControl) dealConn(c net.Conn) {
 		vlog.ERROR("server connect error:%s", err.Error())
 		return
 	}
-	recvCh := make(chan proto.Package)
+	recvCh := make(chan msg.Package)
 	cancel := make(chan interface{})
 	defer func() {
 		close(recvCh)

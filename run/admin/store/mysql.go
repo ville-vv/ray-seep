@@ -3,7 +3,7 @@ package store
 import (
 	"database/sql"
 	"fmt"
-	github.com/vilsongwei/vilgo/vsql"
+	"github.com/vilsongwei/vilgo/vsql"
 )
 
 type MySqlStore struct {

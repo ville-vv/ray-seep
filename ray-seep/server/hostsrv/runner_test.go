@@ -17,7 +17,7 @@ func TestRunner_Join(t *testing.T) {
 	j1 := JoinItem{
 		Name:   "ddd",
 		ConnId: 0,
-		Run:    newHttpRunner(":23455", nil),
+		Run:    newHttpRunner(12345, ":23455", nil),
 		Err:    make(chan error),
 	}
 	rj <- j1
@@ -26,7 +26,7 @@ func TestRunner_Join(t *testing.T) {
 	j2 := JoinItem{
 		Name:   "dddddd",
 		ConnId: 5,
-		Run:    newHttpRunner(":23456", nil),
+		Run:    newHttpRunner(123456, ":23456", nil),
 		Err:    make(chan error),
 	}
 	rj <- j2
@@ -35,7 +35,7 @@ func TestRunner_Join(t *testing.T) {
 	j3 := JoinItem{
 		Name:   "657hth",
 		ConnId: 9,
-		Run:    newHttpRunner(":23457", nil),
+		Run:    newHttpRunner(345546, ":23457", nil),
 		Err:    make(chan error),
 	}
 	rj <- j3
