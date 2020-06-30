@@ -55,7 +55,7 @@ MaxUserNum = 5
 UserMaxProxyNum = 5
 
 [DataBase]
-OpenDb=true
+OpenDb=false
 
 [DataBase.Redis]
 Address = "127.0.0.1:6379"
