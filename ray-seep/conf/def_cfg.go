@@ -8,10 +8,10 @@ var clientDefaultConfig = `
 [Control]
 Host="127.0.0.1"
 Port=4301
-Name="test"
-UserId=100
-Secret="example"
-AppKey="example"
+Name="rayseep"
+UserId=101
+Secret="4a35022cb0af2bc8471a1345d162575d"
+AppKey="b753c6ad848e19ddd36c529430d262d5"
 #是否打开重连
 CanReconnect=false
 #重连结束时间/秒
@@ -55,7 +55,7 @@ MaxUserNum = 5
 UserMaxProxyNum = 5
 
 [DataBase]
-OpenDb=false
+OpenDb=true
 
 [DataBase.Redis]
 Address = "127.0.0.1:6379"

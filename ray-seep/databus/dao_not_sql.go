@@ -49,3 +49,7 @@ func (sel *NotSqlDao) DelToken(connId int64, user string) {
 	defer sel.lock.Unlock()
 	delete(sel.tokens, fmt.Sprintf("login_token_%s_", user))
 }
+
+func (sel *NotSqlDao) UpdateTokenTTl(user string, id int64) error {
+	return nil
+}

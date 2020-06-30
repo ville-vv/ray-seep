@@ -12,6 +12,7 @@ type BaseDao interface {
 	SaveToken(connID int64, user string, token string) error
 	GetToken(connId int64, user string) string
 	DelToken(connId int64, user string)
+	UpdateTokenTTl(user string, id int64) error
 	Close()
 }
 
@@ -67,4 +68,8 @@ func (sel *RaySeepServerDao) GetToken(connId int64, user string) string {
 func (sel *RaySeepServerDao) DelToken(connId int64, user string) {
 	_ = sel.rdsDb.DelUserToken(connId, user)
 	return
+}
+
+func (sel *RaySeepServerDao) UpdateTokenTTl(user string, id int64) error {
+	return sel.rdsDb.UpdateTokenTTl(user, id)
 }

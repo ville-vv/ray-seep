@@ -83,6 +83,7 @@ func (p *Pod) OnMessage(req *msg.Request) error {
 }
 
 func (p *Pod) Ping() error {
+	p.podHd.KeepLive(p.userName, p.connId)
 	//vlog.INFO("ping ...... ")
 	return p.PushInJson(msg.CmdPong, nil)
 }

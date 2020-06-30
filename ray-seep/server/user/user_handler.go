@@ -55,6 +55,10 @@ func (sel *Handler) OnLogin(connId, userId int64, user string, appKey string) (t
 	return token, srvPort, sel.db.SaveToken(connId, user, token)
 }
 
+func (sel *Handler) KeepLive(userName string, connID int64) {
+	_ = sel.db.UpdateTokenTTl(userName, connID)
+}
+
 func (sel *Handler) OnLogout(name string, id int64) error {
 	sel.db.DelToken(id, name)
 	return nil

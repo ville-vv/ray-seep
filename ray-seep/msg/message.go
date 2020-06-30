@@ -22,7 +22,7 @@ type MessageCenter struct {
 
 func NewMessageCenter(c conn.Conn) *MessageCenter {
 	return &MessageCenter{
-		readTimeOut: 5000,
+		readTimeOut: 60,
 		c:           c,
 		recvCh:      make(chan Package, 10000),
 		sendCh:      make(chan Package, 10000),
@@ -74,7 +74,7 @@ func (m *MessageCenter) RecvMsg() {
 		default:
 		}
 		pg := new(Package)
-		_ = m.c.SetReadDeadline(time.Now().Add(time.Duration(m.readTimeOut) * time.Millisecond))
+		_ = m.c.SetReadDeadline(time.Now().Add(time.Duration(m.readTimeOut) * time.Second))
 		if err := m.recvMsg(pg); err != nil {
 			cel()
 			if err != io.EOF {

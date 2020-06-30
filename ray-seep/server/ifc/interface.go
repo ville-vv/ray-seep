@@ -32,4 +32,5 @@ type PodHandler interface {
 	OnCreateHost(connId int64, user string, token string) error
 	// 用户登出操作
 	OnLogout(name string, id int64) error
+	KeepLive(userName string, connID int64)
 }

@@ -41,7 +41,7 @@ func NewClientControlHandler(cfg *conf.Client) *ClientControlHandler {
 
 func (c *ClientControlHandler) Ping() {
 	go func() {
-		tm := time.NewTicker(time.Second * 3)
+		tm := time.NewTicker(time.Second * 55)
 		for {
 			select {
 			case <-tm.C:
