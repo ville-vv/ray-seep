@@ -5,3 +5,5 @@ bin/
 docker_build
 docker_build/
 *.toml
+nohup.out
+process_id
