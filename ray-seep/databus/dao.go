@@ -8,34 +8,36 @@ import (
 )
 
 type BaseDao interface {
-	UserLogin(connId int64, userId int64, user string, appKey string, token string) (*model.UserLoginDao, error)
+	UserLogin(connId int64, userId int64, user string, appKey string) (*model.UserLoginDao, error)
+	SaveToken(connID int64, user string, token string) error
 	GetToken(connId int64, user string) string
-	DelToken(connId int64, user string, isDelKeys bool)
+	DelToken(connId int64, user string)
+	UpdateTokenTTl(user string, id int64) error
 	Close()
 }
 
 func NewDao(cfg *conf.Server) BaseDao {
 	if cfg.DataBase.OpenDb {
-		return NewRaySeepServer(cfg)
+		return NewRaySeepServerDao(cfg)
 	}
 	vlog.INFO("dao use NewNotSqlDao")
 	return NewNotSqlDao(cfg)
 }
 
-type RaySeepServer struct {
+type RaySeepServerDao struct {
 	rdsDb *RedisClient
 	sqlDb *MysqlClient
 }
 
-func NewRaySeepServer(cfg *conf.Server) *RaySeepServer {
-	r := &RaySeepServer{
+func NewRaySeepServerDao(cfg *conf.Server) *RaySeepServerDao {
+	r := &RaySeepServerDao{
 		sqlDb: NewMysqlClient(cfg.DataBase.Mysql),
 		rdsDb: NewRedisClient(cfg.DataBase.Redis),
 	}
 	return r
 }
 
-func (sel *RaySeepServer) Close() {
+func (sel *RaySeepServerDao) Close() {
 	if sel.sqlDb != nil {
 		_ = sel.sqlDb.Close()
 	}
@@ -44,7 +46,7 @@ func (sel *RaySeepServer) Close() {
 	}
 }
 
-func (sel *RaySeepServer) UserLogin(connId int64, userId int64, user string, appKey string, token string) (*model.UserLoginDao, error) {
+func (sel *RaySeepServerDao) UserLogin(connId int64, userId int64, user string, appKey string) (*model.UserLoginDao, error) {
 	ul := &model.UserLoginDao{}
 	if err := sel.sqlDb.UserAuth(userId, user, appKey, ul); err != nil {
 		return nil, err
@@ -52,14 +54,22 @@ func (sel *RaySeepServer) UserLogin(connId int64, userId int64, user string, app
 	if ul.Secret == "" {
 		return nil, errs.ErrUserInfoValidFail
 	}
-	return ul, sel.rdsDb.SetUserToken(connId, user, token)
+	return ul, nil
 }
 
-func (sel *RaySeepServer) GetToken(connId int64, user string) string {
+func (sel *RaySeepServerDao) SaveToken(connID int64, user string, token string) error {
+	return sel.rdsDb.SetUserToken(connID, user, token)
+}
+
+func (sel *RaySeepServerDao) GetToken(connId int64, user string) string {
 	return sel.rdsDb.GetUserToken(connId, user)
 }
 
-func (sel *RaySeepServer) DelToken(connId int64, user string, isDelKeys bool) {
-	_ = sel.rdsDb.DelUserToken(connId, user, isDelKeys)
+func (sel *RaySeepServerDao) DelToken(connId int64, user string) {
+	_ = sel.rdsDb.DelUserToken(connId, user)
 	return
+}
+
+func (sel *RaySeepServerDao) UpdateTokenTTl(user string, id int64) error {
+	return sel.rdsDb.UpdateTokenTTl(user, id)
 }

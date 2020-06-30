@@ -7,12 +7,13 @@ package conf
 import (
 	"fmt"
 	"github.com/vilsongwei/vilgo/vfile"
+
 	"testing"
 )
 
 func TestInitClient(t *testing.T) {
 	cliCfg := InitClient()
-	fmt.Println(cliCfg.Pxy)
+	fmt.Println(cliCfg.Control)
 	//fmt.Println(cliCfg.Node)
 }
 
@@ -24,7 +25,7 @@ func TestInitClient2(t *testing.T) {
 	}
 	defer vfile.Remove(fName)
 	cliCfg := InitClient(fName)
-	fmt.Println(cliCfg.Pxy)
+	fmt.Println(cliCfg.Control)
 	//fmt.Println(cliCfg.Node)
 
 }

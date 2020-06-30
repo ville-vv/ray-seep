@@ -8,20 +8,16 @@ var clientDefaultConfig = `
 [Control]
 Host="127.0.0.1"
 Port=4301
-Name="test"
-UserId=100
-Secret="example"
-AppKey="example"
+Name="rayseep"
+UserId=101
+Secret="4a35022cb0af2bc8471a1345d162575d"
+AppKey="b753c6ad848e19ddd36c529430d262d5"
 #是否打开重连
 CanReconnect=false
 #重连结束时间/秒
 ReconnectEndTime=60
 #重连一次的间隔时间/秒
 ReconnectInternal=3
-
-[Proxy]
-# 这里只需要指定host不用指定port, host暂时与Control配置共用
-#Host = "127.0.0.1"
 
 [Web]
 Address = ":12345"
@@ -30,6 +26,10 @@ Address = ":12345"
 //--------------------------------------------------------------------
 
 var serverDefaultConfig = `
+
+Host=""
+Domain = "rayseep.example.com"
+
 [Log]
 ProgramName="ray_seep"
 OutPutFile=["stdout"]
@@ -37,7 +37,6 @@ OutPutErrFile=[""]
 Level="DEBUG"
 
 [Control]
-Host = ""
 Port = 4301
 # 连接的超时时间 单位/毫秒
 ReadMsgTimeout=10000
@@ -46,18 +45,17 @@ MaxUserNum = 5
 # 一个客户端最大的代理数
 UserMaxProxyNum = 10
 
-[Proto]
-Proto="http"
-Host = ""
-Port = 4302
-Domain = "rayseep.example.com"
-
 [Proxy]
-Host=""
-Port=4303
+Port = 43034
+# 连接的超时时间 单位/毫秒
+ReadMsgTimeout=10000
+#最大客户端连接数
+MaxUserNum = 5
+# 一个客户端最大的代理数
+UserMaxProxyNum = 5
 
 [DataBase]
-OpenDb=false
+OpenDb=true
 
 [DataBase.Redis]
 Address = "127.0.0.1:6379"

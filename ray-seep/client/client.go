@@ -7,12 +7,12 @@ package client
 import (
 	"flag"
 	"fmt"
-	"github.com/vilsongwei/vilgo/vlog"
 	"os"
 	"os/signal"
 	"ray-seep/ray-seep/client/control"
 	"ray-seep/ray-seep/conf"
 	"syscall"
+	"github.com/vilsongwei/vilgo/vlog"
 )
 
 var (

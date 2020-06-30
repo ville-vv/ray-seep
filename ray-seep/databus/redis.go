@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/vilsongwei/vilgo/vredis"
-	"strconv"
 	"time"
 )
 
@@ -31,21 +30,18 @@ func (c *RedisClient) Close() error {
 
 // 设置 Token
 func (c *RedisClient) SetUserToken(connID int64, user string, token string) error {
-	return c.rds.HSetNX("login_token_"+user, strconv.FormatInt(connID, 10), token).Err()
+	return c.rds.SetNX("rayseep::login::token::"+user, token, time.Second*60).Err()
 }
 
 // 更新到期时间
 func (c *RedisClient) UpdateTokenTTl(user string, id int64) error {
-	return c.rds.Expire(fmt.Sprintf("%s_%d_token", user, id), time.Second*60).Err()
+	return c.rds.Expire(fmt.Sprintf("rayseep::login::token::"+user), time.Second*60).Err()
 }
 
-func (c *RedisClient) DelUserToken(connID int64, user string, isDelKeys bool) error {
-	if isDelKeys {
-		return c.rds.Del("login_token_" + user).Err()
-	}
-	return c.rds.HDel("login_token_"+user, strconv.FormatInt(connID, 10)).Err()
+func (c *RedisClient) DelUserToken(connID int64, user string) error {
+	return c.rds.Del("rayseep::login::token::" + user).Err()
 }
 
 func (c *RedisClient) GetUserToken(connID int64, user string) string {
-	return c.rds.HGet("login_token_"+user, strconv.FormatInt(connID, 10)).Val()
+	return c.rds.Get("rayseep::login::token::" + user).Val()
 }

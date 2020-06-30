@@ -23,25 +23,33 @@ func NewNotSqlDao(cfg *conf.Server) *NotSqlDao {
 func (sel *NotSqlDao) Close() {
 }
 
-func (sel *NotSqlDao) UserLogin(connId int64, userId int64, user string, appKey string, token string) (*model.UserLoginDao, error) {
+func (sel *NotSqlDao) UserLogin(connId int64, userId int64, user string, appKey string) (*model.UserLoginDao, error) {
 	ul := &model.UserLoginDao{}
-	if err := sel.user.UserAuth(userId, appKey, ul); err != nil {
-		return nil, err
-	}
-	sel.lock.Lock()
-	sel.tokens[fmt.Sprintf("login_token_%s_%d", user, connId)] = token
-	sel.lock.Unlock()
-	return ul, nil
+	return ul, sel.user.UserAuth(userId, appKey, ul)
 }
 
+// 保存 token
+func (sel *NotSqlDao) SaveToken(connID int64, user string, token string) error {
+	sel.lock.Lock()
+	sel.tokens[fmt.Sprintf("login_token_%s_", user)] = token
+	sel.lock.Unlock()
+	return nil
+}
+
+// 获取 token
 func (sel *NotSqlDao) GetToken(connId int64, user string) string {
 	sel.lock.RLock()
 	defer sel.lock.RUnlock()
-	return sel.tokens[fmt.Sprintf("login_token_%s_%d", user, connId)]
+	return sel.tokens[fmt.Sprintf("login_token_%s_", user)]
 }
 
-func (sel *NotSqlDao) DelToken(connId int64, user string, isDelKeys bool) {
+// 删除 token
+func (sel *NotSqlDao) DelToken(connId int64, user string) {
 	sel.lock.Lock()
 	defer sel.lock.Unlock()
-	delete(sel.tokens, fmt.Sprintf("login_token_%s_%d", user, connId))
+	delete(sel.tokens, fmt.Sprintf("login_token_%s_", user))
+}
+
+func (sel *NotSqlDao) UpdateTokenTTl(user string, id int64) error {
+	return nil
 }

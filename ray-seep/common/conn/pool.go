@@ -46,7 +46,6 @@ func NewPool(cacheNum int) Pool {
 		expCh:       make(chan int64, 10000),
 		maxCacheNum: cacheNum,
 	}
-
 	return p
 }
 
