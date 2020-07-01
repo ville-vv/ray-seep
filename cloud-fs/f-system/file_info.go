@@ -1,4 +1,4 @@
-package static
+package f_system
 
 import (
 	"os"
@@ -12,6 +12,7 @@ type FileInfo interface {
 	Size() int64
 	Time() time.Time
 }
+
 type defFileInfo struct {
 	name  string
 	path  string
@@ -33,15 +34,6 @@ func (d *defFileInfo) Size() int64 {
 
 func (d *defFileInfo) Time() time.Time {
 	return d.cTime
-}
-
-// FileExists 判断文件是否存在
-func FileExists(path string) bool {
-	_, err := os.Stat(path)
-	if err != nil && os.IsNotExist(err) {
-		return false
-	}
-	return true
 }
 
 func PathEasyWolk(root string) ([]FileInfo, error) {

@@ -1,14 +1,14 @@
-package static
+package f_system
 
 import (
 	"bytes"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	"text/template"
 )
 
 var htmlPageTemp = `
@@ -47,7 +47,7 @@ func UseTemplate(w io.Writer, tmpl string, data interface{}) error {
 }
 
 type FileSystem struct {
-	root string
+	root string // 文件系统的根目录
 }
 
 func NewFileSystem(root string) *FileSystem {
@@ -65,9 +65,6 @@ func (f *FileSystem) writeFile(w io.Writer, fileName string) error {
 	return err
 }
 func (f *FileSystem) displayFile(fileName string, w http.ResponseWriter, req *http.Request) error {
-	//strs := strings.Split(fileName, "/")
-	//w.Header().Add("Content-Type", "application/octet-stream")
-	//w.Header().Add("Content-Disposition", "attachment; filename=\""+strs[len(strs)-1]+"\"")
 	return f.writeFile(NewFileResponse(w, fileName), fileName)
 }
 func (f *FileSystem) displayDir(path string, rsp http.ResponseWriter, req *http.Request) error {
@@ -92,6 +89,8 @@ func (f *FileSystem) displayDir(path string, rsp http.ResponseWriter, req *http.
 		"User_Agent": req.Header.Get("User-Agent"),
 	})
 }
+
+// 文件展示
 func (f *FileSystem) Display(rsp http.ResponseWriter, req *http.Request) {
 	var err error
 	uriPath := filepath.Join(f.root, req.URL.Path)

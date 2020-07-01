@@ -1,4 +1,4 @@
-package static
+package f_system
 
 import (
 	"bytes"

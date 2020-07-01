@@ -18,6 +18,8 @@ type MessageCenter struct {
 	msgTr       Transfer      // 消息运输器， 用于发送和接收消息
 	pkgMng      PackerManager // 消息包管理器 用于打包和解包消息
 	readTimeOut int64
+	isTimeout   bool
+	Err         error
 }
 
 func NewMessageCenter(c conn.Conn) *MessageCenter {
@@ -30,6 +32,10 @@ func NewMessageCenter(c conn.Conn) *MessageCenter {
 		msgTr:       NewMsgTransfer(c),
 		pkgMng:      &packerManager01{},
 	}
+}
+
+func (m *MessageCenter) IsTimeout() bool {
+	return m.isTimeout
 }
 
 // 设置路由
@@ -79,6 +85,7 @@ func (m *MessageCenter) RecvMsg() {
 			cel()
 			if err != io.EOF {
 				vlog.ERROR("break off connect: %s", err.Error())
+				m.Err = err
 			} else {
 				vlog.WARN("break off connect")
 			}

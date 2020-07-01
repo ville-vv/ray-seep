@@ -7,12 +7,12 @@ package client
 import (
 	"flag"
 	"fmt"
+	"github.com/vilsongwei/vilgo/vlog"
 	"os"
 	"os/signal"
 	"ray-seep/ray-seep/client/control"
 	"ray-seep/ray-seep/conf"
 	"syscall"
-	"github.com/vilsongwei/vilgo/vlog"
 )
 
 var (
@@ -21,10 +21,6 @@ var (
 	genCfgFile string
 	dbInit     bool
 )
-
-type RaySeepClient struct {
-	ctl *control.ClientControl
-}
 
 func argsParse() {
 	flag.StringVar(&configPath, "c", "", "the config file")
@@ -47,13 +43,20 @@ func Main() {
 	// 初始化配置
 	cfg := conf.InitClient(configPath)
 	vlog.DefaultLogger()
-	ctrCli := control.NewClientControl(cfg.Control, control.NewClientControlHandler(cfg))
+	if cfg.Log != nil {
+		fmt.Println("reset logger:", *cfg.Log)
+		vlog.SetLogger(vlog.NewGoLogger(cfg.Log))
+	}
+	ctrCli := control.NewClientManager(cfg.Control, control.NewClientControlHandler(cfg))
 
 	go func() {
 		ctrCli.Start()
 	}()
-
 	sgn := make(chan os.Signal, 1)
 	signal.Notify(sgn, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
-	fmt.Println(<-sgn)
+	select {
+	case <-sgn:
+		ctrCli.Stop()
+	case <-ctrCli.WaitClose():
+	}
 }

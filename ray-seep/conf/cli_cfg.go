@@ -6,10 +6,12 @@ package conf
 
 import (
 	"github.com/vilsongwei/vilgo/vcnf"
+	"github.com/vilsongwei/vilgo/vlog"
 	"os"
 )
 
 type Client struct {
+	Log     *vlog.LogCnf  `json:"log"`
 	Control *ControlCli   `json:"node" toml:"Control"`
 	Web     *WebServerCli `json:"web" toml:"Web"`
 }
