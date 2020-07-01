@@ -12,7 +12,7 @@ OutPutErrFile=[""]
 Level="DEBUG"
 
 [Control]
-Host="193.112.47.13"
+Host="127.0.0.1"
 Port=4301
 Name="test"
 UserId=100
