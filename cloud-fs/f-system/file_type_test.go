@@ -7,17 +7,18 @@ import (
 )
 
 func TestGetFileType(t *testing.T) {
-	f, err := os.Open("image_test_01.jpg")
+	f, err := os.Open("bootstrap.css")
 	if err != nil {
 		t.Logf("open error: %v", err)
 	}
+	defer f.Close()
 
 	fSrc, err := ioutil.ReadAll(f)
 	t.Log(GetFileType(fSrc[:10]))
 }
 
 func TestGetFileType3(t *testing.T) {
-	f, err := os.Open("image_test_01.jpg")
+	f, err := os.Open("css/bootstrap.css")
 	if err != nil {
 		t.Logf("open error: %v", err)
 	}
@@ -26,7 +27,7 @@ func TestGetFileType3(t *testing.T) {
 	fSrc, err := ioutil.ReadAll(f)
 	t.Log(bytesToHexString(fSrc[:10]))
 
-	f2, err := os.Open("file_system.go")
+	f2, err := os.Open("css/style.css")
 	if err != nil {
 		t.Logf("open error: %v", err)
 	}
@@ -35,7 +36,7 @@ func TestGetFileType3(t *testing.T) {
 	fSrc2, err := ioutil.ReadAll(f2)
 	t.Log(bytesToHexString(fSrc2[:10]))
 
-	f3, err := os.Open("file_util.go")
+	f3, err := os.Open("css/chocolat.css")
 	if err != nil {
 		t.Logf("open error: %v", err)
 	}

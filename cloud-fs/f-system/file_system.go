@@ -1,11 +1,8 @@
 package f_system
 
 import (
-	"bytes"
-	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -83,60 +80,25 @@ func UseTemplate(w io.Writer, tmpl string, data interface{}) error {
 	return tp.Execute(w, data)
 }
 
+type FileDisplayer interface {
+	Display(root string, filePath string, w http.ResponseWriter, req *http.Request) error
+}
+
 type FileSystem struct {
-	root string // 文件系统的根目录
+	root string        // 文件系统的根目录
+	dir  FileDisplayer // 目录文件
+	text FileDisplayer // 文本文件
 }
 
 func NewFileSystem(root string) *FileSystem {
 	if strings.Trim(root, " ") == "" {
 		root = "./"
 	}
-	return &FileSystem{root: filepath.Join("", root)}
-}
-func (f *FileSystem) writeFile(w io.Writer, fileName string) error {
-	file, err := os.Open(fileName)
-	if err != nil {
-		return err
+	return &FileSystem{
+		root: filepath.Join("", root),
+		dir:  &DirFile{},
+		text: &TextFile{},
 	}
-	_, err = io.Copy(w, file)
-	return err
-}
-
-func (f *FileSystem) displayFile(fileName string, w http.ResponseWriter, req *http.Request) error {
-	return f.writeFile(NewFileResponse(w, fileName), fileName)
-}
-
-func (f *FileSystem) displayDir(path string, rsp http.ResponseWriter, req *http.Request) error {
-	buf := bytes.NewBufferString("")
-
-	fileList, err := PathEasyWolk(path)
-	if err != nil {
-		return err
-	}
-	_, _ = buf.Write([]byte(fmt.Sprintf("<div><a href=\"./\">./<a/></div>")))
-	if path != f.root {
-		_, _ = buf.Write([]byte(fmt.Sprintf("<div><a href=\"../\">../<a/></div>")))
-	}
-	for _, file := range fileList {
-		if path == file.Path() {
-			continue
-		}
-
-		isDir, err := IsDir(path + "/" + file.Name())
-		if err != nil {
-			continue
-		}
-		if isDir {
-			_, _ = buf.Write([]byte(fmt.Sprintf("<div><a href=\"%s/\">%s<a/></div>", file.Name(), file.Name())))
-			continue
-		}
-		_, _ = buf.Write([]byte(fmt.Sprintf("<div><a href=\"%s\">%s<a/></div>", file.Name(), file.Name())))
-	}
-	return UseTemplate(rsp, htmlPageTemp, map[string]string{
-		"Context":    buf.String(),
-		"RemoterIp":  req.RemoteAddr,
-		"User_Agent": req.Header.Get("User-Agent"),
-	})
 }
 
 // 文件展示
@@ -148,36 +110,13 @@ func (f *FileSystem) Display(rsp http.ResponseWriter, req *http.Request) {
 		_, _ = rsp.Write([]byte(err.Error()))
 		return
 	}
-	if !isDir {
-		if err = f.displayFile(uriPath, rsp, req); err != nil {
-			_, _ = rsp.Write([]byte(err.Error()))
-		}
-		return
+	switch isDir {
+	case false:
+		err = f.text.Display(f.root, uriPath, rsp, req)
+	default:
+		err = f.dir.Display(f.root, uriPath, rsp, req)
 	}
-	if err = f.displayDir(uriPath, rsp, req); err != nil {
+	if err != nil {
 		_, _ = rsp.Write([]byte(err.Error()))
 	}
-}
-
-type FileResponse struct {
-	fileName string
-	wt       http.ResponseWriter
-	isFirst  bool
-}
-
-func NewFileResponse(wt http.ResponseWriter, fileName string) *FileResponse {
-	strList := strings.Split(fileName, "/")
-	fileName = strList[len(strList)-1]
-	return &FileResponse{wt: wt, fileName: fileName}
-}
-
-func (sel *FileResponse) Write(p []byte) (n int, err error) {
-	if !sel.isFirst && len(p) > 10 {
-		sel.isFirst = true
-		if !ShowWeb(p[:10]) {
-			sel.wt.Header().Add("Content-Type", "application/octet-stream")
-			sel.wt.Header().Add("Content-Disposition", "attachment; filename=\""+sel.fileName+"\"")
-		}
-	}
-	return sel.wt.Write(p)
 }

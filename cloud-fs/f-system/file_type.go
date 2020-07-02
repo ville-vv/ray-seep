@@ -23,6 +23,8 @@ func init() {
 	fileTypeMap.Store("3c68746d6c3e0", "html")        //HTML (html)   3c68746d6c3e0  3c68746d6c3e0
 	fileTypeMap.Store("3c21646f637479706520", "htm")  //HTM (htm)
 	fileTypeMap.Store("48544d4c207b0d0a0942", "css")  //css
+	fileTypeMap.Store("2f2a20e7bb87e6a2a635", "css")  //css
+	fileTypeMap.Store("2f2a20e591a8e58583e4", "css")  //css
 	fileTypeMap.Store("696b2e71623d696b2e71", "js")   //js
 	fileTypeMap.Store("7b5c727466315c616e73", "rtf")  //Rich Text Format (rtf)
 	fileTypeMap.Store("38425053000100000000", "psd")  //Photoshop (psd)
@@ -114,4 +116,17 @@ func ShowWeb(fSrc []byte) bool {
 		return false
 	}
 	return true
+}
+
+func HeaderType(fSrc []byte) string {
+	tp := GetFileType(fSrc)
+	switch tp {
+	case "binary", "exe", "gz", "zip", "rar":
+		return "download"
+	case "css":
+		return "css"
+	case "js":
+		return "js"
+	}
+	return ""
 }
