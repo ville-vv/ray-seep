@@ -29,18 +29,18 @@ build: clean build-server build-client build-web-tool
 
 build-server:
 	echo $(PROJECTNAME)
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $(SERVER_UNIX_BINARY)  ./run/server/main.go
-	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o $(SERVER_MAC_BINARY)  ./run/server/main.go
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o $(SERVER_WIN_BINARY)  ./run/server/main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $(SERVER_UNIX_BINARY)  ./apps/server/main.go
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o $(SERVER_MAC_BINARY)  ./apps/server/main.go
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o $(SERVER_WIN_BINARY)  ./apps/server/main.go
 build-client:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $(CLIENT_UNIX_BINARY)  ./run/client/main.go
-	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o $(CLIENT_MAC_BINARY)  ./run/client/main.go
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o $(CLIENT_WIN_BINARY)  ./run/client/main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $(CLIENT_UNIX_BINARY)  ./apps/client/main.go
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o $(CLIENT_MAC_BINARY)  ./apps/client/main.go
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o $(CLIENT_WIN_BINARY)  ./apps/client/main.go
 
 build-web-tool:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $(HTTP_WEB_UNIX_BINARY)  ./run/http-web/main.go
-	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o $(HTTP_WEB_MAC_BINARY)  ./run/http-web/main.go
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o $(HTTP_WEB_WIN_BINARY)  ./run/http-web/main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $(HTTP_WEB_UNIX_BINARY)  ./apps/http-web/main.go
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o $(HTTP_WEB_MAC_BINARY)  ./apps/http-web/main.go
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o $(HTTP_WEB_WIN_BINARY)  ./apps/http-web/main.go
 
 docker-ready:
 	sudo rm -rf $(DOCKER_BUILD)

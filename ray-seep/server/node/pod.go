@@ -141,7 +141,7 @@ func (p *Pod) CreateHostReq(cmd int32, body []byte) (err error) {
 // NoticeRunProxy 通知用户启动代理服务服务
 func (p *Pod) NoticeRunProxy(data []byte) error {
 	if err := p.PushInByte(msg.CmdNoticeRunProxy, data); err != nil {
-		vlog.ERROR("[%d] notice run proxy error %s", p.connId, err.Error())
+		vlog.ERROR("[%d] notice apps proxy error %s", p.connId, err.Error())
 	}
 	return nil
 }
@@ -149,7 +149,7 @@ func (p *Pod) NoticeRunProxy(data []byte) error {
 func (p *Pod) NoticeRunProxyRsp(data []byte) error {
 	// 通知客户端，启动一个代理链接的回应
 	if err := p.PushInByte(msg.CmdRunProxyRsp, data); err != nil {
-		vlog.ERROR("[%d] notice run proxy error %s", p.connId, err.Error())
+		vlog.ERROR("[%d] notice apps proxy error %s", p.connId, err.Error())
 	}
 	return nil
 }

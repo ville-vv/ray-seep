@@ -8,6 +8,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/vilsongwei/vilgo/vlog"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"ray-seep/ray-seep/common/util"
@@ -23,6 +25,7 @@ var (
 	help       bool
 	genCfgFile string
 	dbInit     bool
+	pprofOpen  bool
 )
 
 func printServerInfo(cfg *conf.Server) {
@@ -37,6 +40,7 @@ func argsParse() {
 	flag.BoolVar(&help, "h", false, "the tool use help")
 	flag.BoolVar(&dbInit, "db-init", false, "create database and table if not exist, must to do with -c point config file")
 	flag.StringVar(&genCfgFile, "gen", "", "generate default config file")
+	flag.BoolVar(&pprofOpen, "pprof", false, "open the pprof tool")
 
 	flag.Parse()
 	if help {
@@ -53,6 +57,14 @@ func argsParse() {
 		os.Exit(0)
 	}
 
+	if pprofOpen {
+		pprof()
+	}
+
+}
+
+func pprof() {
+	go http.ListenAndServe(":8078", nil)
 }
 
 func main() {

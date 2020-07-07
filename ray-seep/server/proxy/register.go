@@ -103,7 +103,7 @@ func (sel *RegisterCenter) GetNetConn(name string) (net.Conn, error) {
 func (sel *RegisterCenter) getAndRunProxy(name string, pl *registerItem) (net.Conn, error) {
 	id := pl.Id
 	if err := sel.noticeRunProxy(name, id); err != nil {
-		vlog.ERROR("[%s][%d] push notice run proxy message error %s", name, id, err.Error())
+		vlog.ERROR("[%s][%d] push notice apps proxy message error %s", name, id, err.Error())
 		return nil, errs.ErrNoticeProxyRunErr
 	}
 	// 如果没有取到就发送重置消息，请求连接一个代理
@@ -123,7 +123,7 @@ func (sel *RegisterCenter) getAndRunProxy(name string, pl *registerItem) (net.Co
 func (sel *RegisterCenter) noticeRunProxy(name string, id int64) error {
 	notice, err := sel.ntc.GetNotice(id)
 	if err != nil {
-		vlog.ERROR("[%s][%d]notice run proxy error %s", name, id, err.Error())
+		vlog.ERROR("[%s][%d]notice apps proxy error %s", name, id, err.Error())
 		return err
 	}
 	return notice.NoticeRunProxy([]byte("{}"))
