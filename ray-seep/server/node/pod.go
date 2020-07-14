@@ -60,7 +60,6 @@ func (p *Pod) PushInJson(cmd int32, obj interface{}) (err error) {
 }
 
 func (p *Pod) PushInByte(cmd int32, data []byte) (err error) {
-	//p.sender.SendCh() <- msg.Package{Cmd: cmd, Body: data[:]}
 	return p.sender.PushInByte(cmd, data)
 }
 

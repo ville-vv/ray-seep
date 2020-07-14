@@ -15,8 +15,9 @@ import (
 type Pool interface {
 	Push(key int64, c Conn) error
 	Get(key int64) (Conn, error)
-	WaitGet() <-chan Conn
+	WaitGet() (Conn, error)
 	Size() int
+	Inc() int64
 	Drop(key int64)
 	Close()
 }
@@ -90,9 +91,22 @@ func (p *pool) Get(key int64) (Conn, error) {
 	}
 }
 
-func (p *pool) WaitGet() <-chan Conn {
-	atomic.AddInt64(&p.cntCacheNum, -1)
-	return p.caches
+func (p *pool) WaitGet() (Conn, error) {
+	tm := time.NewTicker(time.Second * 5)
+	select {
+	case cn, ok := <-p.caches:
+		if !ok {
+			return nil, errs.ErrProxySrvNotExist
+		}
+		atomic.AddInt64(&p.cntCacheNum, -1)
+		return cn, nil
+	case <-tm.C:
+		return nil, errs.ErrWaitProxyRunTimeout
+	}
+}
+func (p *pool) Inc() int64 {
+	l := atomic.LoadInt64(&p.cntCacheNum)
+	return l
 }
 func (p *pool) Drop(key int64) {
 	close(p.caches)

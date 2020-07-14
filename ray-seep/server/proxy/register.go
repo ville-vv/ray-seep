@@ -11,7 +11,6 @@ import (
 	"ray-seep/ray-seep/common/errs"
 	"ray-seep/ray-seep/server/ifc"
 	"sync"
-	"time"
 )
 
 type registerItem struct {
@@ -107,17 +106,13 @@ func (sel *RegisterCenter) getAndRunProxy(name string, pl *registerItem) (net.Co
 		return nil, errs.ErrNoticeProxyRunErr
 	}
 	// 如果没有取到就发送重置消息，请求连接一个代理
-	tm := time.NewTicker(time.Second * 5)
-	select {
-	case cn, ok := <-pl.WaitGet():
-		if !ok {
-			return nil, errs.ErrProxySrvNotExist
-		}
-		return cn, nil
-	case <-tm.C:
-		vlog.WARN("[%s][%d] wait get proxy timeout", name, id)
+	cn, err := pl.WaitGet()
+	//vlog.INFO("当前代理数：%s[%d][%d]", pl.Name, pl.Size(), pl.Inc())
+	if err != nil {
+		vlog.WARN("[%s][%d] wait get proxy error %s", name, id, err.Error())
+		return nil, err
 	}
-	return nil, errs.ErrWaitProxyRunTimeout
+	return cn, nil
 }
 
 func (sel *RegisterCenter) noticeRunProxy(name string, id int64) error {

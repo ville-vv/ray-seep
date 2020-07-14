@@ -13,11 +13,9 @@ func (p *MessagePusher) PushInJson(cmd int32, obj interface{}) (err error) {
 	if err != nil {
 		return err
 	}
-	p.SendCh() <- Package{Cmd: cmd, Body: body}
-	return
+	return p.SendCh(&Package{Cmd: cmd, Body: body})
 }
 
 func (p *MessagePusher) PushInByte(cmd int32, data []byte) (err error) {
-	p.SendCh() <- Package{Cmd: cmd, Body: data[:]}
-	return
+	return p.SendCh(&Package{Cmd: cmd, Body: data[:]})
 }

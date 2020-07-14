@@ -30,7 +30,7 @@ type Sender interface {
 
 type ResponseSender interface {
 	Send(pg *Package) error
-	SendCh() chan<- Package
+	SendCh(p *Package) error
 }
 
 type Request struct {

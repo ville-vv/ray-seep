@@ -44,19 +44,14 @@ Level="DEBUG"
 
 [Control]
 Port = 4301
-# 连接的超时时间 单位/毫秒
+# 连接的超时时间 单位/毫秒，有客户端的tcp链接时，如果在这个设置时间内没有发送任何消息，那么就会超时断开
 ReadMsgTimeout=10000
 #最大客户端连接数
 MaxUserNum = 5
-# 一个客户端最大的代理数
-UserMaxProxyNum = 10
 
 [Proxy]
+# 控制代理服务进程端口
 Port = 43034
-# 连接的超时时间 单位/毫秒
-ReadMsgTimeout=10000
-#最大客户端连接数
-MaxUserNum = 5
 # 一个客户端最大的代理数
 UserMaxProxyNum = 5
 

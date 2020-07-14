@@ -63,7 +63,15 @@ func relay(dst net.Conn, src net.Conn, resCh chan result) {
 func Relay(dst net.Conn, src net.Conn) (int64, int64, error) {
 	rspCh := make(chan result)
 	// 返回数据转发
-	go relay(src, dst, rspCh)
+	//go relay(src, dst, rspCh)
+
+	go func() {
+		n, err := io.Copy(src, dst)
+		_ = src.SetDeadline(time.Now())
+		_ = dst.SetDeadline(time.Now())
+		rspCh <- result{N: n, Err: err}
+	}()
+
 	n, err := io.Copy(dst, src)
 	_ = src.SetDeadline(time.Now())
 	_ = dst.SetDeadline(time.Now())

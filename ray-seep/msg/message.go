@@ -2,6 +2,7 @@ package msg
 
 import (
 	"context"
+	"errors"
 	"github.com/vilsongwei/vilgo/vlog"
 	"io"
 	"ray-seep/ray-seep/common/conn"
@@ -64,8 +65,13 @@ func (m *MessageCenter) close() {
 }
 
 // 使用 chan 推送消息
-func (m *MessageCenter) SendCh() chan<- Package {
-	return m.sendCh
+func (m *MessageCenter) SendCh(p *Package) error {
+	select {
+	case m.sendCh <- *p:
+	default:
+		return errors.New("send message chan is error")
+	}
+	return nil
 }
 
 // 启动一个异步接收消息的协程，消息会发送到 router 处理
